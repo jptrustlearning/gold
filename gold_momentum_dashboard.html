@@ -379,7 +379,7 @@ function renderStats() {
   const items = [
     { v: f('Gross_Score_Avg'), l: 'Gross Score', cls: 'gold' },
     { v: f('RSI_Value'), l: 'RSI (14d)', cls: fi('RSI_Value') >= 50 && fi('RSI_Value') <= 70 ? 'green' : 'orange' },
-    { v: D.Golden_Cross === 'True' ? '✅ Yes' : '❌ No', l: 'Golden Cross', cls: D.Golden_Cross === 'True' ? 'green' : 'red' },
+    { v: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? '✅ Yes' : '❌ No', l: 'Golden Cross', cls: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? 'green' : 'red' },
     { v: f('Volatility_Pct') + '%', l: 'Volatility (Ann.)', cls: fi('Volatility_Pct') <= 30 ? 'green' : fi('Volatility_Pct') <= 50 ? 'orange' : 'red' },
     { v: '$' + fi('MA50').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA50', cls: 'blue' },
     { v: '$' + fi('MA200').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA200', cls: 'purple' },
@@ -483,7 +483,7 @@ function renderInfo() {
     { k: 'Price', v: '$' + fi('Price').toLocaleString('en-US',{minimumFractionDigits:2}) },
     { k: 'MA50', v: '$' + fi('MA50').toLocaleString('en-US',{minimumFractionDigits:2}) },
     { k: 'MA200', v: '$' + fi('MA200').toLocaleString('en-US',{minimumFractionDigits:2}) },
-    { k: 'Golden Cross', v: D.Golden_Cross === 'True' ? '✅ MA50 > MA200' : '❌ MA50 < MA200' },
+    { k: 'Golden Cross', v: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? '✅ MA50 > MA200' : '❌ MA50 < MA200' },
     { k: 'RSI (14-day)', v: fi('RSI_Value').toFixed(1) },
     { k: 'Volatility (Ann.)', v: fi('Volatility_Pct').toFixed(1) + '%' },
     { k: 'WP Return Pctl', v: fi('WP_Return_Pct').toFixed(1) + '%' },
