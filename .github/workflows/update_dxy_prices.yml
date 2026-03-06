@@ -1,0 +1,117 @@
+name: Daily DXY Price Update
+
+on:
+  schedule:
+    # ทุกวันจันทร์-ศุกร์ เวลา 23:00 UTC วันก่อนหน้า (06:00 เวลาไทย)
+    - cron: '0 23 * * 0-4'
+  workflow_dispatch: # รัน manual ได้จาก Actions tab
+
+jobs:
+  update-dxy-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Fetch and update DXY prices
+        run: |
+          python3 << 'EOF'
+          import yfinance as yf
+          import pandas as pd
+          from datetime import datetime, timedelta
+          import os
+
+          SYMBOL = 'DX-Y.NYB'
+          CSV_FILE = 'dxy_prices.csv'
+          FALLBACK_START = '2020-01-01'
+
+          # อ่านข้อมูลเดิม
+          if os.path.exists(CSV_FILE):
+              df_existing = pd.read_csv(CSV_FILE, encoding='utf-8-sig')
+              df_existing.columns = ['Date','Open','High','Low','Close','Volume']
+              df_existing['Date'] = pd.to_datetime(df_existing['Date'])
+              last_date = df_existing['Date'].max()
+              start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+              print(f'📂 Existing: {len(df_existing)} rows, last: {last_date.date()}')
+          else:
+              df_existing = pd.DataFrame(columns=['Date','Open','High','Low','Close','Volume'])
+              start_date = FALLBACK_START
+              print(f'📂 No existing file — starting from {FALLBACK_START}')
+
+          end_date = datetime.now().strftime('%Y-%m-%d')
+          print(f'🔄 Fetching {SYMBOL}: {start_date} → {end_date}')
+
+          # ดึงข้อมูลใหม่
+          dxy = yf.Ticker(SYMBOL)
+          df_new = dxy.history(start=start_date, end=end_date)
+
+          if df_new.empty:
+              print('ℹ️  No new data available — already up to date')
+              with open('NO_NEW_DATA', 'w') as f:
+                  f.write('true')
+          else:
+              df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
+              df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
+              if df_new['Date_raw'].dt.tz is not None:
+                  df_new['Date_raw'] = df_new['Date_raw'].dt.tz_localize(None)
+              df_new['Date'] = df_new['Date_raw']
+              df_new = df_new[['Date','Open','High','Low','Close','Volume']]
+              for col in ['Open','High','Low','Close']:
+                  df_new[col] = df_new[col].round(2)
+              df_new['Volume'] = df_new['Volume'].astype(int)
+              new_count = len(df_new)
+              print(f'📊 Fetched {new_count} new rows')
+
+              # Merge
+              df_all = pd.concat([df_existing, df_new], ignore_index=True)
+              df_all['Date'] = pd.to_datetime(df_all['Date'])
+              df_all = df_all.drop_duplicates(subset='Date', keep='last')
+              df_all = df_all.sort_values('Date').reset_index(drop=True)
+
+              # Save (Thai headers เหมือน gold_prices.csv)
+              df_out = df_all.copy()
+              df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+              df_out.columns = ['วันที่','ราคาเปิด','ราคาสูงสุด','ราคาต่ำสุด','ราคาปิด','ปริมาณซื้อขาย']
+              df_out.to_csv(CSV_FILE, index=False, encoding='utf-8-sig')
+
+              latest_price = df_all['Close'].iloc[-1]
+              latest_date = df_all['Date'].max().strftime('%Y-%m-%d')
+              print(f'✅ Total: {len(df_all)} rows | Latest: {latest_price:.2f} @ {latest_date}')
+
+              with open('COMMIT_INFO', 'w') as f:
+                  f.write(f'+{new_count} rows | {latest_price:.2f} @ {latest_date}')
+          EOF
+
+      - name: Commit and push
+        run: |
+          if [ -f NO_NEW_DATA ]; then
+            echo "✅ No new data — skipping push"
+            exit 0
+          fi
+
+          if [ ! -f COMMIT_INFO ]; then
+            echo "✅ No changes to commit"
+            exit 0
+          fi
+
+          COMMIT_INFO=$(cat COMMIT_INFO)
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+          git add dxy_prices.csv
+          git diff --cached --quiet || (
+            git commit -m "💵 DXY prices ${COMMIT_INFO} (Actions)"
+            git push
+            echo "✅ Pushed to GitHub"
+          )
