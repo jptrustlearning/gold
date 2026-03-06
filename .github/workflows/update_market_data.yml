@@ -176,14 +176,14 @@ jobs:
           git config user.name "JP Trust Learning"
 
           # Add เฉพาะไฟล์ที่มี data ใหม่จริงๆ
-          while IFS= read -r csvfile; do
+          for csvfile in $(cat UPDATED_FILES); do
             if [ -f "$csvfile" ]; then
               git add "$csvfile"
               echo "  ✅ Added: $csvfile"
             else
               echo "  ❌ File not found: $csvfile"
             fi
-          done < UPDATED_FILES
+          done
 
           echo "📋 Git status:"
           git status --short
