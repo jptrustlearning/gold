@@ -18,7 +18,7 @@
   --blue:#60A5FA;--blue-dim:rgba(96,165,250,.15);
   --purple:#A78BFA;--purple-dim:rgba(167,139,250,.15);
   --orange:#FB923C;--orange-dim:rgba(251,146,60,.15);
-  --cyan:#22D3EE;
+  --cyan:#22D3EE;--cyan-dim:rgba(34,211,238,.15);
   --text:#E8E6E1;--text2:#9CA3AF;--text3:#6B7280;
   --font-h:'DM Serif Display',serif;--font-b:'Instrument Sans',sans-serif;
 }
@@ -59,11 +59,11 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .hero-delta .sub{font-size:.75rem;color:var(--text3);margin-top:6px}
 
 /* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px;text-align:center;position:relative;overflow:hidden}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.5}
 .stat-card.gold::after{background:var(--gold)}.stat-card.green::after{background:var(--emerald)}.stat-card.red::after{background:var(--red)}.stat-card.blue::after{background:var(--blue)}.stat-card.purple::after{background:var(--purple)}.stat-card.orange::after{background:var(--orange)}.stat-card.cyan::after{background:var(--cyan)}
-.stat-card .v{font-family:var(--font-h);font-size:1.6rem;line-height:1.2}
+.stat-card .v{font-family:var(--font-h);font-size:1.5rem;line-height:1.2}
 .stat-card .l{font-size:.66rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
 
 /* Sections */
@@ -74,7 +74,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .chart-box{height:320px;position:relative}
 
 /* Dimension Bars */
-.dim-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.dim-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
 .dim-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
 .dim-card .score{font-family:var(--font-h);font-size:1.8rem;line-height:1}
 .dim-card .max{font-size:.72rem;color:var(--text3);margin-top:2px}
@@ -89,6 +89,18 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .ret-card .val{font-size:1.1rem;font-weight:700}
 .ret-card .pctl{font-size:.72rem;color:var(--text3);margin-top:4px}
 .pos{color:var(--emerald)}.neg{color:var(--red)}.neu{color:var(--text2)}
+
+/* Macro signal cards */
+.macro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.macro-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.macro-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:2px 2px 0 0}
+.macro-card.dxy::before{background:linear-gradient(90deg,#60A5FA,#818CF8)}
+.macro-card.vix::before{background:linear-gradient(90deg,#FB923C,#F87171)}
+.macro-card .macro-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.macro-card .macro-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
+.macro-card .macro-value{font-family:var(--font-h);font-size:1.6rem}
+.macro-card .macro-signal{display:inline-block;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;margin-top:6px;line-height:1.4}
+.macro-card .macro-note{font-size:.72rem;color:var(--text3);margin-top:8px}
 
 /* Info grid */
 .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
@@ -121,13 +133,14 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .loading-msg{text-align:center;padding:60px;color:var(--text2);font-size:1.1rem;animation:pulse 1.5s infinite}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .6s ease forwards;opacity:0}
-.fade-up:nth-child(1){animation-delay:.05s}.fade-up:nth-child(2){animation-delay:.1s}.fade-up:nth-child(3){animation-delay:.15s}.fade-up:nth-child(4){animation-delay:.2s}.fade-up:nth-child(5){animation-delay:.25s}.fade-up:nth-child(6){animation-delay:.3s}.fade-up:nth-child(7){animation-delay:.35s}
+.fade-up:nth-child(1){animation-delay:.05s}.fade-up:nth-child(2){animation-delay:.1s}.fade-up:nth-child(3){animation-delay:.15s}.fade-up:nth-child(4){animation-delay:.2s}.fade-up:nth-child(5){animation-delay:.25s}.fade-up:nth-child(6){animation-delay:.3s}.fade-up:nth-child(7){animation-delay:.35s}.fade-up:nth-child(8){animation-delay:.4s}
 
 @media(max-width:768px){
   .container{padding:14px 10px}
   .hero{gap:20px}
   .dim-grid{grid-template-columns:repeat(3,1fr)}
   .ret-grid{grid-template-columns:repeat(3,1fr)}
+  .macro-grid{grid-template-columns:1fr}
   .chart-box{height:260px}
   .hero-score .ring{width:160px;height:160px}
   .hero-score .center .v{font-size:2.2rem}
@@ -142,7 +155,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 <div class="container">
   <header class="header">
     <h1>Gold Momentum Score</h1>
-    <div class="sub">JP Trust Learning &bull; Rolling Percentile Analysis v2.2</div>
+    <div class="sub">JP Trust Learning &bull; Rolling Percentile + Macro Factor Analysis v2.3</div>
     <div class="period" id="periodLabel">Loading...</div>
   </header>
 
@@ -160,10 +173,16 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     <!-- Stats Grid -->
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- Dimension Breakdown -->
+    <!-- Dimension Breakdown (now 6 dimensions) -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Momentum Dimensions (each /20)</div>
+      <div class="section-title"><span class="dot"></span>Momentum Dimensions (D1–D5 /20 each, D6 /10)</div>
       <div class="dim-grid" id="dimGrid"></div>
+    </div>
+
+    <!-- Macro Factor Signals: DXY + VIX -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Macro Factor Signals — DXY &amp; VIX</div>
+      <div class="macro-grid" id="macroGrid"></div>
     </div>
 
     <!-- Returns -->
@@ -210,8 +229,8 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   </div>
 
   <footer class="footer">
-    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.2</p>
-    <p style="margin-top:4px">Rolling Percentile Analysis &bull; Single Asset Momentum</p>
+    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.3</p>
+    <p style="margin-top:4px">Rolling Percentile + Macro Factor Analysis &bull; Single Asset Momentum</p>
   </footer>
 </div>
 
@@ -287,8 +306,7 @@ const fi = (key) => parseFloat(D[key] || 0);
 const tierColor = t => t.includes('Very Strong') ? 'var(--emerald)' : t.includes('Strong') ? '#34D399' : t.includes('Moderate') ? 'var(--gold)' : t.includes('Neutral') ? 'var(--text2)' : 'var(--red)';
 const scoreColor = v => v >= 85 ? 'var(--emerald)' : v >= 75 ? '#34D399' : v >= 60 ? 'var(--gold)' : v >= 45 ? 'var(--text)' : v >= 30 ? 'var(--text2)' : 'var(--red)';
 const retColor = v => v >= 0 ? 'var(--emerald)' : 'var(--red)';
-const rsiColor = v => v >= 50 && v <= 70 ? 'var(--emerald)' : v > 70 ? 'var(--red)' : 'var(--text2)';
-const dimColors = ['#60A5FA','#A78BFA','#34D399','#E8B931','#FB923C'];
+const dimColors = ['#60A5FA','#A78BFA','#34D399','#E8B931','#FB923C','#22D3EE'];
 
 // ============================================================
 // RENDER ALL
@@ -297,6 +315,7 @@ function render() {
   renderHero();
   renderStats();
   renderDimensions();
+  renderMacro();
   renderReturns();
   renderPenalty();
   renderInfo();
@@ -347,18 +366,16 @@ function renderHero() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const cx = 100, cy = 100, r = 85, lw = 10;
-    const pct = Math.max(0, Math.min(netAvg / 100, 1));
+    const pct = Math.max(0, Math.min(netAvg / 110, 1));
     const startA = -Math.PI / 2;
     const endA = startA + pct * 2 * Math.PI;
 
-    // Background ring
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     ctx.strokeStyle = 'rgba(255,255,255,.06)';
     ctx.lineWidth = lw;
     ctx.stroke();
 
-    // Score ring
     const grad = ctx.createLinearGradient(0, 0, 200, 200);
     grad.addColorStop(0, '#E8B931');
     grad.addColorStop(0.5, '#34D399');
@@ -383,6 +400,7 @@ function renderStats() {
     { v: f('Volatility_Pct') + '%', l: 'Volatility (Ann.)', cls: fi('Volatility_Pct') <= 30 ? 'green' : fi('Volatility_Pct') <= 50 ? 'orange' : 'red' },
     { v: '$' + fi('MA50').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA50', cls: 'blue' },
     { v: '$' + fi('MA200').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA200', cls: 'purple' },
+    { v: f('D6_External',0), l: 'D6 External', cls: 'cyan' },
     { v: f('Penalty_Total', 0), l: 'Penalty', cls: fi('Penalty_Total') < 0 ? 'red' : 'green' },
   ];
 
@@ -395,29 +413,83 @@ function renderStats() {
 }
 
 // ============================================================
-// DIMENSIONS
+// DIMENSIONS (now 6: D1-D5 /20 + D6 /10)
 // ============================================================
 function renderDimensions() {
   const dims = [
-    { key: 'D1_ReturnRank', name: 'Return Rank', color: dimColors[0] },
-    { key: 'D2_VolumeRank', name: 'Volume Rank', color: dimColors[1] },
-    { key: 'D3_RSI', name: 'RSI', color: dimColors[2] },
-    { key: 'D4_MA', name: 'MA Trend', color: dimColors[3] },
-    { key: 'D5_Volatility', name: 'Volatility', color: dimColors[4] },
+    { key: 'D1_ReturnRank', name: 'Return Rank', color: dimColors[0], max: 20 },
+    { key: 'D2_VolumeRank', name: 'Volume Rank', color: dimColors[1], max: 20 },
+    { key: 'D3_RSI', name: 'RSI', color: dimColors[2], max: 20 },
+    { key: 'D4_MA', name: 'MA Trend', color: dimColors[3], max: 20 },
+    { key: 'D5_Volatility', name: 'Volatility', color: dimColors[4], max: 20 },
+    { key: 'D6_External', name: 'Macro (DXY+VIX)', color: dimColors[5], max: 10 },
   ];
 
   document.getElementById('dimGrid').innerHTML = dims.map(d => {
     const val = fi(d.key);
-    const pct = (val / 20 * 100).toFixed(0);
+    const pct = (val / d.max * 100).toFixed(0);
     return `
       <div class="dim-card">
         <div class="score" style="color:${d.color}">${val.toFixed(1)}</div>
-        <div class="max">/ 20</div>
+        <div class="max">/ ${d.max}</div>
         <div class="name">${d.name}</div>
         <div class="bar"><div class="fill" style="width:${pct}%;background:${d.color}"></div></div>
       </div>
     `;
   }).join('');
+}
+
+// ============================================================
+// MACRO FACTOR SIGNALS (DXY + VIX)
+// ============================================================
+function renderMacro() {
+  const dxyPct = fi('DXY_1M_Pct');
+  const vixLevel = fi('VIX_Level');
+  const dxySig = D.DXY_Signal || '';
+  const vixSig = D.VIX_Signal || '';
+
+  // Determine DXY signal color/bg
+  const dxyBullish = dxySig.includes('🟢');
+  const dxyNeutral = dxySig.includes('🟡');
+  const dxyColor = dxyBullish ? 'var(--emerald)' : dxyNeutral ? 'var(--gold)' : 'var(--red)';
+  const dxyBg = dxyBullish ? 'var(--emerald-dim)' : dxyNeutral ? 'var(--gold-dim)' : 'var(--red-dim)';
+
+  // Determine VIX signal color/bg
+  const vixBlue = vixSig.includes('🔵');
+  const vixGreen = vixSig.includes('🟢');
+  const vixColor = vixGreen ? 'var(--emerald)' : vixBlue ? 'var(--blue)' : vixSig.includes('🟡') ? 'var(--gold)' : 'var(--red)';
+  const vixBg = vixGreen ? 'var(--emerald-dim)' : vixBlue ? 'var(--blue-dim)' : vixSig.includes('🟡') ? 'var(--gold-dim)' : 'var(--red-dim)';
+
+  // Clean signal text (remove emoji prefix for display)
+  const dxySigClean = dxySig.replace(/^[🟢🟡🔴🔵]\s*/, '');
+  const vixSigClean = vixSig.replace(/^[🟢🟡🔴🔵]\s*/, '');
+
+  document.getElementById('macroGrid').innerHTML = `
+    <div class="macro-card dxy">
+      <div class="macro-header">
+        <span class="macro-label">DXY (US Dollar Index) — 1M Change</span>
+      </div>
+      <div class="macro-value" style="color:${dxyPct >= 0 ? 'var(--emerald)' : 'var(--red)'}">
+        ${dxyPct >= 0 ? '+' : ''}${dxyPct.toFixed(2)}%
+      </div>
+      <div class="macro-signal" style="color:${dxyColor};background:${dxyBg}">
+        ${dxySig.charAt(0)} ${dxySigClean}
+      </div>
+      <div class="macro-note">DXY ↑ = dollar strong → typically bearish gold | DXY ↓ = dollar weak → typically bullish gold</div>
+    </div>
+    <div class="macro-card vix">
+      <div class="macro-header">
+        <span class="macro-label">VIX (CBOE Volatility Index) — Current Level</span>
+      </div>
+      <div class="macro-value" style="color:${vixLevel <= 15 ? 'var(--emerald)' : vixLevel <= 20 ? 'var(--gold)' : vixLevel <= 30 ? 'var(--orange)' : 'var(--red)'}">
+        ${vixLevel.toFixed(2)}
+      </div>
+      <div class="macro-signal" style="color:${vixColor};background:${vixBg}">
+        ${vixSig.charAt(0)} ${vixSigClean}
+      </div>
+      <div class="macro-note">VIX &lt;15 calm | 15-20 normal | 20-30 elevated fear → gold safe haven | &gt;30 panic</div>
+    </div>
+  `;
 }
 
 // ============================================================
@@ -460,11 +532,10 @@ function renderPenalty() {
       ? 'No momentum reversal or death cross signals detected. All clear.'
       : `<strong>Total Penalty: ${total}</strong><br>
          Reversal: ${rev} &nbsp;|&nbsp; Death Cross: ${dc}<br>
-         ${flags ? 'Flags: ' + flags : ''}`
+         ${flags && flags !== 'None' ? 'Flags: ' + flags : ''}`
     }</div>
   </div>`;
 
-  // Penalty breakdown table
   html += `<div class="info-grid">
     <div class="info-item"><span class="k">Momentum Reversal</span><span class="v" style="color:${rev < 0 ? 'var(--red)' : 'var(--emerald)'}">${rev === 0 ? '✅ None' : rev + ' pts'}</span></div>
     <div class="info-item"><span class="k">Death Cross (MA50 &lt; MA200)</span><span class="v" style="color:${dc < 0 ? 'var(--red)' : 'var(--emerald)'}">${dc === 0 ? '✅ None' : dc + ' pts'}</span></div>
@@ -488,6 +559,9 @@ function renderInfo() {
     { k: 'Volatility (Ann.)', v: fi('Volatility_Pct').toFixed(1) + '%' },
     { k: 'WP Return Pctl', v: fi('WP_Return_Pct').toFixed(1) + '%' },
     { k: 'WP Volume Pctl', v: fi('WP_Volume_Pct').toFixed(1) + '%' },
+    { k: 'DXY 1M Change', v: (fi('DXY_1M_Pct') >= 0 ? '+' : '') + fi('DXY_1M_Pct').toFixed(2) + '%' },
+    { k: 'VIX Level', v: fi('VIX_Level').toFixed(2) },
+    { k: 'D6 External Score', v: fi('D6_External').toFixed(1) + ' / 10' },
     { k: 'Base Date 1', v: D.Base_Date_1 },
     { k: 'Base Date 2', v: D.Base_Date_2 },
     { k: 'Net Score BD1', v: f('Net_Score_BD1') },
@@ -514,7 +588,6 @@ function renderTierLegend() {
 
   const currentTier = D.Tier;
   document.getElementById('tierLegend').innerHTML = tiers.map(t => {
-    const isCurrent = currentTier.includes(t.name.split(' ')[0]) && currentTier.includes(t.name.split(' ')[1] || '');
     const isActive = D.Tier === t.name;
     return `<div class="tier-chip" style="background:${t.bg};color:${t.color};border:1px solid ${t.border};${isActive ? 'box-shadow:0 0 12px ' + t.border + ';transform:scale(1.1)' : 'opacity:.6'}">
       ${t.name} (${t.range})${isActive ? ' ◀ CURRENT' : ''}
@@ -527,12 +600,13 @@ function renderTierLegend() {
 // ============================================================
 function renderMethodology() {
   const cards = [
-    { title: 'D1: Return Rank', body: 'Rolling percentile of multi-period returns (1W–1Y) vs past 252 trading days. Weights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%.' },
-    { title: 'D2: Volume Rank', body: 'Rolling percentile of cumulative volume per period. Same weight structure as Return Rank.' },
-    { title: 'D3: RSI', body: '14-day Relative Strength Index. Sweet spot (50–70) = 20pts. Overbought/oversold scores lower.' },
-    { title: 'D4: MA Trend', body: 'Price vs MA50 (+7), Price vs MA200 (+7), Golden Cross MA50>MA200 (+6). Max 20pts.' },
-    { title: 'D5: Volatility', body: 'Annualized 21-day volatility. Lower = better. ≤20%=20pts down to >80%=2pts.' },
-    { title: 'Penalty System', body: 'Momentum Reversal: -5 (mild) or -10 (strong). Death Cross: -5. Capped at -15 total.' },
+    { title: 'D1: Return Rank (0–20)', body: 'Rolling percentile of multi-period returns (1W–1Y) vs past 252 trading days. Weights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%.' },
+    { title: 'D2: Volume Rank (0–20)', body: 'Rolling percentile of cumulative volume per period. Same weight structure as Return Rank.' },
+    { title: 'D3: RSI (0–20)', body: '14-day Relative Strength Index. Sweet spot (50–70) = 20pts. Overbought/oversold scores lower.' },
+    { title: 'D4: MA Trend (0–20)', body: 'Price vs MA50 (+7), Price vs MA200 (+7), Golden Cross MA50>MA200 (+6). Max 20pts.' },
+    { title: 'D5: Volatility (0–20)', body: 'Annualized 21-day volatility. Lower = better. ≤20%=20pts down to >80%=2pts.' },
+    { title: 'D6: External Macro (0–10)', body: 'DXY: dollar weakness = bullish gold (up to +5). VIX: elevated fear = safe-haven demand (up to +5). Combined max 10pts.' },
+    { title: 'Penalty System', body: 'Momentum Reversal: -5 (mild) or -10 (strong). Death Cross: -5. Capped at -15 total. Applied after all dimensions.' },
   ];
 
   document.getElementById('methodGrid').innerHTML = cards.map(c => `
@@ -544,12 +618,14 @@ function renderMethodology() {
 }
 
 // ============================================================
-// RADAR CHART
+// RADAR CHART (6 dimensions — normalized to 0-20 scale)
 // ============================================================
 function renderRadarChart() {
   const ctx = document.getElementById('radarChart').getContext('2d');
-  const labels = ['Return Rank','Volume Rank','RSI','MA Trend','Volatility'];
-  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility')];
+  const labels = ['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro (DXY+VIX)'];
+  // Normalize D6 from /10 to /20 scale for radar visual balance
+  const d6Normalized = fi('D6_External') * 2;
+  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility'), d6Normalized];
 
   new Chart(ctx, {
     type: 'radar',
@@ -570,7 +646,17 @@ function renderRadarChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              if (ctx.dataIndex === 5) return (ctx.raw / 2).toFixed(1) + ' / 10 (scaled ×2 for radar)';
+              return ctx.raw.toFixed(1) + ' / 20';
+            }
+          }
+        }
+      },
       scales: {
         r: {
           min: 0, max: 20,
@@ -585,12 +671,12 @@ function renderRadarChart() {
 }
 
 // ============================================================
-// BAR CHART
+// BAR CHART (6 dimensions + penalty)
 // ============================================================
 function renderBarChart() {
   const ctx = document.getElementById('barChart').getContext('2d');
-  const labels = ['Return','Volume','RSI','MA','Volatility'];
-  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility')];
+  const labels = ['Return','Volume','RSI','MA','Volatility','Macro'];
+  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility'), fi('D6_External')];
   const penalty = fi('Penalty_Total');
 
   const allLabels = [...labels];
@@ -622,7 +708,13 @@ function renderBarChart() {
         tooltip: {
           backgroundColor: '#1e293b', borderColor: '#E8B931', borderWidth: 1,
           titleColor: '#E8B931', bodyColor: '#E8E6E1', padding: 10,
-          callbacks: { label: item => item.raw + (item.dataIndex < 5 ? ' / 20' : ' pts') }
+          callbacks: {
+            label: function(item) {
+              if (item.dataIndex === 5) return item.raw + ' / 10';
+              if (item.dataIndex < 5) return item.raw + ' / 20';
+              return item.raw + ' pts';
+            }
+          }
         }
       },
       scales: {
