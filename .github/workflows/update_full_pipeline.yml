@@ -1,0 +1,248 @@
+name: Daily Full Pipeline (Market Data → Gold Price → Momentum Score)
+
+on:
+  schedule:
+    # ทุกวันจันทร์-ศุกร์ เวลา 23:00 UTC = 06:00 เวลาไทย (วันถัดไป)
+    - cron: '0 23 * * 0-4'
+  workflow_dispatch: # รัน manual ได้จาก Actions tab
+
+jobs:
+  full-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas numpy openpyxl
+
+      # ════════════════════════════════════════════════════════════
+      # STEP 1: ดึง Market Data (DXY, US10Y, Brent, WTI, VIX)
+      # ════════════════════════════════════════════════════════════
+      - name: "Step 1: Fetch market data (DXY, US10Y, Brent, WTI, VIX)"
+        run: |
+          python3 << 'PYEOF'
+          import yfinance as yf
+          import pandas as pd
+          from datetime import datetime, timedelta
+          import os
+
+          FALLBACK_START = '2020-01-01'
+
+          ASSETS = [
+              {"symbol": "DX-Y.NYB", "csv": "dxy_prices.csv",   "name": "DXY",          "decimals": 2},
+              {"symbol": "^TNX",     "csv": "us10y_prices.csv", "name": "US 10Y Yield", "decimals": 3},
+              {"symbol": "BZ=F",     "csv": "brent_prices.csv", "name": "Brent Crude",  "decimals": 2},
+              {"symbol": "CL=F",     "csv": "wti_prices.csv",   "name": "WTI Crude",    "decimals": 2},
+              {"symbol": "^VIX",     "csv": "vix_prices.csv",   "name": "VIX",          "decimals": 2},
+          ]
+
+          results = []
+
+          for asset in ASSETS:
+              symbol = asset["symbol"]
+              csv_file = asset["csv"]
+              name = asset["name"]
+              decimals = asset["decimals"]
+
+              print(f'\n{"="*50}')
+              print(f'📊 {name} ({symbol})')
+              print(f'{"="*50}')
+
+              if os.path.exists(csv_file):
+                  df_existing = pd.read_csv(csv_file, encoding='utf-8-sig')
+                  df_existing.columns = ['Date','Open','High','Low','Close','Volume']
+                  df_existing['Date'] = pd.to_datetime(df_existing['Date'])
+                  last_date = df_existing['Date'].max()
+                  start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+                  print(f'📂 Existing: {len(df_existing)} rows, last: {last_date.date()}')
+              else:
+                  df_existing = pd.DataFrame(columns=['Date','Open','High','Low','Close','Volume'])
+                  start_date = FALLBACK_START
+                  print(f'📂 No existing file — starting from {FALLBACK_START}')
+
+              end_date = datetime.now().strftime('%Y-%m-%d')
+              print(f'🔄 Fetching: {start_date} → {end_date}')
+
+              try:
+                  ticker = yf.Ticker(symbol)
+                  df_new = ticker.history(start=start_date, end=end_date)
+              except Exception as e:
+                  print(f'❌ Error fetching {symbol}: {e}')
+                  results.append({"name": name, "status": "error", "new": 0})
+                  continue
+
+              if df_new.empty:
+                  print(f'ℹ️  No new data available')
+                  results.append({"name": name, "status": "skip", "new": 0})
+                  continue
+
+              try:
+                  df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
+                  df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
+                  if df_new['Date_raw'].dt.tz is not None:
+                      df_new['Date_raw'] = df_new['Date_raw'].dt.tz_localize(None)
+                  df_new['Date'] = df_new['Date_raw']
+                  df_new = df_new[['Date','Open','High','Low','Close','Volume']]
+                  for col in ['Open','High','Low','Close']:
+                      df_new[col] = df_new[col].round(decimals)
+                  df_new['Volume'] = df_new['Volume'].fillna(0).astype(int)
+                  new_count = len(df_new)
+
+                  df_all = pd.concat([df_existing, df_new], ignore_index=True)
+                  df_all['Date'] = pd.to_datetime(df_all['Date'])
+                  df_all = df_all.drop_duplicates(subset='Date', keep='last')
+                  df_all = df_all.sort_values('Date').reset_index(drop=True)
+
+                  df_out = df_all.copy()
+                  df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+                  df_out.columns = ['วันที่','ราคาเปิด','ราคาสูงสุด','ราคาต่ำสุด','ราคาปิด','ปริมาณซื้อขาย']
+                  df_out.to_csv(csv_file, index=False, encoding='utf-8-sig')
+
+                  latest = df_all['Close'].iloc[-1]
+                  print(f'✅ Total: {len(df_all)} rows (+{new_count} new) | Latest: {latest:.{decimals}f}')
+                  results.append({"name": name, "status": "ok", "new": new_count, "csv": csv_file})
+              except Exception as e:
+                  print(f'❌ Error processing {name}: {e}')
+                  results.append({"name": name, "status": "error", "new": 0})
+
+          # Summary
+          print(f'\n{"="*50}')
+          print('📋 MARKET DATA SUMMARY')
+          print(f'{"="*50}')
+          market_parts = []
+          for r in results:
+              if r["status"] == "ok":
+                  print(f'  ✅ {r["name"]}: +{r["new"]} rows')
+                  market_parts.append(f'{r["name"]}+{r["new"]}')
+              elif r["status"] == "skip":
+                  print(f'  ⏭️  {r["name"]}: no new data')
+              else:
+                  print(f'  ❌ {r["name"]}: error')
+
+          with open('MARKET_SUMMARY', 'w') as f:
+              f.write(' | '.join(market_parts) if market_parts else 'no new data')
+          PYEOF
+
+      # ════════════════════════════════════════════════════════════
+      # STEP 2: ดึงราคาทอง + อัพเดท gold_prices.csv
+      # ════════════════════════════════════════════════════════════
+      - name: "Step 2: Fetch gold prices"
+        run: |
+          python3 << 'EOF'
+          import yfinance as yf
+          import pandas as pd
+          from datetime import datetime, timedelta
+          import os
+
+          SYMBOL = 'GC=F'
+          CSV_FILE = 'gold_prices.csv'
+          FALLBACK_START = '2020-01-01'
+
+          if os.path.exists(CSV_FILE):
+              df_existing = pd.read_csv(CSV_FILE, encoding='utf-8-sig')
+              df_existing.columns = ['Date','Open','High','Low','Close','Volume']
+              df_existing['Date'] = pd.to_datetime(df_existing['Date'])
+              last_date = df_existing['Date'].max()
+              start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+              print(f'📂 Existing gold: {len(df_existing)} rows, last: {last_date.date()}')
+          else:
+              df_existing = pd.DataFrame(columns=['Date','Open','High','Low','Close','Volume'])
+              start_date = FALLBACK_START
+
+          end_date = datetime.now().strftime('%Y-%m-%d')
+          print(f'🔄 Fetching {SYMBOL}: {start_date} → {end_date}')
+
+          gold = yf.Ticker(SYMBOL)
+          df_new = gold.history(start=start_date, end=end_date)
+
+          if df_new.empty:
+              print('ℹ️  No new gold data')
+              with open('GOLD_INFO', 'w') as f:
+                  f.write('no new data')
+          else:
+              df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
+              df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
+              if df_new['Date_raw'].dt.tz is not None:
+                  df_new['Date_raw'] = df_new['Date_raw'].dt.tz_localize(None)
+              df_new['Date'] = df_new['Date_raw']
+              df_new = df_new[['Date','Open','High','Low','Close','Volume']]
+              for col in ['Open','High','Low','Close']:
+                  df_new[col] = df_new[col].round(1)
+              df_new['Volume'] = df_new['Volume'].astype(int)
+              new_count = len(df_new)
+
+              df_all = pd.concat([df_existing, df_new], ignore_index=True)
+              df_all['Date'] = pd.to_datetime(df_all['Date'])
+              df_all = df_all.drop_duplicates(subset='Date', keep='last')
+              df_all = df_all.sort_values('Date').reset_index(drop=True)
+
+              df_out = df_all.copy()
+              df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+              df_out.columns = ['วันที่','ราคาเปิด','ราคาสูงสุด','ราคาต่ำสุด','ราคาปิด','ปริมาณซื้อขาย']
+              df_out.to_csv(CSV_FILE, index=False, encoding='utf-8-sig')
+
+              latest_price = df_all['Close'].iloc[-1]
+              latest_date = df_all['Date'].max().strftime('%Y-%m-%d')
+              print(f'✅ Gold: {len(df_all)} rows (+{new_count}) | ${latest_price:.1f} @ {latest_date}')
+
+              with open('GOLD_INFO', 'w') as f:
+                  f.write(f'+{new_count} rows | ${latest_price:.1f} @ {latest_date}')
+          EOF
+
+      # ════════════════════════════════════════════════════════════
+      # STEP 3: รัน Momentum Scoring V2 (ใช้ DXY + VIX ที่อัพเดทแล้ว)
+      # ════════════════════════════════════════════════════════════
+      - name: "Step 3: Run Momentum Scoring V2 (with external context)"
+        run: |
+          echo "🎯 Running Gold Momentum Score v2.0..."
+          python3 gold_momentum_v2.py
+          echo "✅ Momentum scoring complete"
+
+      # ════════════════════════════════════════════════════════════
+      # STEP 4: Commit & Push ทุกอย่างพร้อมกัน
+      # ════════════════════════════════════════════════════════════
+      - name: "Step 4: Commit and push all outputs"
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+
+          TIMESTAMP=$(date -u +"%d/%m/%Y %H:%M UTC")
+          MARKET_SUMMARY=$(cat MARKET_SUMMARY 2>/dev/null || echo "")
+          GOLD_INFO=$(cat GOLD_INFO 2>/dev/null || echo "")
+
+          # Add market data CSVs
+          git add dxy_prices.csv us10y_prices.csv brent_prices.csv wti_prices.csv vix_prices.csv 2>/dev/null || true
+
+          # Add gold prices
+          git add gold_prices.csv 2>/dev/null || true
+
+          # Add momentum outputs
+          git add output_momentum_gold.csv 2>/dev/null || true
+          git add output_momentum_gold_*.csv 2>/dev/null || true
+
+          # ไม่ push Excel (ใหญ่เกินไป)
+          git reset HEAD Gold_Momentum_v2.0.xlsx 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes to push"
+          else
+            # Commit message รวมทุก step
+            MSG="🔄 Full Pipeline: Market(${MARKET_SUMMARY}) | Gold(${GOLD_INFO}) | Score v2.0 — ${TIMESTAMP}"
+            git commit -m "$MSG"
+            git push
+            echo "✅ Pushed to GitHub"
+            echo "📝 $MSG"
+          fi
+
+          # Cleanup
+          rm -f MARKET_SUMMARY GOLD_INFO NO_NEW_DATA
