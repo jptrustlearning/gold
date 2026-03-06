@@ -1,4 +1,4 @@
-name: Daily Gold Price Update
+name: Daily Gold Price + Momentum Score
 
 on:
   schedule:
@@ -8,8 +8,9 @@ on:
   workflow_dispatch: # รัน manual ได้จาก Actions tab
 
 jobs:
-  update-gold-prices:
+  update-prices-and-score:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -23,9 +24,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install yfinance pandas
+        run: pip install yfinance pandas numpy openpyxl
 
+      # ════════════════════════════════════════════════════════════
+      # STEP 1: ดึงราคาทองใหม่ + อัพเดท gold_prices.csv
+      # ════════════════════════════════════════════════════════════
       - name: Fetch and update gold prices
+        id: fetch_prices
         run: |
           python3 << 'EOF'
           import yfinance as yf
@@ -59,7 +64,6 @@ jobs:
 
           if df_new.empty:
               print('ℹ️  No new data available — already up to date')
-              # เขียน flag ให้ step ถัดไปรู้ว่าไม่ต้อง push
               with open('NO_NEW_DATA', 'w') as f:
                   f.write('true')
           else:
@@ -87,35 +91,58 @@ jobs:
               df_out.columns = ['วันที่','ราคาเปิด','ราคาสูงสุด','ราคาต่ำสุด','ราคาปิด','ปริมาณซื้อขาย']
               df_out.to_csv(CSV_FILE, index=False, encoding='utf-8-sig')
 
-              # สร้าง timestamped log file (เก็บ history ทุกรอบ)
-              timestamp = datetime.utcnow().strftime('%d%m%Y_%H%M')
-              log_file = f'gold_prices_{timestamp}.csv'
-              df_out.to_csv(log_file, index=False, encoding='utf-8-sig')
-              print(f'📋 Log file: {log_file}')
-
               latest_price = df_all['Close'].iloc[-1]
               latest_date = df_all['Date'].max().strftime('%Y-%m-%d')
               print(f'✅ Total: {len(df_all)} rows | Latest: ${latest_price:.1f} @ {latest_date}')
 
-              # เขียน info สำหรับ commit message + ชื่อ log file
-              with open('COMMIT_INFO', 'w') as f:
+              with open('PRICE_COMMIT_INFO', 'w') as f:
                   f.write(f'+{new_count} rows | ${latest_price:.1f} @ {latest_date}')
-              with open('LOG_FILENAME', 'w') as f:
-                  f.write(log_file)
           EOF
 
-      - name: Commit and push
+      # ════════════════════════════════════════════════════════════
+      # STEP 2: รัน Momentum Scoring (ต่อทันทีไม่ว่าจะมีข้อมูลใหม่หรือไม่)
+      # ════════════════════════════════════════════════════════════
+      - name: Run Gold Momentum Scoring
+        id: momentum
         run: |
-          if [ -f NO_NEW_DATA ]; then
-            echo "✅ No new data — skipping push"
-            exit 0
-          fi
+          echo "🎯 Running momentum scoring..."
+          python3 gold_momentum_v22.py
+          echo "✅ Momentum scoring complete"
 
-          COMMIT_INFO=$(cat COMMIT_INFO)
-          LOG_FILE=$(cat LOG_FILENAME)
+      # ════════════════════════════════════════════════════════════
+      # STEP 3: Commit & Push ทุกอย่างพร้อมกัน
+      # ════════════════════════════════════════════════════════════
+      - name: Commit and push all outputs
+        run: |
           git config user.email "jptrustlearning@users.noreply.github.com"
           git config user.name "JP Trust Learning"
-          git add gold_prices.csv "$LOG_FILE"
-          git commit -m "🥇 Gold prices ${COMMIT_INFO} (Actions)"
-          git push
-          echo "✅ Pushed to GitHub"
+
+          TIMESTAMP=$(date -u +"%d/%m/%Y %H:%M UTC")
+
+          # Add price CSV (ถ้ามีข้อมูลใหม่)
+          git add gold_prices.csv 2>/dev/null || true
+
+          # Add momentum output files
+          git add output_momentum_gold.csv 2>/dev/null || true
+          git add output_momentum_gold_*.csv 2>/dev/null || true
+
+          # ลบ Excel ออกจาก staging (ไม่ต้อง push Excel ขึ้น GitHub)
+          git reset HEAD Gold_Momentum_v2.2.xlsx 2>/dev/null || true
+
+          # เช็คว่ามีอะไรต้อง push ไหม
+          if git diff --cached --quiet; then
+            echo "✅ No changes to push"
+          else
+            # สร้าง commit message
+            if [ -f PRICE_COMMIT_INFO ]; then
+              PRICE_INFO=$(cat PRICE_COMMIT_INFO)
+              git commit -m "🥇 Gold prices ${PRICE_INFO} + Momentum Score — ${TIMESTAMP}"
+            else
+              git commit -m "🎯 Gold Momentum Score update — ${TIMESTAMP}"
+            fi
+            git push
+            echo "✅ Pushed to GitHub"
+          fi
+
+          # Cleanup temp files
+          rm -f NO_NEW_DATA PRICE_COMMIT_INFO
