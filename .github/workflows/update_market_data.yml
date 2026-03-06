@@ -152,6 +152,10 @@ jobs:
 
       - name: Commit and push
         run: |
+          echo "📂 Working directory: $(pwd)"
+          echo "📂 CSV files present:"
+          ls -la *.csv 2>/dev/null || echo "  (none)"
+
           if [ -f NO_NEW_DATA ]; then
             echo "✅ No new data for any asset — skipping push"
             exit 0
@@ -162,6 +166,10 @@ jobs:
             exit 0
           fi
 
+          echo "📋 COMMIT_INFO: $(cat COMMIT_INFO)"
+          echo "📋 UPDATED_FILES:"
+          cat UPDATED_FILES
+
           COMMIT_INFO=$(cat COMMIT_INFO)
           TIMESTAMP=$(date -u +"%Y-%m-%d")
           git config user.email "jptrustlearning@users.noreply.github.com"
@@ -171,9 +179,14 @@ jobs:
           while IFS= read -r csvfile; do
             if [ -f "$csvfile" ]; then
               git add "$csvfile"
-              echo "  📄 Added: $csvfile"
+              echo "  ✅ Added: $csvfile"
+            else
+              echo "  ❌ File not found: $csvfile"
             fi
           done < UPDATED_FILES
+
+          echo "📋 Git status:"
+          git status --short
 
           git diff --cached --quiet || (
             git commit -m "📈 Market data: ${COMMIT_INFO} — ${TIMESTAMP}"
