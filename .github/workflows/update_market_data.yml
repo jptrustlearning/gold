@@ -1,4 +1,4 @@
-name: Daily Market Data Update (DXY, Yields, Oil, VIX)
+name: Daily Market Data Update (DXY, US10Y, Brent, WTI, VIX)
 
 on:
   schedule:
@@ -40,7 +40,6 @@ jobs:
           # ═══════════════════════════════════════════════════
           ASSETS = [
               {"symbol": "DX-Y.NYB", "csv": "dxy_prices.csv",   "name": "DXY",          "decimals": 2},
-              {"symbol": "^AXTWO",   "csv": "us2y_prices.csv",  "name": "US 2Y Yield",  "decimals": 3},
               {"symbol": "^TNX",     "csv": "us10y_prices.csv", "name": "US 10Y Yield", "decimals": 3},
               {"symbol": "BZ=F",     "csv": "brent_prices.csv", "name": "Brent Crude",  "decimals": 2},
               {"symbol": "CL=F",     "csv": "wti_prices.csv",   "name": "WTI Crude",    "decimals": 2},
