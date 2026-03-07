@@ -2,8 +2,8 @@ name: Daily Full Pipeline (Market Data → Gold Price → Momentum Score)
 
 on:
   schedule:
-    # ทุกวันจันทร์-ศุกร์ เวลา 23:00 UTC = 06:00 เวลาไทย (วันถัดไป)
-    - cron: '0 23 * * 0-4'
+    # ทุกวัน เวลา 23:00 UTC = 06:00 เวลาไทย (วันถัดไป)
+    - cron: '0 23 * * *'
   workflow_dispatch: # รัน manual ได้จาก Actions tab
 
 jobs:
