@@ -200,13 +200,19 @@ jobs:
           EOF
 
       # ════════════════════════════════════════════════════════════
-      # STEP 3: รัน Momentum Scoring V2 (ใช้ DXY + VIX ที่อัพเดทแล้ว)
+      # STEP 3: รัน Momentum Scoring V3 — BUY + SELL
       # ════════════════════════════════════════════════════════════
-      - name: "Step 3: Run Momentum Scoring V2 (with external context)"
+      - name: "Step 3a: Run Momentum Scoring V3 — BUY side"
         run: |
-          echo "🎯 Running Gold Momentum Score v3.0..."
+          echo "🎯 Running Gold Momentum Score v3.0 (BUY)..."
           python3 gold_momentum_v2.py
-          echo "✅ Momentum scoring complete"
+          echo "✅ Buy scoring complete"
+
+      - name: "Step 3b: Run Momentum Scoring V3 — SELL side"
+        run: |
+          echo "🎯 Running Gold Momentum Score v3.0 (SELL)..."
+          python3 gold_momentum_sell.py
+          echo "✅ Sell scoring complete"
 
       # ════════════════════════════════════════════════════════════
       # STEP 4: Commit & Push ทุกอย่างพร้อมกัน
@@ -226,9 +232,11 @@ jobs:
           # Add gold prices
           git add gold_prices.csv 2>/dev/null || true
 
-          # Add momentum outputs
+          # Add momentum outputs (BUY + SELL)
           git add output_momentum_gold.csv 2>/dev/null || true
           git add output_momentum_gold_*.csv 2>/dev/null || true
+          git add output_momentum_gold_sell.csv 2>/dev/null || true
+          git add output_momentum_gold_sell_*.csv 2>/dev/null || true
 
           # ไม่ push Excel (ใหญ่เกินไป)
           git reset HEAD Gold_Momentum_v3.0.xlsx 2>/dev/null || true
@@ -237,7 +245,7 @@ jobs:
             echo "✅ No changes to push"
           else
             # Commit message รวมทุก step
-            MSG="🔄 Full Pipeline: Market(${MARKET_SUMMARY}) | Gold(${GOLD_INFO}) | Score v3.0 — ${TIMESTAMP}"
+            MSG="🔄 Full Pipeline: Market(${MARKET_SUMMARY}) | Gold(${GOLD_INFO}) | Buy+Sell v3.0 — ${TIMESTAMP}"
             git commit -m "$MSG"
             git push
             echo "✅ Pushed to GitHub"
