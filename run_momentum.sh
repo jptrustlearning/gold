@@ -1,11 +1,11 @@
 #!/bin/bash
-# Gold Momentum Score v2.2 — Runner Script
+# Gold Momentum Score v2.0 — Runner Script (D1-D5 + D6 External Context)
 # Usage: cd gold && bash run_momentum.sh
 
 set -e
 
 echo "═══════════════════════════════════════════"
-echo "  Gold Momentum Score v2.2 — Runner"
+echo "  Gold Momentum Score v2.0 (D6 External)"
 echo "═══════════════════════════════════════════"
 
 # Setup git credentials
@@ -18,9 +18,9 @@ git config user.name "JP Trust Learning"
 echo "📥 Pulling latest data..."
 git pull origin main --rebase
 
-# Run scoring
-echo "📊 Running Momentum Score v2.2..."
-python3 gold_momentum_v22.py
+# Run scoring (unified script with D6 External Context)
+echo "📊 Running Momentum Score v2.0 (D1-D5 + D6 External)..."
+python3 gold_momentum_v2.py
 
 # Find timestamped CSV
 TS_CSV=$(ls -t output_momentum_gold_*.csv | head -1)
@@ -30,7 +30,7 @@ echo "📄 Timestamped CSV: $TS_CSV"
 echo "🚀 Pushing to GitHub..."
 git add output_momentum_gold.csv "$TS_CSV"
 DISPLAY_TS=$(date -u +"%d/%m/%Y %H:%M UTC")
-git commit -m "Gold Momentum Score v2.2 — $DISPLAY_TS"
+git commit -m "Gold Momentum Score v2.0 — $DISPLAY_TS"
 git push origin main
 
 echo ""

@@ -27,21 +27,18 @@ html{scroll-behavior:smooth}
 body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5}
 .container{max-width:1200px;margin:0 auto;padding:24px}
 
-/* Header */
 .header{text-align:center;padding:40px 0 30px;position:relative}
 .header::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(232,185,49,.08) 0%,rgba(232,185,49,.02) 40%,transparent 70%);pointer-events:none}
 .header h1{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);background:linear-gradient(135deg,#E8B931,#F5D76E,#E8B931,#D4A72C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;margin-bottom:6px}
 .header .sub{font-size:.88rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}
 .header .period{display:inline-block;padding:7px 24px;background:var(--bg3);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-size:.82rem}
 
-/* Status */
 .status-bar{display:flex;justify-content:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
 .status-indicator{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.82rem;padding:7px 18px;border-radius:50px;background:rgba(255,255,255,.03);border:1px solid var(--border2);transition:.3s}
 .status-indicator.loading{color:var(--gold);border-color:var(--gold);background:var(--gold-dim)}
 .status-indicator.success{color:var(--emerald);border-color:var(--emerald);background:var(--emerald-dim)}
 .status-indicator.error{color:var(--red);border-color:var(--red);background:var(--red-dim)}
 
-/* Hero Score */
 .hero{display:flex;justify-content:center;align-items:center;gap:40px;margin-bottom:30px;flex-wrap:wrap}
 .hero-score{text-align:center;position:relative}
 .hero-score .ring{width:200px;height:200px;position:relative}
@@ -58,7 +55,6 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .hero-delta .l{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
 .hero-delta .sub{font-size:.75rem;color:var(--text3);margin-top:6px}
 
-/* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px;text-align:center;position:relative;overflow:hidden}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.5}
@@ -66,14 +62,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .stat-card .v{font-family:var(--font-h);font-size:1.5rem;line-height:1.2}
 .stat-card .l{font-size:.66rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
 
-/* Sections */
 .section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
 .section-title{font-family:var(--font-h);font-size:1.15rem;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .section-title .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
 .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:20px}
 .chart-box{height:320px;position:relative}
 
-/* Dimension Bars */
 .dim-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
 .dim-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
 .dim-card .score{font-family:var(--font-h);font-size:1.8rem;line-height:1}
@@ -82,7 +76,6 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .dim-card .bar{width:100%;height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:8px;overflow:hidden}
 .dim-card .bar .fill{height:100%;border-radius:2px;transition:width .8s ease}
 
-/* Returns table */
 .ret-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
 .ret-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center}
 .ret-card .period{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;font-weight:600}
@@ -90,7 +83,6 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .ret-card .pctl{font-size:.72rem;color:var(--text3);margin-top:4px}
 .pos{color:var(--emerald)}.neg{color:var(--red)}.neu{color:var(--text2)}
 
-/* Macro signal cards */
 .macro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .macro-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
 .macro-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:2px 2px 0 0}
@@ -102,12 +94,10 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .macro-card .macro-signal{display:inline-block;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;margin-top:6px;line-height:1.4}
 .macro-card .macro-note{font-size:.72rem;color:var(--text3);margin-top:8px}
 
-/* Info grid */
 .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
 .info-item{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:.82rem}
 .info-item .k{color:var(--text3)}.info-item .v{font-weight:600}
 
-/* Penalty box */
 .penalty-box{padding:16px 20px;border-radius:12px;margin-bottom:16px}
 .penalty-box.clean{background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2)}
 .penalty-box.warn{background:var(--red-dim);border:1px solid rgba(248,113,113,.2)}
@@ -116,15 +106,56 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .penalty-box.warn .title{color:var(--red)}
 .penalty-box .desc{font-size:.82rem;color:var(--text2)}
 
-/* Tier legend */
 .tier-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
 .tier-chip{padding:5px 14px;border-radius:7px;font-size:.72rem;font-weight:700;letter-spacing:.4px}
 
-/* Methodology */
 .method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
 .method-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px}
 .method-card .title{font-weight:700;font-size:.82rem;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
 .method-card .body{font-size:.78rem;color:var(--text2);line-height:1.6}
+
+/* Scenario Reference Table */
+.scenario-table-wrap{overflow-x:auto}
+.scenario-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.scenario-table thead th{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;padding:12px 10px;text-align:left;border-bottom:2px solid var(--border2);background:rgba(255,255,255,.02);white-space:nowrap}
+.scenario-table tbody td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+.scenario-table tbody tr:last-child td{border-bottom:none}
+.scenario-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.scenario-table tbody tr.current-scenario{background:rgba(232,185,49,.08);border-left:3px solid var(--gold)}
+.scenario-table .sc-num{font-weight:700;color:var(--text3);text-align:center;font-size:.75rem}
+.scenario-table .sc-icon{font-size:1.1rem;text-align:center}
+.scenario-table .sc-signal{font-weight:700;font-size:.82rem;white-space:nowrap}
+.scenario-table .sc-thai{font-size:.75rem;color:var(--text2);margin-top:2px}
+.scenario-table .sc-cond{font-size:.72rem;color:var(--text3);line-height:1.5}
+.scenario-table .sc-cond-th{font-size:.72rem;color:var(--text2);margin-top:3px;line-height:1.5}
+.scenario-table .sc-meaning{font-size:.75rem;color:var(--text2);line-height:1.5}
+.scenario-table .sc-action{font-weight:800;font-size:.72rem;letter-spacing:1.5px;text-align:center;padding:4px 10px;border-radius:5px;display:inline-block}
+.scenario-table .sc-action.buy{color:#0B0E11;background:var(--emerald)}
+.scenario-table .sc-action.sell{color:#0B0E11;background:var(--red)}
+.scenario-table .sc-action.hold{color:#0B0E11;background:var(--gold)}
+.scenario-table .sc-current-tag{display:inline-block;font-size:.6rem;background:var(--gold);color:#0B0E11;padding:2px 8px;border-radius:4px;font-weight:800;letter-spacing:.8px;margin-left:6px;vertical-align:middle}
+
+/* ========== PIVOT ZONE ========== */
+.pivot-chart-wrap{display:flex;flex-direction:column;gap:14px}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 6px var(--gold-glow)}50%{box-shadow:0 0 16px var(--gold),0 0 30px var(--gold-glow)}}
+.bias-signal{text-align:center;width:100%}
+.bias-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:.88rem;letter-spacing:.6px;border:1px solid}
+.bias-badge.bullish{color:var(--emerald);border-color:rgba(52,211,153,.3);background:var(--emerald-dim)}
+.bias-badge.bearish{color:var(--red);border-color:rgba(248,113,113,.3);background:var(--red-dim)}
+.bias-badge.neutral{color:var(--gold);border-color:rgba(232,185,49,.3);background:var(--gold-dim)}
+.bias-subtitle{font-size:.72rem;color:var(--text3);margin-top:6px;max-width:600px;margin-left:auto;margin-right:auto}
+.action-badge{display:inline-block;padding:5px 16px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:2px;margin-left:10px;text-transform:uppercase}
+.action-badge.buy{color:#0B0E11;background:var(--emerald);box-shadow:0 0 12px rgba(52,211,153,.4)}
+.action-badge.sell{color:#0B0E11;background:var(--red);box-shadow:0 0 12px rgba(248,113,113,.4)}
+.action-badge.hold{color:#0B0E11;background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.4)}
+.pivot-score-link{padding:14px;background:rgba(232,185,49,.06);border:1px solid rgba(232,185,49,.15);border-radius:10px}
+.pivot-score-link .link-title{font-size:.75rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.pivot-score-link .link-body{font-size:.78rem;color:var(--text2);line-height:1.6}
+.pivot-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:8px}
+.pivot-legend-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;border-left:3px solid}
+.pivot-legend-item .pl-label{font-weight:700;font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;min-width:28px}
+.pivot-legend-item .pl-price{font-family:var(--font-h);font-size:.88rem;min-width:72px}
+.pivot-legend-item .pl-desc{font-size:.72rem;color:var(--text2);line-height:1.5}
 
 .footer{text-align:center;padding:24px 0;color:var(--text3);font-size:.78rem;border-top:1px solid var(--border);margin-top:30px}
 .footer strong{color:var(--gold)}
@@ -144,6 +175,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   .chart-box{height:260px}
   .hero-score .ring{width:160px;height:160px}
   .hero-score .center .v{font-size:2.2rem}
+  .pivot-layout{grid-template-columns:1fr}
 }
 @media(max-width:480px){
   .dim-grid{grid-template-columns:repeat(2,1fr)}
@@ -166,32 +198,35 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   <div id="loadingMsg" class="loading-msg">/// LOADING DATA FROM GITHUB...</div>
 
   <div id="dashboard" class="hidden">
-
-    <!-- Hero: Big Score + Tier + Delta -->
     <div class="hero" id="heroSection"></div>
-
-    <!-- Stats Grid -->
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- Dimension Breakdown (now 6 dimensions) -->
+    <!-- ★ PIVOT ZONE ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Pivot Zone &times; Momentum Bias — Classic Pivot Points</div>
+      <div class="pivot-chart-wrap">
+        <div style="height:420px;position:relative"><canvas id="pivotChart"></canvas></div>
+        <div class="bias-signal" id="biasSignal"></div>
+        <div class="pivot-score-link" id="pivotScoreLink"></div>
+        <div class="pivot-legend" id="pivotLegend"></div>
+      </div>
+    </div>
+
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Momentum Dimensions (D1–D5 /20 each, D6 /10)</div>
       <div class="dim-grid" id="dimGrid"></div>
     </div>
 
-    <!-- Macro Factor Signals: DXY + VIX -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Macro Factor Signals — DXY &amp; VIX</div>
       <div class="macro-grid" id="macroGrid"></div>
     </div>
 
-    <!-- Returns -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Return Performance &amp; Rolling Percentile</div>
       <div class="ret-grid" id="retGrid"></div>
     </div>
 
-    <!-- Charts -->
     <div class="charts-grid">
       <div class="section fade-up">
         <div class="section-title"><span class="dot"></span>Dimension Radar</div>
@@ -203,526 +238,638 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
       </div>
     </div>
 
-    <!-- Penalty / Warning -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Warning Flags &amp; Penalty System</div>
       <div id="penaltySection"></div>
     </div>
 
-    <!-- Technical Details -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Technical Details</div>
       <div class="info-grid" id="infoGrid"></div>
     </div>
 
-    <!-- Tier Reference -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Momentum Tier Reference</div>
       <div class="tier-legend" id="tierLegend"></div>
     </div>
 
-    <!-- Methodology -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Methodology</div>
       <div class="method-grid" id="methodGrid"></div>
     </div>
+
+    <!-- ★ PIVOT BIAS REFERENCE TABLE ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Pivot × Momentum — 10 Bias Scenarios Reference</div>
+      <div class="scenario-table-wrap" id="scenarioTable"></div>
+    </div>
   </div>
 
   <footer class="footer">
-    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.3</p>
-    <p style="margin-top:4px">Rolling Percentile + Macro Factor Analysis &bull; Single Asset Momentum</p>
+    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.3 + Pivot Zone</p>
+    <p style="margin-top:4px">Rolling Percentile + Macro Factor + Classic Pivot Analysis</p>
   </footer>
 </div>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
-const CSV_URL = 'https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold.csv';
+const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold.csv';
+const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
+let D=null,PIVOT=null,PRICE_DATA=null;
 
-let D = null; // single row of data
+document.addEventListener('DOMContentLoaded',loadData);
 
-// ============================================================
-// INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', loadData);
-
-async function loadData() {
-  const statusEl = document.getElementById('status');
-  try {
-    const res = await fetch(CSV_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    if (!rows.length) throw new Error('No data rows');
-    D = rows[0];
-
-    statusEl.className = 'status-indicator success';
-    statusEl.innerHTML = '<span>●</span> GITHUB DATA LOADED — GOLD';
-    document.getElementById('periodLabel').textContent =
-      'As of: ' + D.As_Of_Running + '  •  BD1: ' + D.Base_Date_1 + '  •  BD2: ' + D.Base_Date_2;
-
+async function loadData(){
+  const st=document.getElementById('status');
+  try{
+    const [sRes,pRes]=await Promise.all([fetch(CSV_URL),fetch(PRICE_CSV_URL)]);
+    if(!sRes.ok)throw new Error('Score CSV: HTTP '+sRes.status);
+    if(!pRes.ok)throw new Error('Price CSV: HTTP '+pRes.status);
+    const sText=await sRes.text(),pText=await pRes.text();
+    const rows=parseCSV(sText);
+    if(!rows.length)throw new Error('No score data');
+    D=rows[0];
+    PIVOT=calcPivot(pText);
+    PRICE_DATA=parsePriceCSV(pText);
+    st.className='status-indicator success';
+    st.innerHTML='<span>●</span> GITHUB DATA LOADED — GOLD + PIVOT';
+    document.getElementById('periodLabel').textContent='As of: '+D.As_Of_Running+'  •  BD1: '+D.Base_Date_1+'  •  BD2: '+D.Base_Date_2;
     document.getElementById('loadingMsg').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-
     render();
-  } catch(e) {
+  }catch(e){
     console.error(e);
-    statusEl.className = 'status-indicator error';
-    statusEl.innerHTML = '<span>●</span> FAILED TO LOAD — ' + e.message;
-    document.getElementById('loadingMsg').textContent = 'Error loading data. Check console.';
+    st.className='status-indicator error';
+    st.innerHTML='<span>●</span> FAILED — '+e.message;
+    document.getElementById('loadingMsg').textContent='Error loading data. Check console.';
   }
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = csvLine(lines[0]);
-  const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const vals = csvLine(lines[i]);
-    if (vals.length < headers.length) continue;
-    const obj = {};
-    headers.forEach((h, idx) => obj[h] = vals[idx]);
-    rows.push(obj);
+// ── Pivot Calculation ──
+function calcPivot(csv){
+  const lines=csv.trim().split('\n');
+  const data=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(',');
+    if(c.length>=6)data.push({date:c[0].trim(),open:+c[1],high:+c[2],low:+c[3],close:+c[4],vol:parseInt(c[5])});
   }
-  return rows;
+  if(data.length<2)return null;
+  const prev=data[data.length-2],curr=data[data.length-1];
+  const H=prev.high,L=prev.low,C=prev.close;
+  const PP=(H+L+C)/3;
+  const R1=2*PP-L,S1=2*PP-H;
+  const R2=PP+(H-L),S2=PP-(H-L);
+  const R3=H+2*(PP-L),S3=L-2*(H-PP);
+  return{
+    date_prev:prev.date,date_curr:curr.date,
+    price:curr.close,price_high:curr.high,price_low:curr.low,
+    prev_high:H,prev_low:L,prev_close:C,
+    PP,R1,R2,R3,S1,S2,S3,
+    levels:[
+      {label:'R3',value:R3,type:'resistance'},
+      {label:'R2',value:R2,type:'resistance'},
+      {label:'R1',value:R1,type:'resistance'},
+      {label:'PP',value:PP,type:'pivot'},
+      {label:'S1',value:S1,type:'support'},
+      {label:'S2',value:S2,type:'support'},
+      {label:'S3',value:S3,type:'support'},
+    ]
+  };
 }
-function csvLine(line) {
-  const r = []; let c = '', q = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') q = !q;
-    else if (ch === ',' && !q) { r.push(c.trim()); c = ''; }
-    else c += ch;
+
+function parsePriceCSV(csv){
+  const lines=csv.trim().split('\n');
+  const data=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(',');
+    if(c.length>=6)data.push({date:c[0].trim(),open:+c[1],high:+c[2],low:+c[3],close:+c[4],vol:parseInt(c[5])});
   }
-  r.push(c.trim()); return r;
+  return data;
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-const f = (key, dec=1) => parseFloat(D[key] || 0).toFixed(dec);
-const fi = (key) => parseFloat(D[key] || 0);
-const tierColor = t => t.includes('Very Strong') ? 'var(--emerald)' : t.includes('Strong') ? '#34D399' : t.includes('Moderate') ? 'var(--gold)' : t.includes('Neutral') ? 'var(--text2)' : 'var(--red)';
-const scoreColor = v => v >= 85 ? 'var(--emerald)' : v >= 75 ? '#34D399' : v >= 60 ? 'var(--gold)' : v >= 45 ? 'var(--text)' : v >= 30 ? 'var(--text2)' : 'var(--red)';
-const retColor = v => v >= 0 ? 'var(--emerald)' : 'var(--red)';
-const dimColors = ['#60A5FA','#A78BFA','#34D399','#E8B931','#FB923C','#22D3EE'];
+// ── Bias Signal ──
+function computeBias(){
+  if(!PIVOT||!D)return{signal:'N/A',cls:'neutral',icon:'—',detail:'',action:'HOLD',actionCls:'hold'};
+  const price=PIVOT.price,score=fi('Net_Score_Avg'),delta=fi('Score_Delta');
+  const isStrong=score>=75,isMod=score>=60&&score<75,isWeak=score<60,isRising=delta>0;
 
-// ============================================================
-// RENDER ALL
-// ============================================================
-function render() {
-  renderHero();
-  renderStats();
-  renderDimensions();
-  renderMacro();
-  renderReturns();
-  renderPenalty();
-  renderInfo();
-  renderTierLegend();
-  renderMethodology();
-  renderRadarChart();
-  renderBarChart();
+  if(price>=PIVOT.R1&&isStrong&&isRising)return{signal:'Bullish Breakout',cls:'bullish',icon:'🚀',action:'BUY',actionCls:'buy',detail:'Price above R1 with strong rising momentum — breakout territory. Watch R2/R3 as next targets.'};
+  if(price>=PIVOT.R1&&isStrong&&!isRising)return{signal:'Bullish but Cooling',cls:'bullish',icon:'📈',action:'HOLD',actionCls:'hold',detail:'Price above R1 with strong score but declining delta — momentum may be plateauing. Consider partial take-profit.'};
+  if(price>=PIVOT.PP&&price<PIVOT.R1&&isStrong)return{signal:'Bullish Accumulation',cls:'bullish',icon:'💪',action:'BUY',actionCls:'buy',detail:'Price between PP–R1 with strong momentum — building power for potential R1 breakout.'};
+  if(price>=PIVOT.PP&&isMod)return{signal:'Cautious Bullish',cls:'neutral',icon:'📊',action:'HOLD',actionCls:'hold',detail:'Price above pivot with moderate score — trend positive but not confirmed strong. R1 is key test.'};
+  if(price<PIVOT.PP&&price>=PIVOT.S1&&isStrong)return{signal:'Support Bounce',cls:'bullish',icon:'🔄',action:'BUY',actionCls:'buy',detail:'Price below pivot but momentum strong — likely testing support before resuming uptrend.'};
+  if(price<PIVOT.PP&&price>=PIVOT.S1&&isMod)return{signal:'Neutral Range',cls:'neutral',icon:'↔️',action:'HOLD',actionCls:'hold',detail:'Price between S1–PP with moderate momentum — range-bound. Wait for directional confirmation.'};
+  if(price<PIVOT.S1&&isWeak)return{signal:'Bearish Breakdown',cls:'bearish',icon:'📉',action:'SELL',actionCls:'sell',detail:'Price below S1 with weak momentum — risk of further decline toward S2/S3.'};
+  if(price<PIVOT.S1&&isStrong)return{signal:'Oversold Recovery',cls:'neutral',icon:'⚡',action:'BUY',actionCls:'buy',detail:'Price below S1 but momentum still strong — divergence may signal recovery toward PP.'};
+  if(price>=PIVOT.R1&&isWeak)return{signal:'Rejection Risk',cls:'bearish',icon:'⚠️',action:'SELL',actionCls:'sell',detail:'Price above R1 but momentum weak — high risk of rejection and pullback to PP.'};
+  if(price<PIVOT.PP&&isWeak&&!isRising)return{signal:'Bearish Trend',cls:'bearish',icon:'🔻',action:'SELL',actionCls:'sell',detail:'Price below pivot with weak declining momentum — bearish bias continues.'};
+  return{signal:'Monitoring',cls:'neutral',icon:'👁️',action:'HOLD',actionCls:'hold',detail:'Mixed signals between price position and momentum. Watch for clearer confirmation.'};
 }
 
-// ============================================================
-// HERO
-// ============================================================
-function renderHero() {
-  const netAvg = fi('Net_Score_Avg');
-  const tier = D.Tier;
-  const price = fi('Price');
-  const delta = fi('Score_Delta');
-  const bd1 = fi('Net_Score_BD1');
-  const bd2 = fi('Net_Score_BD2');
+// ── CSV Parser ──
+function parseCSV(t){const l=t.trim().split('\n'),h=csvL(l[0]),r=[];for(let i=1;i<l.length;i++){const v=csvL(l[i]);if(v.length<h.length)continue;const o={};h.forEach((k,j)=>o[k]=v[j]);r.push(o);}return r;}
+function csvL(l){const r=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c='';}else c+=ch;}r.push(c.trim());return r;}
 
-  document.getElementById('heroSection').innerHTML = `
-    <div class="hero-score">
-      <div class="ring">
-        <canvas id="ringCanvas" width="200" height="200"></canvas>
-        <div class="center">
-          <div class="v" style="color:${scoreColor(netAvg)}">${netAvg.toFixed(1)}</div>
-          <div class="l">Net Score</div>
-        </div>
-      </div>
-    </div>
-    <div class="hero-tier">
-      <div class="tier" style="color:${tierColor(tier)}">${tier}</div>
-      <div class="price">$${price.toLocaleString('en-US',{minimumFractionDigits:1})}</div>
-      <div class="price-label">Gold Spot Price</div>
-    </div>
-    <div class="hero-delta">
-      <div class="v" style="color:${delta >= 0 ? 'var(--emerald)' : 'var(--red)'}">
-        ${delta >= 0 ? '+' : ''}${delta.toFixed(2)}
-      </div>
-      <div class="l">Score Delta</div>
-      <div class="sub">BD1 ${bd1.toFixed(1)} → BD2 ${bd2.toFixed(1)}</div>
-    </div>
-  `;
+// ── Helpers ──
+const f=(k,d=1)=>parseFloat(D[k]||0).toFixed(d);
+const fi=k=>parseFloat(D[k]||0);
+const tierColor=t=>t.includes('Very Strong')?'var(--emerald)':t.includes('Strong')?'#34D399':t.includes('Moderate')?'var(--gold)':t.includes('Neutral')?'var(--text2)':'var(--red)';
+const scoreColor=v=>v>=85?'var(--emerald)':v>=75?'#34D399':v>=60?'var(--gold)':v>=45?'var(--text)':v>=30?'var(--text2)':'var(--red)';
+const retColor=v=>v>=0?'var(--emerald)':'var(--red)';
+const dimColors=['#60A5FA','#A78BFA','#34D399','#E8B931','#FB923C','#22D3EE'];
+const fp=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
 
-  // Draw ring
-  setTimeout(() => {
-    const canvas = document.getElementById('ringCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const cx = 100, cy = 100, r = 85, lw = 10;
-    const pct = Math.max(0, Math.min(netAvg / 110, 1));
-    const startA = -Math.PI / 2;
-    const endA = startA + pct * 2 * Math.PI;
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(255,255,255,.06)';
-    ctx.lineWidth = lw;
-    ctx.stroke();
-
-    const grad = ctx.createLinearGradient(0, 0, 200, 200);
-    grad.addColorStop(0, '#E8B931');
-    grad.addColorStop(0.5, '#34D399');
-    grad.addColorStop(1, '#60A5FA');
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, startA, endA);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = lw;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-  }, 100);
+function render(){
+  renderHero();renderStats();renderPivotZone();renderDimensions();renderMacro();
+  renderReturns();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
+  renderScenarioTable();
+  renderRadarChart();renderBarChart();
 }
 
-// ============================================================
-// STATS GRID
-// ============================================================
-function renderStats() {
-  const items = [
-    { v: f('Gross_Score_Avg'), l: 'Gross Score', cls: 'gold' },
-    { v: f('RSI_Value'), l: 'RSI (14d)', cls: fi('RSI_Value') >= 50 && fi('RSI_Value') <= 70 ? 'green' : 'orange' },
-    { v: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? '✅ Yes' : '❌ No', l: 'Golden Cross', cls: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? 'green' : 'red' },
-    { v: f('Volatility_Pct') + '%', l: 'Volatility (Ann.)', cls: fi('Volatility_Pct') <= 30 ? 'green' : fi('Volatility_Pct') <= 50 ? 'orange' : 'red' },
-    { v: '$' + fi('MA50').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA50', cls: 'blue' },
-    { v: '$' + fi('MA200').toLocaleString('en-US',{minimumFractionDigits:1}), l: 'MA200', cls: 'purple' },
-    { v: f('D6_External',0), l: 'D6 External', cls: 'cyan' },
-    { v: f('Penalty_Total', 0), l: 'Penalty', cls: fi('Penalty_Total') < 0 ? 'red' : 'green' },
+// ── PIVOT ZONE ──
+function renderPivotZone(){
+  if(!PIVOT||!PRICE_DATA||PRICE_DATA.length<5){
+    document.getElementById('pivotChart').parentElement.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">Insufficient data for pivot chart</div>';
+    return;
+  }
+
+  const bias=computeBias();
+  const price=PIVOT.price;
+  const score=fi('Net_Score_Avg');
+  const tier=D.Tier;
+
+  // Use last 10 trading days — tight window matching daily pivot relevance
+  const chartDays=Math.min(10,PRICE_DATA.length);
+  const chartData=PRICE_DATA.slice(-chartDays);
+
+  // Add 5 empty slots on the right for the pivot zone area
+  const zoneSlots=5;
+  const totalSlots=chartDays+zoneSlots;
+  const labels=[...chartData.map(d=>d.date),...Array(zoneSlots).fill('')];
+  // Price data fills left side, null for zone area
+  const closes=[...chartData.map(d=>d.close),...Array(zoneSlots).fill(null)];
+
+  // Y-axis: focus on pivot zone — use pivot range as anchor, extend to cover price data
+  const priceCloses=chartData.map(d=>d.close);
+  const pivotVals=[PIVOT.R3,PIVOT.R2,PIVOT.R1,PIVOT.PP,PIVOT.S1,PIVOT.S2,PIVOT.S3];
+  const pivotMin=Math.min(...pivotVals),pivotMax=Math.max(...pivotVals);
+  const pivotRange=pivotMax-pivotMin;
+  const dataMin=Math.min(...priceCloses),dataMax=Math.max(...priceCloses);
+  const yMin=Math.min(pivotMin,dataMin)-pivotRange*0.5;
+  const yMax=Math.max(pivotMax,dataMax)+pivotRange*0.5;
+
+  const levelColors={R3:'#F87171',R2:'#fb7185',R1:'#fca5a5',PP:'#E8B931',S1:'#86efac',S2:'#6ee7b7',S3:'#34D399'};
+
+  // Pivot lines: overlap last 2 price points, then extend across zone area
+  const pivotDatasets=PIVOT.levels.map(lv=>{
+    const data=Array(totalSlots).fill(null);
+    for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+    return {
+      label:lv.label+' '+fp(lv.value),
+      data,
+      borderColor:levelColors[lv.label],
+      borderWidth:lv.label==='PP'?2.5:1.5,
+      borderDash:lv.label==='PP'?[]:[6,4],
+      pointRadius:0,
+      pointHoverRadius:0,
+      fill:false,
+      tension:0,
+      spanGaps:false,
+      order:2,
+    };
+  });
+
+  // Custom plugin: draw pivot labels (R3, R2, ... S3 + price) on the right edge
+  const pivotLabelPlugin={
+    id:'pivotLabels',
+    afterDraw(chart){
+      const ctx=chart.ctx;
+      const yScale=chart.scales.y;
+      const area=chart.chartArea;
+      const x=area.right-8; // right edge inside chart
+      ctx.save();
+      ctx.textAlign='right';
+      ctx.textBaseline='middle';
+      PIVOT.levels.forEach(lv=>{
+        const y=yScale.getPixelForValue(lv.value);
+        if(y<area.top-5||y>area.bottom+5)return;
+        // Background pill
+        const label=lv.label;
+        const priceStr=fp(lv.value);
+        const text=label+' '+priceStr;
+        ctx.font='bold 9px Instrument Sans, sans-serif';
+        const w=ctx.measureText(text).width+10;
+        ctx.fillStyle=levelColors[lv.label]+'22';
+        ctx.beginPath();
+        ctx.roundRect(x-w-2,y-8,w+4,16,4);
+        ctx.fill();
+        // Text
+        ctx.fillStyle=levelColors[lv.label];
+        ctx.fillText(text,x,y);
+      });
+      ctx.restore();
+    }
+  };
+
+  const ctx=document.getElementById('pivotChart').getContext('2d');
+
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Gold Close Price',
+          data:closes,
+          borderColor:'#E8B931',
+          backgroundColor:'rgba(232,185,49,.08)',
+          borderWidth:2.5,
+          pointRadius:0,
+          pointHoverRadius:5,
+          pointHoverBackgroundColor:'#E8B931',
+          pointHoverBorderColor:'#fff',
+          fill:true,
+          tension:.3,
+          order:1,
+        },
+        ...pivotDatasets
+      ]
+    },
+    plugins:[pivotLabelPlugin],
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      layout:{padding:{right:10}},
+      plugins:{
+        legend:{
+          display:true,
+          position:'top',
+          labels:{
+            usePointStyle:true,
+            pointStyle:'line',
+            color:'#9CA3AF',
+            font:{size:10,family:'Instrument Sans',weight:'600'},
+            padding:12,
+            boxWidth:24,
+          }
+        },
+        tooltip:{
+          backgroundColor:'#1e293b',
+          borderColor:'#E8B931',
+          borderWidth:1,
+          titleColor:'#E8B931',
+          bodyColor:'#E8E6E1',
+          padding:12,
+          titleFont:{family:'Instrument Sans',weight:'700'},
+          bodyFont:{family:'Instrument Sans',size:12},
+          filter:function(item){return item.raw!==null;},
+          callbacks:{
+            title:function(items){return items[0]?items[0].label:'';},
+            label:function(ctx){
+              if(ctx.raw===null)return '';
+              if(ctx.datasetIndex===0)return 'Close: $'+ctx.raw.toLocaleString('en-US',{minimumFractionDigits:1});
+              return ctx.dataset.label;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:'rgba(255,255,255,.03)'},
+          ticks:{
+            color:'#6B7280',
+            font:{size:9,family:'Instrument Sans'},
+            maxRotation:45,
+            callback:function(val,idx){
+              const label=this.getLabelForValue(val);
+              if(label==='')return '';
+              return label;
+            }
+          }
+        },
+        y:{
+          min:yMin,max:yMax,
+          grid:{color:'rgba(255,255,255,.04)'},
+          ticks:{
+            color:'#6B7280',
+            font:{size:10,family:'Instrument Sans'},
+            callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}
+          }
+        }
+      }
+    }
+  });
+
+  // Bias Signal
+  document.getElementById('biasSignal').innerHTML=`
+    <div class="bias-badge ${bias.cls}"><span style="font-size:1.2rem">${bias.icon}</span> ${bias.signal}<span class="action-badge ${bias.actionCls}">${bias.action}</span></div>
+    <div class="bias-subtitle">${bias.detail}</div>`;
+
+  // Score-Pivot Interpretation
+  let linkText='';
+  if(price>=PIVOT.R1){
+    linkText=score>=75
+      ?`ราคาอยู่เหนือ R1 และ Momentum Score <strong>${score.toFixed(1)}</strong> (${tier}) แข็งแกร่ง — โอกาสไปต่อสูง ดู R2 (${fp(PIVOT.R2)}) เป็น next target`
+      :`ราคาอยู่เหนือ R1 แต่ Momentum Score <strong>${score.toFixed(1)}</strong> ไม่แข็งพอ — ระวัง false breakout อาจกลับมาทดสอบ PP`;
+  }else if(price>=PIVOT.PP){
+    linkText=score>=60
+      ?`ราคาอยู่ระหว่าง PP–R1 กับ Score <strong>${score.toFixed(1)}</strong> (${tier}) — กำลังสะสม momentum ถ้า score ขึ้นต่อ มีโอกาสทะลุ R1 (${fp(PIVOT.R1)})`
+      :`ราคาอยู่เหนือ PP แต่ Score <strong>${score.toFixed(1)}</strong> ปานกลาง-อ่อน — ทิศทางยังไม่ชัด รอ confirmation`;
+  }else if(price>=PIVOT.S1){
+    linkText=score>=75
+      ?`ราคาอยู่ระหว่าง S1–PP แต่ Score <strong>${score.toFixed(1)}</strong> ยังแข็ง — Divergence! อาจเด้งกลับขึ้นไป PP (${fp(PIVOT.PP)})`
+      :`ราคาอยู่ใต้ PP ใกล้ S1 กับ Score <strong>${score.toFixed(1)}</strong> อ่อนตัว — ระวังหลุด S1 (${fp(PIVOT.S1)})`;
+  }else{
+    linkText=`ราคาอยู่ใต้ S1 (${fp(PIVOT.S1)}) กับ Score <strong>${score.toFixed(1)}</strong> — ${score>=60?'momentum ยังพอมี อาจ recover กลับ S1':'ทั้งราคาและ momentum อ่อน ดู S2/S3 เป็นแนวรับถัดไป'}`;
+  }
+  document.getElementById('pivotScoreLink').innerHTML=`
+    <div class="link-title">🔗 Pivot × Score Interpretation</div>
+    <div class="link-body">${linkText}</div>`;
+
+  // Pivot Level Legend with Thai descriptions
+  const legendItems=[
+    {label:'R3',color:'#F87171',price:PIVOT.R3,
+     desc:'แนวต้านที่ 3 (Resistance 3) — เป้าหมายสูงสุดในวัน ถ้าราคาถึงจุดนี้แสดงว่าวิ่งแรงมาก มักเจอแรงขายหนัก'},
+    {label:'R2',color:'#fb7185',price:PIVOT.R2,
+     desc:'แนวต้านที่ 2 (Resistance 2) — เป้าหมายระดับกลาง ถ้าทะลุ R1 แล้ว R2 คือด่านถัดไป'},
+    {label:'R1',color:'#fca5a5',price:PIVOT.R1,
+     desc:'แนวต้านที่ 1 (Resistance 1) — ด่านแรกที่ต้องทะลุ ถ้าผ่านได้ = bullish momentum ชัดเจน'},
+    {label:'PP',color:'#E8B931',price:PIVOT.PP,
+     desc:'จุดหมุน (Pivot Point) — เส้นแบ่งฝั่ง ราคาเหนือ PP = bullish bias, ใต้ PP = bearish bias'},
+    {label:'S1',color:'#86efac',price:PIVOT.S1,
+     desc:'แนวรับที่ 1 (Support 1) — ด่านแรกที่จะรับราคา ถ้าหลุด S1 = สัญญาณอ่อนตัว'},
+    {label:'S2',color:'#6ee7b7',price:PIVOT.S2,
+     desc:'แนวรับที่ 2 (Support 2) — แนวรับระดับกลาง ถ้ามาถึงจุดนี้แสดงว่าขาลงค่อนข้างแรง'},
+    {label:'S3',color:'#34D399',price:PIVOT.S3,
+     desc:'แนวรับที่ 3 (Support 3) — แนวรับสุดท้าย ถ้าหลุดจุดนี้ถือว่าวันนั้นเป็นขาลงรุนแรง'},
   ];
 
-  document.getElementById('statsGrid').innerHTML = items.map(s => `
-    <div class="stat-card ${s.cls} fade-up">
-      <div class="v" style="color:var(--${s.cls === 'gold' ? 'gold' : s.cls})">${s.v}</div>
-      <div class="l">${s.l}</div>
-    </div>
-  `).join('');
-}
-
-// ============================================================
-// DIMENSIONS (now 6: D1-D5 /20 + D6 /10)
-// ============================================================
-function renderDimensions() {
-  const dims = [
-    { key: 'D1_ReturnRank', name: 'Return Rank', color: dimColors[0], max: 20 },
-    { key: 'D2_VolumeRank', name: 'Volume Rank', color: dimColors[1], max: 20 },
-    { key: 'D3_RSI', name: 'RSI', color: dimColors[2], max: 20 },
-    { key: 'D4_MA', name: 'MA Trend', color: dimColors[3], max: 20 },
-    { key: 'D5_Volatility', name: 'Volatility', color: dimColors[4], max: 20 },
-    { key: 'D6_External', name: 'Macro (DXY+VIX)', color: dimColors[5], max: 10 },
-  ];
-
-  document.getElementById('dimGrid').innerHTML = dims.map(d => {
-    const val = fi(d.key);
-    const pct = (val / d.max * 100).toFixed(0);
-    return `
-      <div class="dim-card">
-        <div class="score" style="color:${d.color}">${val.toFixed(1)}</div>
-        <div class="max">/ ${d.max}</div>
-        <div class="name">${d.name}</div>
-        <div class="bar"><div class="fill" style="width:${pct}%;background:${d.color}"></div></div>
+  document.getElementById('pivotLegend').innerHTML=legendItems.map(l=>{
+    const dist=((price-l.price)/l.price*100);
+    const distStr=(dist>=0?'+':'')+dist.toFixed(2)+'%';
+    const distClr=dist>=0?'var(--emerald)':'var(--red)';
+    return`<div class="pivot-legend-item" style="border-left-color:${l.color}">
+      <div class="pl-label" style="color:${l.color}">${l.label}</div>
+      <div class="pl-price" style="color:${l.color}">${fp(l.price)}</div>
+      <div style="flex:1">
+        <div class="pl-desc">${l.desc}</div>
+        <div style="font-size:.68rem;color:${distClr};margin-top:3px;font-weight:600">ห่างจากราคาปัจจุบัน: ${distStr}</div>
       </div>
-    `;
-  }).join('');
-}
-
-// ============================================================
-// MACRO FACTOR SIGNALS (DXY + VIX)
-// ============================================================
-function renderMacro() {
-  const dxyPct = fi('DXY_1M_Pct');
-  const vixLevel = fi('VIX_Level');
-  const dxySig = D.DXY_Signal || '';
-  const vixSig = D.VIX_Signal || '';
-
-  // Determine DXY signal color/bg
-  const dxyBullish = dxySig.includes('🟢');
-  const dxyNeutral = dxySig.includes('🟡');
-  const dxyColor = dxyBullish ? 'var(--emerald)' : dxyNeutral ? 'var(--gold)' : 'var(--red)';
-  const dxyBg = dxyBullish ? 'var(--emerald-dim)' : dxyNeutral ? 'var(--gold-dim)' : 'var(--red-dim)';
-
-  // Determine VIX signal color/bg
-  const vixBlue = vixSig.includes('🔵');
-  const vixGreen = vixSig.includes('🟢');
-  const vixColor = vixGreen ? 'var(--emerald)' : vixBlue ? 'var(--blue)' : vixSig.includes('🟡') ? 'var(--gold)' : 'var(--red)';
-  const vixBg = vixGreen ? 'var(--emerald-dim)' : vixBlue ? 'var(--blue-dim)' : vixSig.includes('🟡') ? 'var(--gold-dim)' : 'var(--red-dim)';
-
-  // Clean signal text (remove emoji prefix for display)
-  const dxySigClean = dxySig.replace(/^[🟢🟡🔴🔵]\s*/, '');
-  const vixSigClean = vixSig.replace(/^[🟢🟡🔴🔵]\s*/, '');
-
-  document.getElementById('macroGrid').innerHTML = `
-    <div class="macro-card dxy">
-      <div class="macro-header">
-        <span class="macro-label">DXY (US Dollar Index) — 1M Change</span>
-      </div>
-      <div class="macro-value" style="color:${dxyPct >= 0 ? 'var(--emerald)' : 'var(--red)'}">
-        ${dxyPct >= 0 ? '+' : ''}${dxyPct.toFixed(2)}%
-      </div>
-      <div class="macro-signal" style="color:${dxyColor};background:${dxyBg}">
-        ${dxySig.charAt(0)} ${dxySigClean}
-      </div>
-      <div class="macro-note">DXY ↑ = dollar strong → typically bearish gold | DXY ↓ = dollar weak → typically bullish gold</div>
-    </div>
-    <div class="macro-card vix">
-      <div class="macro-header">
-        <span class="macro-label">VIX (CBOE Volatility Index) — Current Level</span>
-      </div>
-      <div class="macro-value" style="color:${vixLevel <= 15 ? 'var(--emerald)' : vixLevel <= 20 ? 'var(--gold)' : vixLevel <= 30 ? 'var(--orange)' : 'var(--red)'}">
-        ${vixLevel.toFixed(2)}
-      </div>
-      <div class="macro-signal" style="color:${vixColor};background:${vixBg}">
-        ${vixSig.charAt(0)} ${vixSigClean}
-      </div>
-      <div class="macro-note">VIX &lt;15 calm | 15-20 normal | 20-30 elevated fear → gold safe haven | &gt;30 panic</div>
-    </div>
-  `;
-}
-
-// ============================================================
-// RETURNS
-// ============================================================
-function renderReturns() {
-  const periods = [
-    { key: 'Ret_1W_Pct', name: '1 Week' },
-    { key: 'Ret_1M_Pct', name: '1 Month' },
-    { key: 'Ret_3M_Pct', name: '3 Month' },
-    { key: 'Ret_6M_Pct', name: '6 Month' },
-    { key: 'Ret_1Y_Pct', name: '1 Year' },
-  ];
-
-  document.getElementById('retGrid').innerHTML = periods.map(p => {
-    const val = fi(p.key);
-    return `
-      <div class="ret-card">
-        <div class="period">${p.name}</div>
-        <div class="val" style="color:${retColor(val)}">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</div>
-        <div class="pctl">Rolling Pctl</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ============================================================
-// PENALTY
-// ============================================================
-function renderPenalty() {
-  const total = fi('Penalty_Total');
-  const rev = fi('Penalty_Reversal');
-  const dc = fi('Penalty_DeathCross');
-  const flags = D.Warning_Flags || '';
-  const isClean = total === 0;
-
-  let html = `<div class="penalty-box ${isClean ? 'clean' : 'warn'}">
-    <div class="title">${isClean ? '✅ No Warning Flags' : '🚨 Warning Flags Detected'}</div>
-    <div class="desc">${isClean
-      ? 'No momentum reversal or death cross signals detected. All clear.'
-      : `<strong>Total Penalty: ${total}</strong><br>
-         Reversal: ${rev} &nbsp;|&nbsp; Death Cross: ${dc}<br>
-         ${flags && flags !== 'None' ? 'Flags: ' + flags : ''}`
-    }</div>
-  </div>`;
-
-  html += `<div class="info-grid">
-    <div class="info-item"><span class="k">Momentum Reversal</span><span class="v" style="color:${rev < 0 ? 'var(--red)' : 'var(--emerald)'}">${rev === 0 ? '✅ None' : rev + ' pts'}</span></div>
-    <div class="info-item"><span class="k">Death Cross (MA50 &lt; MA200)</span><span class="v" style="color:${dc < 0 ? 'var(--red)' : 'var(--emerald)'}">${dc === 0 ? '✅ None' : dc + ' pts'}</span></div>
-    <div class="info-item"><span class="k">Total Penalty (cap -15)</span><span class="v" style="color:${total < 0 ? 'var(--red)' : 'var(--emerald)'}">${total}</span></div>
-    <div class="info-item"><span class="k">Gross → Net Score</span><span class="v">${f('Gross_Score_Avg')} → ${f('Net_Score_Avg')}</span></div>
-  </div>`;
-
-  document.getElementById('penaltySection').innerHTML = html;
-}
-
-// ============================================================
-// TECHNICAL INFO
-// ============================================================
-function renderInfo() {
-  const items = [
-    { k: 'Price', v: '$' + fi('Price').toLocaleString('en-US',{minimumFractionDigits:2}) },
-    { k: 'MA50', v: '$' + fi('MA50').toLocaleString('en-US',{minimumFractionDigits:2}) },
-    { k: 'MA200', v: '$' + fi('MA200').toLocaleString('en-US',{minimumFractionDigits:2}) },
-    { k: 'Golden Cross', v: String(D.Golden_Cross).toUpperCase() === 'TRUE' ? '✅ MA50 > MA200' : '❌ MA50 < MA200' },
-    { k: 'RSI (14-day)', v: fi('RSI_Value').toFixed(1) },
-    { k: 'Volatility (Ann.)', v: fi('Volatility_Pct').toFixed(1) + '%' },
-    { k: 'WP Return Pctl', v: fi('WP_Return_Pct').toFixed(1) + '%' },
-    { k: 'WP Volume Pctl', v: fi('WP_Volume_Pct').toFixed(1) + '%' },
-    { k: 'DXY 1M Change', v: (fi('DXY_1M_Pct') >= 0 ? '+' : '') + fi('DXY_1M_Pct').toFixed(2) + '%' },
-    { k: 'VIX Level', v: fi('VIX_Level').toFixed(2) },
-    { k: 'D6 External Score', v: fi('D6_External').toFixed(1) + ' / 10' },
-    { k: 'Base Date 1', v: D.Base_Date_1 },
-    { k: 'Base Date 2', v: D.Base_Date_2 },
-    { k: 'Net Score BD1', v: f('Net_Score_BD1') },
-    { k: 'Net Score BD2', v: f('Net_Score_BD2') },
-  ];
-
-  document.getElementById('infoGrid').innerHTML = items.map(i => `
-    <div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>
-  `).join('');
-}
-
-// ============================================================
-// TIER LEGEND
-// ============================================================
-function renderTierLegend() {
-  const tiers = [
-    { name: 'Very Strong ↑↑', range: '≥85', bg: 'var(--emerald-dim)', color: 'var(--emerald)', border: 'rgba(52,211,153,.3)' },
-    { name: 'Strong ↑', range: '75–84', bg: 'rgba(52,211,153,.08)', color: '#8BD4B0', border: 'rgba(52,211,153,.2)' },
-    { name: 'Moderate ↑', range: '60–74', bg: 'var(--gold-dim)', color: 'var(--gold)', border: 'rgba(232,185,49,.3)' },
-    { name: 'Neutral →', range: '45–59', bg: 'rgba(156,163,175,.08)', color: 'var(--text2)', border: 'rgba(156,163,175,.2)' },
-    { name: 'Weak ↓', range: '30–44', bg: 'var(--orange-dim)', color: 'var(--orange)', border: 'rgba(251,146,60,.2)' },
-    { name: 'Very Weak ↓↓', range: '<30', bg: 'var(--red-dim)', color: 'var(--red)', border: 'rgba(248,113,113,.2)' },
-  ];
-
-  const currentTier = D.Tier;
-  document.getElementById('tierLegend').innerHTML = tiers.map(t => {
-    const isActive = D.Tier === t.name;
-    return `<div class="tier-chip" style="background:${t.bg};color:${t.color};border:1px solid ${t.border};${isActive ? 'box-shadow:0 0 12px ' + t.border + ';transform:scale(1.1)' : 'opacity:.6'}">
-      ${t.name} (${t.range})${isActive ? ' ◀ CURRENT' : ''}
     </div>`;
   }).join('');
 }
 
-// ============================================================
-// METHODOLOGY
-// ============================================================
-function renderMethodology() {
-  const cards = [
-    { title: 'D1: Return Rank (0–20)', body: 'Rolling percentile of multi-period returns (1W–1Y) vs past 252 trading days. Weights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%.' },
-    { title: 'D2: Volume Rank (0–20)', body: 'Rolling percentile of cumulative volume per period. Same weight structure as Return Rank.' },
-    { title: 'D3: RSI (0–20)', body: '14-day Relative Strength Index. Sweet spot (50–70) = 20pts. Overbought/oversold scores lower.' },
-    { title: 'D4: MA Trend (0–20)', body: 'Price vs MA50 (+7), Price vs MA200 (+7), Golden Cross MA50>MA200 (+6). Max 20pts.' },
-    { title: 'D5: Volatility (0–20)', body: 'Annualized 21-day volatility. Lower = better. ≤20%=20pts down to >80%=2pts.' },
-    { title: 'D6: External Macro (0–10)', body: 'DXY: dollar weakness = bullish gold (up to +5). VIX: elevated fear = safe-haven demand (up to +5). Combined max 10pts.' },
-    { title: 'Penalty System', body: 'Momentum Reversal: -5 (mild) or -10 (strong). Death Cross: -5. Capped at -15 total. Applied after all dimensions.' },
+// ── Hero ──
+function renderHero(){
+  const n=fi('Net_Score_Avg'),t=D.Tier,p=fi('Price'),d=fi('Score_Delta'),b1=fi('Net_Score_BD1'),b2=fi('Net_Score_BD2');
+  document.getElementById('heroSection').innerHTML=`
+    <div class="hero-score"><div class="ring"><canvas id="ringCanvas" width="200" height="200"></canvas>
+      <div class="center"><div class="v" style="color:${scoreColor(n)}">${n.toFixed(1)}</div><div class="l">Net Score</div></div></div></div>
+    <div class="hero-tier"><div class="tier" style="color:${tierColor(t)}">${t}</div>
+      <div class="price">$${p.toLocaleString('en-US',{minimumFractionDigits:1})}</div><div class="price-label">Gold Spot Price</div></div>
+    <div class="hero-delta"><div class="v" style="color:${d>=0?'var(--emerald)':'var(--red)'}">${d>=0?'+':''}${d.toFixed(2)}</div>
+      <div class="l">Score Delta</div><div class="sub">BD1 ${b1.toFixed(1)} → BD2 ${b2.toFixed(1)}</div></div>`;
+  setTimeout(()=>{
+    const c=document.getElementById('ringCanvas');if(!c)return;const x=c.getContext('2d');
+    const cx=100,cy=100,r=85,lw=10,pct=Math.max(0,Math.min(n/110,1)),sA=-Math.PI/2,eA=sA+pct*2*Math.PI;
+    x.beginPath();x.arc(cx,cy,r,0,2*Math.PI);x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=lw;x.stroke();
+    const gr=x.createLinearGradient(0,0,200,200);gr.addColorStop(0,'#E8B931');gr.addColorStop(.5,'#34D399');gr.addColorStop(1,'#60A5FA');
+    x.beginPath();x.arc(cx,cy,r,sA,eA);x.strokeStyle=gr;x.lineWidth=lw;x.lineCap='round';x.stroke();
+  },100);
+}
+
+// ── Stats ──
+function renderStats(){
+  const items=[
+    {v:f('Gross_Score_Avg'),l:'Gross Score',cls:'gold'},
+    {v:f('RSI_Value'),l:'RSI (14d)',cls:fi('RSI_Value')>=50&&fi('RSI_Value')<=70?'green':'orange'},
+    {v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ Yes':'❌ No',l:'Golden Cross',cls:String(D.Golden_Cross).toUpperCase()==='TRUE'?'green':'red'},
+    {v:f('Volatility_Pct')+'%',l:'Volatility (Ann.)',cls:fi('Volatility_Pct')<=30?'green':fi('Volatility_Pct')<=50?'orange':'red'},
+    {v:'$'+fi('MA50').toLocaleString('en-US',{minimumFractionDigits:1}),l:'MA50',cls:'blue'},
+    {v:'$'+fi('MA200').toLocaleString('en-US',{minimumFractionDigits:1}),l:'MA200',cls:'purple'},
+    {v:f('D6_External',0),l:'D6 External',cls:'cyan'},
+    {v:f('Penalty_Total',0),l:'Penalty',cls:fi('Penalty_Total')<0?'red':'green'},
+  ];
+  document.getElementById('statsGrid').innerHTML=items.map(s=>`
+    <div class="stat-card ${s.cls} fade-up"><div class="v" style="color:var(--${s.cls==='gold'?'gold':s.cls})">${s.v}</div><div class="l">${s.l}</div></div>`).join('');
+}
+
+// ── Dimensions ──
+function renderDimensions(){
+  const dims=[
+    {key:'D1_ReturnRank',name:'Return Rank',color:dimColors[0],max:20},
+    {key:'D2_VolumeRank',name:'Volume Rank',color:dimColors[1],max:20},
+    {key:'D3_RSI',name:'RSI',color:dimColors[2],max:20},
+    {key:'D4_MA',name:'MA Trend',color:dimColors[3],max:20},
+    {key:'D5_Volatility',name:'Volatility',color:dimColors[4],max:20},
+    {key:'D6_External',name:'Macro (DXY+VIX)',color:dimColors[5],max:10},
+  ];
+  document.getElementById('dimGrid').innerHTML=dims.map(d=>{
+    const v=fi(d.key),p=(v/d.max*100).toFixed(0);
+    return`<div class="dim-card"><div class="score" style="color:${d.color}">${v.toFixed(1)}</div><div class="max">/ ${d.max}</div>
+      <div class="name">${d.name}</div><div class="bar"><div class="fill" style="width:${p}%;background:${d.color}"></div></div></div>`;
+  }).join('');
+}
+
+// ── Macro ──
+function renderMacro(){
+  const dp=fi('DXY_1M_Pct'),vl=fi('VIX_Level'),ds=D.DXY_Signal||'',vs=D.VIX_Signal||'';
+  const db=ds.includes('🟢'),dn=ds.includes('🟡');
+  const dc=db?'var(--emerald)':dn?'var(--gold)':'var(--red)',dbg=db?'var(--emerald-dim)':dn?'var(--gold-dim)':'var(--red-dim)';
+  const vb=vs.includes('🔵'),vg=vs.includes('🟢');
+  const vc=vg?'var(--emerald)':vb?'var(--blue)':vs.includes('🟡')?'var(--gold)':'var(--red)';
+  const vbg=vg?'var(--emerald-dim)':vb?'var(--blue-dim)':vs.includes('🟡')?'var(--gold-dim)':'var(--red-dim)';
+  const dsc=ds.replace(/^[🟢🟡🔴🔵]\s*/,''),vsc=vs.replace(/^[🟢🟡🔴🔵]\s*/,'');
+  document.getElementById('macroGrid').innerHTML=`
+    <div class="macro-card dxy"><div class="macro-header"><span class="macro-label">DXY (US Dollar Index) — 1M Change</span></div>
+      <div class="macro-value" style="color:${dp>=0?'var(--emerald)':'var(--red)'}">${dp>=0?'+':''}${dp.toFixed(2)}%</div>
+      <div class="macro-signal" style="color:${dc};background:${dbg}">${ds.charAt(0)} ${dsc}</div>
+      <div class="macro-note">DXY ↑ = dollar strong → typically bearish gold | DXY ↓ = dollar weak → typically bullish gold</div></div>
+    <div class="macro-card vix"><div class="macro-header"><span class="macro-label">VIX (CBOE Volatility Index) — Current Level</span></div>
+      <div class="macro-value" style="color:${vl<=15?'var(--emerald)':vl<=20?'var(--gold)':vl<=30?'var(--orange)':'var(--red)'}">${vl.toFixed(2)}</div>
+      <div class="macro-signal" style="color:${vc};background:${vbg}">${vs.charAt(0)} ${vsc}</div>
+      <div class="macro-note">VIX &lt;15 calm | 15-20 normal | 20-30 elevated fear → gold safe haven | &gt;30 panic</div></div>`;
+}
+
+// ── Returns ──
+function renderReturns(){
+  const ps=[{key:'Ret_1W_Pct',name:'1 Week'},{key:'Ret_1M_Pct',name:'1 Month'},{key:'Ret_3M_Pct',name:'3 Month'},{key:'Ret_6M_Pct',name:'6 Month'},{key:'Ret_1Y_Pct',name:'1 Year'}];
+  document.getElementById('retGrid').innerHTML=ps.map(p=>{const v=fi(p.key);
+    return`<div class="ret-card"><div class="period">${p.name}</div><div class="val" style="color:${retColor(v)}">${v>=0?'+':''}${v.toFixed(2)}%</div><div class="pctl">Rolling Pctl</div></div>`;}).join('');
+}
+
+// ── Penalty ──
+function renderPenalty(){
+  const t=fi('Penalty_Total'),r=fi('Penalty_Reversal'),d=fi('Penalty_DeathCross'),fl=D.Warning_Flags||'',cl=t===0;
+  let h=`<div class="penalty-box ${cl?'clean':'warn'}"><div class="title">${cl?'✅ No Warning Flags':'🚨 Warning Flags Detected'}</div>
+    <div class="desc">${cl?'No momentum reversal or death cross signals detected. All clear.'
+    :`<strong>Total Penalty: ${t}</strong><br>Reversal: ${r} | Death Cross: ${d}<br>${fl&&fl!=='None'?'Flags: '+fl:''}`}</div></div>`;
+  h+=`<div class="info-grid">
+    <div class="info-item"><span class="k">Momentum Reversal</span><span class="v" style="color:${r<0?'var(--red)':'var(--emerald)'}">${r===0?'✅ None':r+' pts'}</span></div>
+    <div class="info-item"><span class="k">Death Cross (MA50 &lt; MA200)</span><span class="v" style="color:${d<0?'var(--red)':'var(--emerald)'}">${d===0?'✅ None':d+' pts'}</span></div>
+    <div class="info-item"><span class="k">Total Penalty (cap -15)</span><span class="v" style="color:${t<0?'var(--red)':'var(--emerald)'}">${t}</span></div>
+    <div class="info-item"><span class="k">Gross → Net Score</span><span class="v">${f('Gross_Score_Avg')} → ${f('Net_Score_Avg')}</span></div></div>`;
+  document.getElementById('penaltySection').innerHTML=h;
+}
+
+// ── Info ──
+function renderInfo(){
+  const items=[
+    {k:'Price',v:'$'+fi('Price').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'MA50',v:'$'+fi('MA50').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'MA200',v:'$'+fi('MA200').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'Golden Cross',v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ MA50 > MA200':'❌ MA50 < MA200'},
+    {k:'RSI (14-day)',v:fi('RSI_Value').toFixed(1)},
+    {k:'Volatility (Ann.)',v:fi('Volatility_Pct').toFixed(1)+'%'},
+    {k:'WP Return Pctl',v:fi('WP_Return_Pct').toFixed(1)+'%'},
+    {k:'WP Volume Pctl',v:fi('WP_Volume_Pct').toFixed(1)+'%'},
+    {k:'DXY 1M Change',v:(fi('DXY_1M_Pct')>=0?'+':'')+fi('DXY_1M_Pct').toFixed(2)+'%'},
+    {k:'VIX Level',v:fi('VIX_Level').toFixed(2)},
+    {k:'D6 External Score',v:fi('D6_External').toFixed(1)+' / 10'},
+    {k:'Base Date 1',v:D.Base_Date_1},{k:'Base Date 2',v:D.Base_Date_2},
+    {k:'Net Score BD1',v:f('Net_Score_BD1')},{k:'Net Score BD2',v:f('Net_Score_BD2')},
+  ];
+  if(PIVOT){
+    items.push({k:'Pivot Point (PP)',v:fp(PIVOT.PP)},{k:'Pivot R1 / R2',v:fp(PIVOT.R1)+' / '+fp(PIVOT.R2)},{k:'Pivot S1 / S2',v:fp(PIVOT.S1)+' / '+fp(PIVOT.S2)});
+  }
+  document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
+}
+
+// ── Tier Legend ──
+function renderTierLegend(){
+  const tiers=[
+    {name:'Very Strong ↑↑',range:'≥85',bg:'var(--emerald-dim)',color:'var(--emerald)',border:'rgba(52,211,153,.3)'},
+    {name:'Strong ↑',range:'75–84',bg:'rgba(52,211,153,.08)',color:'#8BD4B0',border:'rgba(52,211,153,.2)'},
+    {name:'Moderate ↑',range:'60–74',bg:'var(--gold-dim)',color:'var(--gold)',border:'rgba(232,185,49,.3)'},
+    {name:'Neutral →',range:'45–59',bg:'rgba(156,163,175,.08)',color:'var(--text2)',border:'rgba(156,163,175,.2)'},
+    {name:'Weak ↓',range:'30–44',bg:'var(--orange-dim)',color:'var(--orange)',border:'rgba(251,146,60,.2)'},
+    {name:'Very Weak ↓↓',range:'<30',bg:'var(--red-dim)',color:'var(--red)',border:'rgba(248,113,113,.2)'},
+  ];
+  document.getElementById('tierLegend').innerHTML=tiers.map(t=>{const a=D.Tier===t.name;
+    return`<div class="tier-chip" style="background:${t.bg};color:${t.color};border:1px solid ${t.border};${a?'box-shadow:0 0 12px '+t.border+';transform:scale(1.1)':'opacity:.6'}">${t.name} (${t.range})${a?' ◀ CURRENT':''}</div>`;}).join('');
+}
+
+// ── Methodology ──
+function renderMethodology(){
+  const cards=[
+    {title:'D1: Return Rank (0–20)',body:'Rolling percentile of multi-period returns (1W–1Y) vs past 252 trading days. Weights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%.'},
+    {title:'D2: Volume Rank (0–20)',body:'Rolling percentile of cumulative volume per period. Same weight structure as Return Rank.'},
+    {title:'D3: RSI (0–20)',body:'14-day Relative Strength Index. Sweet spot (50–70) = 20pts. Overbought/oversold scores lower.'},
+    {title:'D4: MA Trend (0–20)',body:'Price vs MA50 (+7), Price vs MA200 (+7), Golden Cross MA50>MA200 (+6). Max 20pts.'},
+    {title:'D5: Volatility (0–20)',body:'Annualized 21-day volatility. Lower = better. ≤20%=20pts down to >80%=2pts.'},
+    {title:'D6: External Macro (0–10)',body:'DXY: dollar weakness = bullish gold (up to +5). VIX: elevated fear = safe-haven demand (up to +5). Combined max 10pts.'},
+    {title:'Penalty System',body:'Momentum Reversal: -5 (mild) or -10 (strong). Death Cross: -5. Capped at -15 total.'},
+    {title:'Pivot Zone × Score',body:'Classic Pivot Points (R3/R2/R1/PP/S1/S2/S3) from previous day H/L/C. Bias signal combines price position vs pivot levels with momentum score & delta direction.'},
+  ];
+  document.getElementById('methodGrid').innerHTML=cards.map(c=>`<div class="method-card"><div class="title">${c.title}</div><div class="body">${c.body}</div></div>`).join('');
+}
+
+// ── Charts ──
+function renderScenarioTable(){
+  const bias=computeBias();
+  const scenarios=[
+    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน',
+     cond:'Price ≥ R1 &amp; Score ≥ 75 &amp; Delta &gt; 0',
+     condTh:'ราคาเหนือ R1 + คะแนนแข็ง + momentum เร่งตัว',
+     meaning:'ราคาทะลุแนวต้าน R1 ขึ้นไปพร้อม momentum ที่แข็งแกร่งและยังเร่งตัวอยู่ — โอกาสไปต่อสูง ดู R2/R3 เป็นเป้าหมายถัดไป',
+     action:'BUY',actionCls:'buy'},
+    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',
+     cond:'Price ≥ R1 &amp; Score ≥ 75 &amp; Delta &lt; 0',
+     condTh:'ราคาเหนือ R1 + คะแนนแข็ง + แต่ momentum ชะลอ',
+     meaning:'ทะลุ R1 แล้วและคะแนนยังสูง แต่ delta เริ่มลดลง — อาจเป็นจุดพักตัว พิจารณา take-profit บางส่วน หรือ tighten stop',
+     action:'HOLD',actionCls:'hold'},
+    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',
+     cond:'PP ≤ Price &lt; R1 &amp; Score ≥ 75',
+     condTh:'ราคาระหว่าง PP ถึง R1 + คะแนนแข็ง',
+     meaning:'ราคาอยู่เหนือ Pivot แต่ยังไม่ถึง R1 ขณะที่ momentum แข็ง — กำลังสะสมแรงเพื่อทดสอบ R1 ถ้าทะลุได้จะเข้า Breakout',
+     action:'BUY',actionCls:'buy'},
+    {n:4,icon:'📊',signal:'Cautious Bullish',thai:'ขาขึ้นระมัดระวัง',
+     cond:'Price ≥ PP &amp; Score 60–74',
+     condTh:'ราคาเหนือ Pivot + คะแนนปานกลาง',
+     meaning:'ราคาอยู่ฝั่ง bullish (เหนือ PP) แต่ momentum ยังไม่แข็งพอจะมั่นใจ — ถือรอดู ถ้า score ขึ้น → เปลี่ยนเป็น Accumulation',
+     action:'HOLD',actionCls:'hold'},
+    {n:5,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',
+     cond:'S1 ≤ Price &lt; PP &amp; Score ≥ 75',
+     condTh:'ราคาระหว่าง S1 ถึง PP + คะแนนแข็ง',
+     meaning:'ราคาย่อลงมาใต้ Pivot แต่ momentum ยังแข็งแกร่ง — มีโอกาสเด้งกลับขึ้นไปทดสอบ PP อีกครั้ง เป็นจุดเข้าที่น่าสนใจ',
+     action:'BUY',actionCls:'buy'},
+    {n:6,icon:'↔️',signal:'Neutral Range',thai:'วนอยู่ในกรอบ',
+     cond:'S1 ≤ Price &lt; PP &amp; Score 60–74',
+     condTh:'ราคาระหว่าง S1 ถึง PP + คะแนนปานกลาง',
+     meaning:'ทั้งราคาและ momentum อยู่ในโซนกลางๆ ไม่มีทิศทางชัดเจน — รอสัญญาณยืนยัน ไม่ควรรีบเข้าหรือออก',
+     action:'HOLD',actionCls:'hold'},
+    {n:7,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',
+     cond:'Price &lt; S1 &amp; Score ≥ 75',
+     condTh:'ราคาหลุด S1 + แต่คะแนนยังแข็ง',
+     meaning:'ราคาหลุดแนวรับ S1 ลงมาแล้ว แต่ momentum ภาพรวมยังแข็งแกร่ง — เป็น Divergence ที่บอกว่าอาจ recover กลับได้ เป็นโอกาสเข้าซื้อสำหรับคนรับความเสี่ยงได้',
+     action:'BUY',actionCls:'buy'},
+    {n:8,icon:'⚠️',signal:'Rejection Risk',thai:'เสี่ยงโดนตีกลับ',
+     cond:'Price ≥ R1 &amp; Score &lt; 60',
+     condTh:'ราคาเหนือ R1 + แต่คะแนนอ่อน',
+     meaning:'ราคาทะลุ R1 ขึ้นมาได้ แต่ momentum ไม่หนุน — สัญญาณ false breakout มีสูง เสี่ยงถูก reject กลับลงมาหา PP',
+     action:'SELL',actionCls:'sell'},
+    {n:9,icon:'🔻',signal:'Bearish Trend',thai:'แนวโน้มขาลง',
+     cond:'Price &lt; PP &amp; Score &lt; 60 &amp; Delta &lt; 0',
+     condTh:'ราคาใต้ Pivot + คะแนนอ่อน + momentum ลดลงอีก',
+     meaning:'ทั้งราคาและ momentum อ่อนตัวลงพร้อมกัน และยังไม่มีสัญญาณกลับตัว — ควรลดความเสี่ยง ดู S1/S2 เป็นเป้าหมายขาลง',
+     action:'SELL',actionCls:'sell'},
+    {n:10,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ',
+     cond:'Price &lt; S1 &amp; Score &lt; 60',
+     condTh:'ราคาหลุด S1 + คะแนนอ่อน',
+     meaning:'ราคาหลุดแนวรับ S1 ขณะที่ momentum ก็อ่อนแอ — ทั้งสองสัญญาณสอดคล้องกัน เสี่ยงลงต่อถึง S2/S3 ควรพิจารณาออกหรือ hedge',
+     action:'SELL',actionCls:'sell'},
   ];
 
-  document.getElementById('methodGrid').innerHTML = cards.map(c => `
-    <div class="method-card">
-      <div class="title">${c.title}</div>
-      <div class="body">${c.body}</div>
-    </div>
-  `).join('');
-}
+  const currentSignal=bias.signal;
 
-// ============================================================
-// RADAR CHART (6 dimensions — normalized to 0-20 scale)
-// ============================================================
-function renderRadarChart() {
-  const ctx = document.getElementById('radarChart').getContext('2d');
-  const labels = ['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro (DXY+VIX)'];
-  // Normalize D6 from /10 to /20 scale for radar visual balance
-  const d6Normalized = fi('D6_External') * 2;
-  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility'), d6Normalized];
+  let html=`<table class="scenario-table">
+    <thead><tr>
+      <th>#</th><th></th><th>Signal / สัญญาณ</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
+    </tr></thead><tbody>`;
 
-  new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Score',
-        data: values,
-        backgroundColor: 'rgba(232,185,49,.15)',
-        borderColor: '#E8B931',
-        borderWidth: 2,
-        pointBackgroundColor: dimColors,
-        pointBorderColor: dimColors,
-        pointRadius: 5,
-        pointHoverRadius: 8,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              if (ctx.dataIndex === 5) return (ctx.raw / 2).toFixed(1) + ' / 10 (scaled ×2 for radar)';
-              return ctx.raw.toFixed(1) + ' / 20';
-            }
-          }
-        }
-      },
-      scales: {
-        r: {
-          min: 0, max: 20,
-          ticks: { stepSize: 5, color: '#6B7280', backdropColor: 'transparent', font: { size: 10 } },
-          grid: { color: 'rgba(255,255,255,.06)' },
-          angleLines: { color: 'rgba(255,255,255,.06)' },
-          pointLabels: { color: '#9CA3AF', font: { size: 11, family: 'Instrument Sans', weight: '600' } }
-        }
-      }
-    }
+  scenarios.forEach(s=>{
+    const isCurrent=s.signal===currentSignal;
+    html+=`<tr class="${isCurrent?'current-scenario':''}">
+      <td class="sc-num">${s.n}</td>
+      <td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
+      <td><div class="sc-cond">${s.cond}</div><div class="sc-cond-th">${s.condTh}</div></td>
+      <td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
+    </tr>`;
   });
+
+  html+=`</tbody></table>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
+      <strong style="color:var(--gold)">หมายเหตุ:</strong>
+      Bias (BUY/SELL/HOLD) เป็นการประเมินจาก Pivot Position × Momentum Score × Delta Direction เท่านั้น
+      ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ เช่น ข่าว, Macro, และ Risk Management ส่วนบุคคล
+    </div>`;
+
+  document.getElementById('scenarioTable').innerHTML=html;
 }
-
-// ============================================================
-// BAR CHART (6 dimensions + penalty)
-// ============================================================
-function renderBarChart() {
-  const ctx = document.getElementById('barChart').getContext('2d');
-  const labels = ['Return','Volume','RSI','MA','Volatility','Macro'];
-  const values = [fi('D1_ReturnRank'), fi('D2_VolumeRank'), fi('D3_RSI'), fi('D4_MA'), fi('D5_Volatility'), fi('D6_External')];
-  const penalty = fi('Penalty_Total');
-
-  const allLabels = [...labels];
-  const allValues = [...values];
-  const allColors = [...dimColors];
-  if (penalty !== 0) {
-    allLabels.push('Penalty');
-    allValues.push(penalty);
-    allColors.push('#F87171');
-  }
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: allLabels,
-      datasets: [{
-        data: allValues,
-        backgroundColor: allColors.map(c => c + '33'),
-        borderColor: allColors,
-        borderWidth: 2,
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1e293b', borderColor: '#E8B931', borderWidth: 1,
-          titleColor: '#E8B931', bodyColor: '#E8E6E1', padding: 10,
-          callbacks: {
-            label: function(item) {
-              if (item.dataIndex === 5) return item.raw + ' / 10';
-              if (item.dataIndex < 5) return item.raw + ' / 20';
-              return item.raw + ' pts';
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { size: 11, family: 'Instrument Sans', weight: '600' } } },
-        y: { min: penalty < 0 ? penalty - 2 : 0, max: 22, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#6B7280' } }
-      }
-    }
-  });
+// ── Charts ──
+function renderRadarChart(){
+  const ctx=document.getElementById('radarChart').getContext('2d');
+  const d6n=fi('D6_External')*2;
+  new Chart(ctx,{type:'radar',data:{labels:['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro (DXY+VIX)'],
+    datasets:[{label:'Score',data:[fi('D1_ReturnRank'),fi('D2_VolumeRank'),fi('D3_RSI'),fi('D4_MA'),fi('D5_Volatility'),d6n],
+      backgroundColor:'rgba(232,185,49,.15)',borderColor:'#E8B931',borderWidth:2,pointBackgroundColor:dimColors,pointBorderColor:dimColors,pointRadius:5,pointHoverRadius:8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>c.dataIndex===5?(c.raw/2).toFixed(1)+' / 10 (scaled ×2)':c.raw.toFixed(1)+' / 20'}}},
+      scales:{r:{min:0,max:20,ticks:{stepSize:5,color:'#6B7280',backdropColor:'transparent',font:{size:10}},grid:{color:'rgba(255,255,255,.06)'},angleLines:{color:'rgba(255,255,255,.06)'},pointLabels:{color:'#9CA3AF',font:{size:11,family:'Instrument Sans',weight:'600'}}}}}});
+}
+function renderBarChart(){
+  const ctx=document.getElementById('barChart').getContext('2d');
+  const lbl=['Return','Volume','RSI','MA','Volatility','Macro'],vals=[fi('D1_ReturnRank'),fi('D2_VolumeRank'),fi('D3_RSI'),fi('D4_MA'),fi('D5_Volatility'),fi('D6_External')];
+  const pen=fi('Penalty_Total'),al=[...lbl],av=[...vals],ac=[...dimColors];
+  if(pen!==0){al.push('Penalty');av.push(pen);ac.push('#F87171');}
+  new Chart(ctx,{type:'bar',data:{labels:al,datasets:[{data:av,backgroundColor:ac.map(c=>c+'33'),borderColor:ac,borderWidth:2,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:'#1e293b',borderColor:'#E8B931',borderWidth:1,titleColor:'#E8B931',bodyColor:'#E8E6E1',padding:10,
+        callbacks:{label:i=>i.dataIndex===5?i.raw+' / 10':i.dataIndex<5?i.raw+' / 20':i.raw+' pts'}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#9CA3AF',font:{size:11,family:'Instrument Sans',weight:'600'}}},
+        y:{min:pen<0?pen-2:0,max:22,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6B7280'}}}}});
 }
 </script>
 </body>
