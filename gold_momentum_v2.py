@@ -432,6 +432,206 @@ if s2['external']['vix_level'] is not None:
     print(f"  VIX Level: {s2['external']['vix_level']:.2f}")
 
 # ══════════════════════════════════════════════════════
+# MULTI-TF PIVOT POINTS + CONFLUENCE ZONES
+# ══════════════════════════════════════════════════════
+
+def calc_pivot_levels(high, low, close):
+    """Classic Pivot Points: PP, R1-R3, S1-S3."""
+    PP = (high + low + close) / 3
+    R1 = 2 * PP - low
+    S1 = 2 * PP - high
+    R2 = PP + (high - low)
+    S2 = PP - (high - low)
+    R3 = high + 2 * (PP - low)
+    S3 = low - 2 * (high - PP)
+    return {'PP': round(PP, 2), 'R1': round(R1, 2), 'R2': round(R2, 2), 'R3': round(R3, 2),
+            'S1': round(S1, 2), 'S2': round(S2, 2), 'S3': round(S3, 2)}
+
+def calc_multi_tf_pivots(df):
+    """
+    Calculate pivot points for D1, W1, and MN timeframes from daily OHLCV data.
+    
+    - D1: uses previous completed trading day's H/L/C
+    - W1: uses previous completed week's aggregated H/L/C
+    - MN: uses previous completed month's aggregated H/L/C
+    
+    Returns dict with 'D1', 'W1', 'MN' keys (each containing pivot levels + source H/L/C)
+    """
+    df = df.copy()
+    df['Date'] = pd.to_datetime(df['Date'])
+    df = df.sort_values('Date').reset_index(drop=True)
+    
+    result = {}
+    current_price = df['Close'].values[-1]
+    latest_date = df['Date'].max()
+    
+    # ── D1: Previous day H/L/C ──
+    if len(df) >= 2:
+        prev = df.iloc[-2]
+        levels = calc_pivot_levels(prev['High'], prev['Low'], prev['Close'])
+        result['D1'] = {**levels, 'H': round(prev['High'], 2), 'L': round(prev['Low'], 2),
+                        'C': round(prev['Close'], 2), 'date': prev['Date'].strftime('%Y-%m-%d')}
+    
+    # ── W1: Previous completed week H/L/C ──
+    df['iso_year'] = df['Date'].dt.isocalendar().year.astype(int)
+    df['iso_week'] = df['Date'].dt.isocalendar().week.astype(int)
+    df['yw_key'] = df['iso_year'] * 100 + df['iso_week']
+    
+    current_yw = latest_date.isocalendar()
+    current_yw_key = current_yw.year * 100 + current_yw.week
+    
+    # Filter out current (incomplete) week
+    weekly = df[df['yw_key'] < current_yw_key].groupby('yw_key').agg(
+        High=('High', 'max'), Low=('Low', 'min'), Close=('Close', 'last'),
+        Date_last=('Date', 'max')
+    ).reset_index().sort_values('yw_key')
+    
+    if len(weekly) >= 1:
+        prev_w = weekly.iloc[-1]
+        levels = calc_pivot_levels(prev_w['High'], prev_w['Low'], prev_w['Close'])
+        result['W1'] = {**levels, 'H': round(prev_w['High'], 2), 'L': round(prev_w['Low'], 2),
+                        'C': round(prev_w['Close'], 2), 'date': prev_w['Date_last'].strftime('%Y-%m-%d')}
+    
+    # ── MN: Previous completed month H/L/C ──
+    current_ym = latest_date.strftime('%Y-%m')
+    df['ym'] = df['Date'].dt.strftime('%Y-%m')
+    
+    monthly = df[df['ym'] < current_ym].groupby('ym').agg(
+        High=('High', 'max'), Low=('Low', 'min'), Close=('Close', 'last'),
+        Date_last=('Date', 'max')
+    ).reset_index().sort_values('ym')
+    
+    if len(monthly) >= 1:
+        prev_m = monthly.iloc[-1]
+        levels = calc_pivot_levels(prev_m['High'], prev_m['Low'], prev_m['Close'])
+        result['MN'] = {**levels, 'H': round(prev_m['High'], 2), 'L': round(prev_m['Low'], 2),
+                        'C': round(prev_m['Close'], 2), 'date': prev_m['Date_last'].strftime('%Y-%m-%d')}
+    
+    return result, current_price
+
+def find_confluence_zones(pivots, threshold=20):
+    """
+    Find pivot levels across different TFs that are within `threshold` points of each other.
+    Returns list of clusters, each cluster is a list of {tf, level, price}.
+    """
+    all_levels = []
+    level_names = ['R3', 'R2', 'R1', 'PP', 'S1', 'S2', 'S3']
+    for tf, data in pivots.items():
+        for lv in level_names:
+            if lv in data:
+                all_levels.append({'tf': tf, 'level': lv, 'price': data[lv]})
+    
+    # Cluster levels within threshold
+    used = set()
+    clusters = []
+    for i, a in enumerate(all_levels):
+        if i in used:
+            continue
+        group = [a]
+        for j, b in enumerate(all_levels):
+            if j <= i or j in used:
+                continue
+            # Only cluster across DIFFERENT TFs
+            if a['tf'] == b['tf']:
+                continue
+            if abs(a['price'] - b['price']) < threshold:
+                group.append(b)
+                used.add(j)
+        if len(group) >= 2:
+            used.add(i)
+            clusters.append(group)
+    
+    # Sort clusters by average price descending
+    for cluster in clusters:
+        cluster.sort(key=lambda x: x['price'], reverse=True)
+    clusters.sort(key=lambda c: sum(x['price'] for x in c) / len(c), reverse=True)
+    
+    return clusters
+
+# ── Compute pivots ──
+pivots, current_price_pivot = calc_multi_tf_pivots(df)
+
+print(f"\n{'='*55}")
+print(f"Multi-TF Pivot Points")
+print(f"{'='*55}")
+for tf in ['D1', 'W1', 'MN']:
+    if tf in pivots:
+        p = pivots[tf]
+        print(f"  {tf}: PP={p['PP']:.2f}  R1={p['R1']:.2f}  R2={p['R2']:.2f}  R3={p['R3']:.2f}  S1={p['S1']:.2f}  S2={p['S2']:.2f}  S3={p['S3']:.2f}  (H/L/C from {p['date']})")
+
+confluences = find_confluence_zones(pivots, threshold=20)
+if confluences:
+    print(f"\n⚡ Confluence Zones (within 20 pts):")
+    for cluster in confluences:
+        avg = sum(x['price'] for x in cluster) / len(cluster)
+        tags = " + ".join(f"{x['tf']} {x['level']}({x['price']:.2f})" for x in cluster)
+        is_r = any(x['level'].startswith('R') for x in cluster)
+        is_s = any(x['level'].startswith('S') for x in cluster)
+        zone_type = "Resistance" if is_r and not is_s else ("Support" if is_s and not is_r else "Mixed")
+        print(f"  ~{avg:.2f} — {tags} [{zone_type}]")
+else:
+    print(f"\n  No confluence zones found")
+
+# ── Flatten pivot data for CSV ──
+def flatten_pivots_for_csv(pivots, confluences, current_price):
+    """Create flat dict of pivot data for CSV columns."""
+    flat = {}
+    for tf in ['D1', 'W1', 'MN']:
+        if tf in pivots:
+            for lv in ['PP', 'R1', 'R2', 'R3', 'S1', 'S2', 'S3']:
+                flat[f'Pivot_{tf}_{lv}'] = pivots[tf][lv]
+            flat[f'Pivot_{tf}_H'] = pivots[tf]['H']
+            flat[f'Pivot_{tf}_L'] = pivots[tf]['L']
+            flat[f'Pivot_{tf}_C'] = pivots[tf]['C']
+            flat[f'Pivot_{tf}_Date'] = pivots[tf]['date']
+        else:
+            for lv in ['PP', 'R1', 'R2', 'R3', 'S1', 'S2', 'S3']:
+                flat[f'Pivot_{tf}_{lv}'] = ''
+            flat[f'Pivot_{tf}_H'] = ''
+            flat[f'Pivot_{tf}_L'] = ''
+            flat[f'Pivot_{tf}_C'] = ''
+            flat[f'Pivot_{tf}_Date'] = ''
+    
+    # Confluence zones: store as pipe-separated string
+    # Format: "~avg|TF1 LV1+TF2 LV2|type;~avg|...|type"
+    conf_parts = []
+    for cluster in confluences:
+        avg = sum(x['price'] for x in cluster) / len(cluster)
+        tags = "+".join(f"{x['tf']} {x['level']}({x['price']:.2f})" for x in cluster)
+        is_r = any(x['level'].startswith('R') for x in cluster)
+        is_s = any(x['level'].startswith('S') for x in cluster)
+        zone_type = "Resistance" if is_r and not is_s else ("Support" if is_s and not is_r else "Mixed")
+        conf_parts.append(f"~{avg:.2f}|{tags}|{zone_type}")
+    flat['Confluence_Zones'] = ";".join(conf_parts) if conf_parts else 'None'
+    flat['Confluence_Count'] = len(confluences)
+    
+    # Current price position relative to D1 pivot
+    if 'D1' in pivots:
+        d1 = pivots['D1']
+        if current_price >= d1['R3']:
+            flat['Pivot_Position'] = 'Above R3'
+        elif current_price >= d1['R2']:
+            flat['Pivot_Position'] = 'R2-R3'
+        elif current_price >= d1['R1']:
+            flat['Pivot_Position'] = 'R1-R2'
+        elif current_price >= d1['PP']:
+            flat['Pivot_Position'] = 'PP-R1'
+        elif current_price >= d1['S1']:
+            flat['Pivot_Position'] = 'S1-PP'
+        elif current_price >= d1['S2']:
+            flat['Pivot_Position'] = 'S2-S1'
+        elif current_price >= d1['S3']:
+            flat['Pivot_Position'] = 'S3-S2'
+        else:
+            flat['Pivot_Position'] = 'Below S3'
+    else:
+        flat['Pivot_Position'] = ''
+    
+    return flat
+
+pivot_csv = flatten_pivots_for_csv(pivots, confluences, current_price_pivot)
+
+# ══════════════════════════════════════════════════════
 # CSV OUTPUT
 # ══════════════════════════════════════════════════════
 
@@ -474,7 +674,9 @@ csv_row = {
     'News_Top20': 'FALSE',
     'Base_Date_1': s1['date'].strftime('%Y-%m-%d'),
     'Base_Date_2': s2['date'].strftime('%Y-%m-%d'),
-    'As_Of_Running': AS_OF
+    'As_Of_Running': AS_OF,
+    # Multi-TF Pivot Points
+    **pivot_csv
 }
 
 csv_df = pd.DataFrame([csv_row])

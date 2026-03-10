@@ -201,15 +201,30 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     <div class="hero" id="heroSection"></div>
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- ★ PIVOT ZONE ★ -->
+    <!-- ★ PIVOT ZONE (Multi-TF) ★ -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Pivot Zone &times; Momentum Bias — Classic Pivot Points</div>
+      <div class="section-title"><span class="dot"></span>Multi-TF Pivot Points &times; Momentum Bias — D1 / W1 / MN</div>
       <div class="pivot-chart-wrap">
         <div style="height:420px;position:relative"><canvas id="pivotChart"></canvas></div>
         <div class="bias-signal" id="biasSignal"></div>
         <div class="pivot-score-link" id="pivotScoreLink"></div>
-        <div class="pivot-legend" id="pivotLegend"></div>
       </div>
+    </div>
+
+    <!-- ★ MULTI-TF TABLE + CONFLUENCE ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Pivot Levels — D1 (Daily) / W1 (Weekly) / MN (Monthly)</div>
+      <div id="multiTFTable" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
+    </div>
+
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>⚡ Confluence Zones — โซนที่ Pivot หลาย TF ซ้อนกัน (ภายใน 20 จุด)</div>
+      <div id="confluenceSection" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
+    </div>
+
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>D1 Pivot Level Guide</div>
+      <div class="pivot-legend" id="pivotLegend"></div>
     </div>
 
     <div class="section fade-up">
@@ -266,15 +281,15 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   </div>
 
   <footer class="footer">
-    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.3 + Pivot Zone</p>
-    <p style="margin-top:4px">Rolling Percentile + Macro Factor + Classic Pivot Analysis</p>
+    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v2.4 + Multi-TF Pivot</p>
+    <p style="margin-top:4px">Rolling Percentile + Macro Factor + Multi-TF Pivot &amp; Confluence Analysis</p>
   </footer>
 </div>
 
 <script>
 const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold.csv';
 const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
-let D=null,PIVOT=null,PRICE_DATA=null;
+let D=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
 
@@ -288,10 +303,15 @@ async function loadData(){
     const rows=parseCSV(sText);
     if(!rows.length)throw new Error('No score data');
     D=rows[0];
-    PIVOT=calcPivot(pText);
+    // Load multi-TF pivots from CSV
+    PIVOT_ALL=loadMultiTFPivots(D);
+    PIVOT=PIVOT_ALL['D1']||null;
+    CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
     PRICE_DATA=parsePriceCSV(pText);
+    // Set current price for pivot
+    if(PIVOT) PIVOT.price=parseFloat(D.Price)||0;
     st.className='status-indicator success';
-    st.innerHTML='<span>●</span> GITHUB DATA LOADED — GOLD + PIVOT';
+    st.innerHTML='<span>●</span> GITHUB DATA LOADED — GOLD + MULTI-TF PIVOT';
     document.getElementById('periodLabel').textContent='As of: '+D.As_Of_Running+'  •  BD1: '+D.Base_Date_1+'  •  BD2: '+D.Base_Date_2;
     document.getElementById('loadingMsg').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
@@ -304,36 +324,43 @@ async function loadData(){
   }
 }
 
-// ── Pivot Calculation ──
-function calcPivot(csv){
-  const lines=csv.trim().split('\n');
-  const data=[];
-  for(let i=1;i<lines.length;i++){
-    const c=lines[i].split(',');
-    if(c.length>=6)data.push({date:c[0].trim(),open:+c[1],high:+c[2],low:+c[3],close:+c[4],vol:parseInt(c[5])});
-  }
-  if(data.length<2)return null;
-  const prev=data[data.length-2],curr=data[data.length-1];
-  const H=prev.high,L=prev.low,C=prev.close;
-  const PP=(H+L+C)/3;
-  const R1=2*PP-L,S1=2*PP-H;
-  const R2=PP+(H-L),S2=PP-(H-L);
-  const R3=H+2*(PP-L),S3=L-2*(H-PP);
-  return{
-    date_prev:prev.date,date_curr:curr.date,
-    price:curr.close,price_high:curr.high,price_low:curr.low,
-    prev_high:H,prev_low:L,prev_close:C,
-    PP,R1,R2,R3,S1,S2,S3,
-    levels:[
-      {label:'R3',value:R3,type:'resistance'},
-      {label:'R2',value:R2,type:'resistance'},
-      {label:'R1',value:R1,type:'resistance'},
-      {label:'PP',value:PP,type:'pivot'},
-      {label:'S1',value:S1,type:'support'},
-      {label:'S2',value:S2,type:'support'},
-      {label:'S3',value:S3,type:'support'},
-    ]
-  };
+// ── Load Multi-TF Pivots from CSV columns ──
+function loadMultiTFPivots(d){
+  const tfs={};
+  ['D1','W1','MN'].forEach(tf=>{
+    const pp=parseFloat(d['Pivot_'+tf+'_PP']);
+    if(isNaN(pp))return;
+    tfs[tf]={
+      PP:pp,
+      R1:parseFloat(d['Pivot_'+tf+'_R1']),R2:parseFloat(d['Pivot_'+tf+'_R2']),R3:parseFloat(d['Pivot_'+tf+'_R3']),
+      S1:parseFloat(d['Pivot_'+tf+'_S1']),S2:parseFloat(d['Pivot_'+tf+'_S2']),S3:parseFloat(d['Pivot_'+tf+'_S3']),
+      H:parseFloat(d['Pivot_'+tf+'_H']),L:parseFloat(d['Pivot_'+tf+'_L']),C:parseFloat(d['Pivot_'+tf+'_C']),
+      date:d['Pivot_'+tf+'_Date']||'',
+      levels:[
+        {label:'R3',value:parseFloat(d['Pivot_'+tf+'_R3']),type:'resistance'},
+        {label:'R2',value:parseFloat(d['Pivot_'+tf+'_R2']),type:'resistance'},
+        {label:'R1',value:parseFloat(d['Pivot_'+tf+'_R1']),type:'resistance'},
+        {label:'PP',value:pp,type:'pivot'},
+        {label:'S1',value:parseFloat(d['Pivot_'+tf+'_S1']),type:'support'},
+        {label:'S2',value:parseFloat(d['Pivot_'+tf+'_S2']),type:'support'},
+        {label:'S3',value:parseFloat(d['Pivot_'+tf+'_S3']),type:'support'},
+      ]
+    };
+  });
+  return tfs;
+}
+
+function parseConfluences(str){
+  if(!str||str==='None')return [];
+  return str.split(';').map(part=>{
+    const [avgStr,tags,type]=part.split('|');
+    const avg=parseFloat(avgStr.replace('~',''));
+    const items=tags.split('+').map(t=>{
+      const m=t.trim().match(/^(\w+)\s+(\w+)\(([\d.]+)\)$/);
+      return m?{tf:m[1],level:m[2],price:parseFloat(m[3])}:null;
+    }).filter(Boolean);
+    return {avg,items,type:type||'Mixed'};
+  });
 }
 
 function parsePriceCSV(csv){
@@ -385,7 +412,7 @@ function render(){
   renderRadarChart();renderBarChart();
 }
 
-// ── PIVOT ZONE ──
+// ── PIVOT ZONE (Multi-TF) ──
 function renderPivotZone(){
   if(!PIVOT||!PRICE_DATA||PRICE_DATA.length<5){
     document.getElementById('pivotChart').parentElement.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">Insufficient data for pivot chart</div>';
@@ -397,74 +424,105 @@ function renderPivotZone(){
   const score=fi('Net_Score_Avg');
   const tier=D.Tier;
 
-  // Use last 10 trading days — tight window matching daily pivot relevance
+  // Use last 10 trading days
   const chartDays=Math.min(10,PRICE_DATA.length);
   const chartData=PRICE_DATA.slice(-chartDays);
-
-  // Add 5 empty slots on the right for the pivot zone area
   const zoneSlots=5;
   const totalSlots=chartDays+zoneSlots;
   const labels=[...chartData.map(d=>d.date),...Array(zoneSlots).fill('')];
-  // Price data fills left side, null for zone area
   const closes=[...chartData.map(d=>d.close),...Array(zoneSlots).fill(null)];
 
-  // Y-axis: focus on pivot zone — use pivot range as anchor, extend to cover price data
+  // Y-axis: use all TF pivot ranges
   const priceCloses=chartData.map(d=>d.close);
-  const pivotVals=[PIVOT.R3,PIVOT.R2,PIVOT.R1,PIVOT.PP,PIVOT.S1,PIVOT.S2,PIVOT.S3];
-  const pivotMin=Math.min(...pivotVals),pivotMax=Math.max(...pivotVals);
-  const pivotRange=pivotMax-pivotMin;
-  const dataMin=Math.min(...priceCloses),dataMax=Math.max(...priceCloses);
-  const yMin=Math.min(pivotMin,dataMin)-pivotRange*0.5;
-  const yMax=Math.max(pivotMax,dataMax)+pivotRange*0.5;
+  const allPivotVals=[];
+  const tfColors={D1:{R:'#F87171',S:'#34D399',PP:'#E8B931'},W1:{R:'#60A5FA',S:'#60A5FA',PP:'#60A5FA'},MN:{R:'#A78BFA',S:'#A78BFA',PP:'#A78BFA'}};
+  const tfDash={D1:[],W1:[8,4],MN:[3,3]};
+  const tfWidth={D1:2,W1:1.5,MN:1.2};
 
-  const levelColors={R3:'#F87171',R2:'#fb7185',R1:'#fca5a5',PP:'#E8B931',S1:'#86efac',S2:'#6ee7b7',S3:'#34D399'};
-
-  // Pivot lines: overlap last 2 price points, then extend across zone area
-  const pivotDatasets=PIVOT.levels.map(lv=>{
-    const data=Array(totalSlots).fill(null);
-    for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
-    return {
-      label:lv.label+' '+fp(lv.value),
-      data,
-      borderColor:levelColors[lv.label],
-      borderWidth:lv.label==='PP'?2.5:1.5,
-      borderDash:lv.label==='PP'?[]:[6,4],
-      pointRadius:0,
-      pointHoverRadius:0,
-      fill:false,
-      tension:0,
-      spanGaps:false,
-      order:2,
-    };
+  ['D1','W1','MN'].forEach(tf=>{
+    if(!PIVOT_ALL[tf])return;
+    PIVOT_ALL[tf].levels.forEach(lv=>allPivotVals.push(lv.value));
   });
 
-  // Custom plugin: draw pivot labels (R3, R2, ... S3 + price) on the right edge
+  const pivotMin=Math.min(...allPivotVals),pivotMax=Math.max(...allPivotVals);
+  const pivotRange=pivotMax-pivotMin;
+  const dataMin=Math.min(...priceCloses),dataMax=Math.max(...priceCloses);
+  // Clamp Y range — don't let MN extremes dominate, show at least D1+W1 range plus some padding
+  const d1w1Vals=[];
+  ['D1','W1'].forEach(tf=>{if(PIVOT_ALL[tf])PIVOT_ALL[tf].levels.forEach(lv=>d1w1Vals.push(lv.value));});
+  const focusMin=d1w1Vals.length?Math.min(...d1w1Vals):pivotMin;
+  const focusMax=d1w1Vals.length?Math.max(...d1w1Vals):pivotMax;
+  const focusRange=focusMax-focusMin;
+  const yMin=Math.min(focusMin,dataMin)-focusRange*0.4;
+  const yMax=Math.max(focusMax,dataMax)+focusRange*0.4;
+
+  // Build pivot line datasets for each TF
+  const pivotDatasets=[];
+  const levelLabelsForPlugin=[];
+  ['D1','W1','MN'].forEach(tf=>{
+    if(!PIVOT_ALL[tf])return;
+    const cols=tfColors[tf];
+    PIVOT_ALL[tf].levels.forEach(lv=>{
+      const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
+      const data=Array(totalSlots).fill(null);
+      for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+      pivotDatasets.push({
+        label:tf+' '+lv.label+' '+fp(lv.value),
+        data,
+        borderColor:color+(tf==='D1'?'':'99'),
+        borderWidth:lv.label==='PP'?tfWidth[tf]+0.5:tfWidth[tf],
+        borderDash:tfDash[tf],
+        pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:2,
+      });
+      levelLabelsForPlugin.push({tf,label:lv.label,value:lv.value,color:color+(tf==='D1'?'':'bb')});
+    });
+  });
+
+  // Plugin: draw labels on right edge
   const pivotLabelPlugin={
     id:'pivotLabels',
     afterDraw(chart){
-      const ctx=chart.ctx;
-      const yScale=chart.scales.y;
-      const area=chart.chartArea;
-      const x=area.right-8; // right edge inside chart
-      ctx.save();
-      ctx.textAlign='right';
-      ctx.textBaseline='middle';
-      PIVOT.levels.forEach(lv=>{
+      const ctx=chart.ctx;const yScale=chart.scales.y;const area=chart.chartArea;const x=area.right-8;
+      ctx.save();ctx.textAlign='right';ctx.textBaseline='middle';
+      // Deduplicate overlapping labels (within 8px)
+      const drawn=[];
+      levelLabelsForPlugin.forEach(lv=>{
         const y=yScale.getPixelForValue(lv.value);
         if(y<area.top-5||y>area.bottom+5)return;
-        // Background pill
-        const label=lv.label;
-        const priceStr=fp(lv.value);
-        const text=label+' '+priceStr;
-        ctx.font='bold 9px Instrument Sans, sans-serif';
-        const w=ctx.measureText(text).width+10;
-        ctx.fillStyle=levelColors[lv.label]+'22';
-        ctx.beginPath();
-        ctx.roundRect(x-w-2,y-8,w+4,16,4);
-        ctx.fill();
-        // Text
-        ctx.fillStyle=levelColors[lv.label];
+        if(drawn.some(d=>Math.abs(d-y)<8))return;
+        drawn.push(y);
+        const text=lv.tf+' '+lv.label;
+        ctx.font='bold 8px Instrument Sans, sans-serif';
+        const w=ctx.measureText(text).width+8;
+        ctx.fillStyle=lv.color+'22';
+        ctx.beginPath();ctx.roundRect(x-w-2,y-7,w+4,14,3);ctx.fill();
+        ctx.fillStyle=lv.color;
         ctx.fillText(text,x,y);
+      });
+      ctx.restore();
+    }
+  };
+
+  // Draw confluence zones as highlighted bands
+  const confPlugin={
+    id:'confluenceZones',
+    beforeDatasetsDraw(chart){
+      if(!CONFLUENCES.length)return;
+      const ctx=chart.ctx;const yScale=chart.scales.y;const area=chart.chartArea;
+      ctx.save();
+      CONFLUENCES.forEach(c=>{
+        const prices=c.items.map(i=>i.price);
+        const hi=Math.max(...prices)+3,lo=Math.min(...prices)-3;
+        const yHi=yScale.getPixelForValue(hi),yLo=yScale.getPixelForValue(lo);
+        if(yHi>area.bottom||yLo<area.top)return;
+        const isR=c.type==='Resistance',isS=c.type==='Support';
+        ctx.fillStyle=isR?'rgba(248,113,113,.06)':isS?'rgba(52,211,153,.06)':'rgba(232,185,49,.06)';
+        ctx.fillRect(area.left,Math.max(yHi,area.top),area.right-area.left,Math.min(yLo,area.bottom)-Math.max(yHi,area.top));
+        // Label
+        ctx.font='bold 8px Instrument Sans';
+        ctx.fillStyle=isR?'rgba(248,113,113,.5)':isS?'rgba(52,211,153,.5)':'rgba(232,185,49,.5)';
+        ctx.textAlign='left';
+        ctx.fillText('⚡ CONFLUENCE ~'+fp(c.avg),area.left+6,(yHi+yLo)/2);
       });
       ctx.restore();
     }
@@ -483,18 +541,14 @@ function renderPivotZone(){
           borderColor:'#E8B931',
           backgroundColor:'rgba(232,185,49,.08)',
           borderWidth:2.5,
-          pointRadius:0,
-          pointHoverRadius:5,
-          pointHoverBackgroundColor:'#E8B931',
-          pointHoverBorderColor:'#fff',
-          fill:true,
-          tension:.3,
-          order:1,
+          pointRadius:0,pointHoverRadius:5,
+          pointHoverBackgroundColor:'#E8B931',pointHoverBorderColor:'#fff',
+          fill:true,tension:.3,order:1,
         },
         ...pivotDatasets
       ]
     },
-    plugins:[pivotLabelPlugin],
+    plugins:[confPlugin,pivotLabelPlugin],
     options:{
       responsive:true,
       maintainAspectRatio:false,
@@ -502,60 +556,35 @@ function renderPivotZone(){
       layout:{padding:{right:10}},
       plugins:{
         legend:{
-          display:true,
-          position:'top',
+          display:true,position:'top',
           labels:{
-            usePointStyle:true,
-            pointStyle:'line',
-            color:'#9CA3AF',
-            font:{size:10,family:'Instrument Sans',weight:'600'},
-            padding:12,
-            boxWidth:24,
+            usePointStyle:true,pointStyle:'line',color:'#9CA3AF',
+            font:{size:9,family:'Instrument Sans',weight:'600'},padding:8,boxWidth:20,
+            filter:function(item){
+              // Only show D1 PP, W1 PP, MN PP + Gold line in legend
+              const l=item.text;
+              return l.includes('Gold')||l.includes(' PP ');
+            }
           }
         },
         tooltip:{
-          backgroundColor:'#1e293b',
-          borderColor:'#E8B931',
-          borderWidth:1,
-          titleColor:'#E8B931',
-          bodyColor:'#E8E6E1',
-          padding:12,
-          titleFont:{family:'Instrument Sans',weight:'700'},
-          bodyFont:{family:'Instrument Sans',size:12},
+          backgroundColor:'#1e293b',borderColor:'#E8B931',borderWidth:1,
+          titleColor:'#E8B931',bodyColor:'#E8E6E1',padding:12,
+          titleFont:{family:'Instrument Sans',weight:'700'},bodyFont:{family:'Instrument Sans',size:11},
           filter:function(item){return item.raw!==null;},
           callbacks:{
             title:function(items){return items[0]?items[0].label:'';},
             label:function(ctx){
               if(ctx.raw===null)return '';
-              if(ctx.datasetIndex===0)return 'Close: $'+ctx.raw.toLocaleString('en-US',{minimumFractionDigits:1});
+              if(ctx.datasetIndex===0)return 'Close: '+fp(ctx.raw);
               return ctx.dataset.label;
             }
           }
         }
       },
       scales:{
-        x:{
-          grid:{color:'rgba(255,255,255,.03)'},
-          ticks:{
-            color:'#6B7280',
-            font:{size:9,family:'Instrument Sans'},
-            maxRotation:45,
-            callback:function(val,idx){
-              const label=this.getLabelForValue(val);
-              if(label==='')return '';
-              return label;
-            }
-          }
-        },
-        y:{
-          min:yMin,max:yMax,
-          grid:{color:'rgba(255,255,255,.04)'},
-          ticks:{
-            color:'#6B7280',
-            font:{size:10,family:'Instrument Sans'},
-            callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}
-          }
-        }
+        x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6B7280',font:{size:9,family:'Instrument Sans'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
+        y:{min:yMin,max:yMax,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6B7280',font:{size:10,family:'Instrument Sans'},callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
       }
     }
   });
@@ -569,39 +598,45 @@ function renderPivotZone(){
   let linkText='';
   if(price>=PIVOT.R1){
     linkText=score>=75
-      ?`ราคาอยู่เหนือ R1 และ Momentum Score <strong>${score.toFixed(1)}</strong> (${tier}) แข็งแกร่ง — โอกาสไปต่อสูง ดู R2 (${fp(PIVOT.R2)}) เป็น next target`
-      :`ราคาอยู่เหนือ R1 แต่ Momentum Score <strong>${score.toFixed(1)}</strong> ไม่แข็งพอ — ระวัง false breakout อาจกลับมาทดสอบ PP`;
+      ?`ราคาอยู่เหนือ R1 (D1) และ Momentum Score <strong>${score.toFixed(1)}</strong> (${tier}) แข็งแกร่ง — โอกาสไปต่อสูง ดู R2 (${fp(PIVOT.R2)}) เป็น next target`
+      :`ราคาอยู่เหนือ R1 (D1) แต่ Momentum Score <strong>${score.toFixed(1)}</strong> ไม่แข็งพอ — ระวัง false breakout อาจกลับมาทดสอบ PP`;
   }else if(price>=PIVOT.PP){
     linkText=score>=60
-      ?`ราคาอยู่ระหว่าง PP–R1 กับ Score <strong>${score.toFixed(1)}</strong> (${tier}) — กำลังสะสม momentum ถ้า score ขึ้นต่อ มีโอกาสทะลุ R1 (${fp(PIVOT.R1)})`
-      :`ราคาอยู่เหนือ PP แต่ Score <strong>${score.toFixed(1)}</strong> ปานกลาง-อ่อน — ทิศทางยังไม่ชัด รอ confirmation`;
+      ?`ราคาอยู่ระหว่าง PP–R1 (D1) กับ Score <strong>${score.toFixed(1)}</strong> (${tier}) — กำลังสะสม momentum ถ้า score ขึ้นต่อ มีโอกาสทะลุ R1 (${fp(PIVOT.R1)})`
+      :`ราคาอยู่เหนือ PP (D1) แต่ Score <strong>${score.toFixed(1)}</strong> ปานกลาง-อ่อน — ทิศทางยังไม่ชัด รอ confirmation`;
   }else if(price>=PIVOT.S1){
     linkText=score>=75
-      ?`ราคาอยู่ระหว่าง S1–PP แต่ Score <strong>${score.toFixed(1)}</strong> ยังแข็ง — Divergence! อาจเด้งกลับขึ้นไป PP (${fp(PIVOT.PP)})`
+      ?`ราคาอยู่ระหว่าง S1–PP (D1) แต่ Score <strong>${score.toFixed(1)}</strong> ยังแข็ง — Divergence! อาจเด้งกลับขึ้นไป PP (${fp(PIVOT.PP)})`
       :`ราคาอยู่ใต้ PP ใกล้ S1 กับ Score <strong>${score.toFixed(1)}</strong> อ่อนตัว — ระวังหลุด S1 (${fp(PIVOT.S1)})`;
   }else{
-    linkText=`ราคาอยู่ใต้ S1 (${fp(PIVOT.S1)}) กับ Score <strong>${score.toFixed(1)}</strong> — ${score>=60?'momentum ยังพอมี อาจ recover กลับ S1':'ทั้งราคาและ momentum อ่อน ดู S2/S3 เป็นแนวรับถัดไป'}`;
+    linkText=`ราคาอยู่ใต้ S1 (D1: ${fp(PIVOT.S1)}) กับ Score <strong>${score.toFixed(1)}</strong> — ${score>=60?'momentum ยังพอมี อาจ recover กลับ S1':'ทั้งราคาและ momentum อ่อน ดู S2/S3 เป็นแนวรับถัดไป'}`;
   }
   document.getElementById('pivotScoreLink').innerHTML=`
     <div class="link-title">🔗 Pivot × Score Interpretation</div>
     <div class="link-body">${linkText}</div>`;
 
-  // Pivot Level Legend with Thai descriptions
+  // ── Multi-TF Pivot Table ──
+  renderMultiTFTable();
+
+  // ── Confluence Zones ──
+  renderConfluenceZones();
+
+  // ── Pivot Level Legend (D1 focused) ──
   const legendItems=[
     {label:'R3',color:'#F87171',price:PIVOT.R3,
-     desc:'แนวต้านที่ 3 (Resistance 3) — เป้าหมายสูงสุดในวัน ถ้าราคาถึงจุดนี้แสดงว่าวิ่งแรงมาก มักเจอแรงขายหนัก'},
+     desc:'แนวต้านที่ 3 (D1) — เป้าหมายสูงสุดในวัน ถ้าราคาถึงจุดนี้แสดงว่าวิ่งแรงมาก'},
     {label:'R2',color:'#fb7185',price:PIVOT.R2,
-     desc:'แนวต้านที่ 2 (Resistance 2) — เป้าหมายระดับกลาง ถ้าทะลุ R1 แล้ว R2 คือด่านถัดไป'},
+     desc:'แนวต้านที่ 2 (D1) — เป้าหมายระดับกลาง ถ้าทะลุ R1 แล้ว R2 คือด่านถัดไป'},
     {label:'R1',color:'#fca5a5',price:PIVOT.R1,
-     desc:'แนวต้านที่ 1 (Resistance 1) — ด่านแรกที่ต้องทะลุ ถ้าผ่านได้ = bullish momentum ชัดเจน'},
+     desc:'แนวต้านที่ 1 (D1) — ด่านแรกที่ต้องทะลุ ถ้าผ่านได้ = bullish momentum ชัดเจน'},
     {label:'PP',color:'#E8B931',price:PIVOT.PP,
-     desc:'จุดหมุน (Pivot Point) — เส้นแบ่งฝั่ง ราคาเหนือ PP = bullish bias, ใต้ PP = bearish bias'},
+     desc:'จุดหมุน (D1 Pivot) — เส้นแบ่งฝั่ง ราคาเหนือ PP = bullish bias, ใต้ PP = bearish bias'},
     {label:'S1',color:'#86efac',price:PIVOT.S1,
-     desc:'แนวรับที่ 1 (Support 1) — ด่านแรกที่จะรับราคา ถ้าหลุด S1 = สัญญาณอ่อนตัว'},
+     desc:'แนวรับที่ 1 (D1) — ด่านแรกที่จะรับราคา ถ้าหลุด S1 = สัญญาณอ่อนตัว'},
     {label:'S2',color:'#6ee7b7',price:PIVOT.S2,
-     desc:'แนวรับที่ 2 (Support 2) — แนวรับระดับกลาง ถ้ามาถึงจุดนี้แสดงว่าขาลงค่อนข้างแรง'},
+     desc:'แนวรับที่ 2 (D1) — แนวรับระดับกลาง ถ้ามาถึงจุดนี้แสดงว่าขาลงค่อนข้างแรง'},
     {label:'S3',color:'#34D399',price:PIVOT.S3,
-     desc:'แนวรับที่ 3 (Support 3) — แนวรับสุดท้าย ถ้าหลุดจุดนี้ถือว่าวันนั้นเป็นขาลงรุนแรง'},
+     desc:'แนวรับที่ 3 (D1) — แนวรับสุดท้าย ถ้าหลุดจุดนี้ถือว่าวันนั้นเป็นขาลงรุนแรง'},
   ];
 
   document.getElementById('pivotLegend').innerHTML=legendItems.map(l=>{
@@ -617,6 +652,105 @@ function renderPivotZone(){
       </div>
     </div>`;
   }).join('');
+}
+
+function renderMultiTFTable(){
+  const el=document.getElementById('multiTFTable');
+  if(!el)return;
+  const levels=['R3','R2','R1','PP','S1','S2','S3'];
+  const tfLabels={D1:{name:'D1 (Daily)',color:'#E8B931'},W1:{name:'W1 (Weekly)',color:'#60A5FA'},MN:{name:'MN (Monthly)',color:'#A78BFA'}};
+  const price=parseFloat(D.Price)||0;
+  
+  let html=`<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+    <thead><tr style="border-bottom:2px solid var(--border2);">
+      <th style="text-align:left;padding:8px 10px;color:var(--text3);font-size:.7rem;letter-spacing:1px;font-weight:700;">LEVEL</th>`;
+  ['D1','W1','MN'].forEach(tf=>{
+    const t=tfLabels[tf];
+    html+=`<th style="text-align:center;padding:8px 10px;color:${t.color};font-size:.7rem;letter-spacing:1px;font-weight:700;">${t.name}</th>`;
+  });
+  html+=`</tr></thead><tbody>`;
+  
+  levels.forEach(lv=>{
+    const isR=lv.startsWith('R'),isPP=lv==='PP';
+    const rowBg=isPP?'rgba(232,185,49,.04)':'transparent';
+    html+=`<tr style="border-bottom:1px solid var(--border);background:${rowBg}">
+      <td style="padding:7px 10px;font-weight:700;color:${isR?'var(--red)':isPP?'var(--gold)':'var(--emerald)'};font-size:.72rem;letter-spacing:.8px;">${lv}</td>`;
+    ['D1','W1','MN'].forEach(tf=>{
+      const p=PIVOT_ALL[tf];
+      if(p){
+        const val=p[lv];
+        const isNear=Math.abs(val-price)<15;
+        const nearStyle=isNear?'background:rgba(255,102,0,.12);font-weight:700;':'';
+        html+=`<td style="text-align:center;padding:7px 10px;font-family:var(--font-h);color:${tfLabels[tf].color};${nearStyle}">${fp(val)}</td>`;
+      }else{
+        html+=`<td style="text-align:center;padding:7px 10px;color:var(--text3);">—</td>`;
+      }
+    });
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table>`;
+  
+  // Current price position
+  const pos=D.Pivot_Position||'';
+  if(pos){
+    html+=`<div style="padding:8px 12px;margin-top:8px;background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.2);border-radius:8px;font-size:.78rem;">
+      <span style="color:var(--orange);font-weight:700;">📍 PRICE NOW</span> <span style="font-family:var(--font-h);color:var(--gold)">${fp(price)}</span>
+      <span style="color:var(--text2);margin-left:8px;">— Position: <strong style="color:var(--text)">${pos}</strong> (D1)</span>
+    </div>`;
+  }
+
+  // Source dates
+  let srcHtml='<div style="display:flex;gap:16px;margin-top:8px;font-size:.68rem;color:var(--text3);">';
+  ['D1','W1','MN'].forEach(tf=>{
+    if(PIVOT_ALL[tf]){
+      srcHtml+=`<span style="color:${tfLabels[tf].color};">${tf}: H/L/C from ${PIVOT_ALL[tf].date}</span>`;
+    }
+  });
+  srcHtml+='</div>';
+  html+=srcHtml;
+
+  el.innerHTML=html;
+}
+
+function renderConfluenceZones(){
+  const el=document.getElementById('confluenceSection');
+  if(!el)return;
+  if(!CONFLUENCES.length){
+    el.innerHTML=`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem;">ไม่พบ Confluence Zones (ไม่มี Pivot ของ TF ต่างกันที่ซ้อนกันภายใน 20 จุด)</div>`;
+    return;
+  }
+  const price=parseFloat(D.Price)||0;
+  
+  let html='';
+  CONFLUENCES.forEach(c=>{
+    const isR=c.type==='Resistance',isS=c.type==='Support';
+    const zIcon=isR?'🔴':isS?'🟢':'🟡';
+    const zColor=isR?'var(--red)':isS?'var(--emerald)':'var(--gold)';
+    const zBg=isR?'rgba(248,113,113,.06)':isS?'rgba(52,211,153,.06)':'rgba(232,185,49,.06)';
+    const dist=c.avg-price;
+    const distStr=(dist>=0?'▲ +':'▼ ')+Math.abs(dist).toFixed(1)+' pts';
+    const distDir=dist>=0?'ข้างบน':'ข้างล่าง';
+    
+    const tags=c.items.map(i=>{
+      const tc=i.tf==='D1'?'#E8B931':i.tf==='W1'?'#60A5FA':'#A78BFA';
+      return `<span style="color:${tc};font-weight:600;">${i.tf} ${i.level} (${fp(i.price)})</span>`;
+    }).join(' + ');
+    
+    html+=`<div style="padding:10px 14px;background:${zBg};border-radius:8px;border-left:3px solid ${zColor};margin-bottom:6px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:1.1rem;">${zIcon}</span>
+        <span style="font-family:var(--font-h);font-size:.95rem;color:${zColor};">~${fp(c.avg)}</span>
+        <span style="font-size:.72rem;color:var(--text3);font-weight:600;letter-spacing:.5px;">${c.type.toUpperCase()}</span>
+        <span style="font-size:.72rem;color:var(--orange);margin-left:auto;">${distStr} (${distDir})</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--text2);margin-top:4px;">${tags}</div>
+      <div style="font-size:.68rem;color:var(--text3);margin-top:3px;">
+        ${isR?'แนวต้านที่ PP ของหลาย TF ซ้อนกัน — แนวต้านแข็งแรงเป็นพิเศษ':'แนวรับที่ PP ของหลาย TF ซ้อนกัน — แนวรับแข็งแรงเป็นพิเศษ'}
+      </div>
+    </div>`;
+  });
+  
+  el.innerHTML=html;
 }
 
 // ── Hero ──
@@ -730,8 +864,15 @@ function renderInfo(){
     {k:'Net Score BD1',v:f('Net_Score_BD1')},{k:'Net Score BD2',v:f('Net_Score_BD2')},
   ];
   if(PIVOT){
-    items.push({k:'Pivot Point (PP)',v:fp(PIVOT.PP)},{k:'Pivot R1 / R2',v:fp(PIVOT.R1)+' / '+fp(PIVOT.R2)},{k:'Pivot S1 / S2',v:fp(PIVOT.S1)+' / '+fp(PIVOT.S2)});
+    items.push({k:'D1 Pivot (PP)',v:fp(PIVOT.PP)},{k:'D1 R1 / R2',v:fp(PIVOT.R1)+' / '+fp(PIVOT.R2)},{k:'D1 S1 / S2',v:fp(PIVOT.S1)+' / '+fp(PIVOT.S2)});
   }
+  if(PIVOT_ALL['W1']){
+    items.push({k:'W1 Pivot (PP)',v:fp(PIVOT_ALL['W1'].PP)},{k:'W1 R1 / S1',v:fp(PIVOT_ALL['W1'].R1)+' / '+fp(PIVOT_ALL['W1'].S1)});
+  }
+  if(PIVOT_ALL['MN']){
+    items.push({k:'MN Pivot (PP)',v:fp(PIVOT_ALL['MN'].PP)},{k:'MN R1 / S1',v:fp(PIVOT_ALL['MN'].R1)+' / '+fp(PIVOT_ALL['MN'].S1)});
+  }
+  items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (D1)',v:D.Pivot_Position||'—'});
   document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
 }
 
@@ -759,7 +900,7 @@ function renderMethodology(){
     {title:'D5: Volatility (0–20)',body:'Annualized 21-day volatility. Lower = better. ≤20%=20pts down to >80%=2pts.'},
     {title:'D6: External Macro (0–10)',body:'DXY: dollar weakness = bullish gold (up to +5). VIX: elevated fear = safe-haven demand (up to +5). Combined max 10pts.'},
     {title:'Penalty System',body:'Momentum Reversal: -5 (mild) or -10 (strong). Death Cross: -5. Capped at -15 total.'},
-    {title:'Pivot Zone × Score',body:'Classic Pivot Points (R3/R2/R1/PP/S1/S2/S3) from previous day H/L/C. Bias signal combines price position vs pivot levels with momentum score & delta direction.'},
+    {title:'Pivot Zone × Score',body:'Multi-TF Classic Pivot Points (D1/W1/MN) computed from previous period H/L/C. Confluence Zones highlight where pivots from different timeframes overlap within 20 points — these are especially strong support/resistance levels. Bias signal combines D1 pivot position with momentum score.'},
   ];
   document.getElementById('methodGrid').innerHTML=cards.map(c=>`<div class="method-card"><div class="title">${c.title}</div><div class="body">${c.body}</div></div>`).join('');
 }
