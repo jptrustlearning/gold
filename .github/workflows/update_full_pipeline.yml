@@ -214,6 +214,12 @@ jobs:
           python3 gold_momentum_sell.py
           echo "✅ Sell scoring complete"
 
+      - name: "Step 3c: Calculate Net Bias (BUY vs SELL)"
+        run: |
+          echo "🎯 Calculating Net Bias..."
+          python3 gold_momentum_net.py
+          echo "✅ Net Bias complete"
+
       # ════════════════════════════════════════════════════════════
       # STEP 4: Commit & Push ทุกอย่างพร้อมกัน
       # ════════════════════════════════════════════════════════════
@@ -232,11 +238,13 @@ jobs:
           # Add gold prices
           git add gold_prices.csv 2>/dev/null || true
 
-          # Add momentum outputs (BUY + SELL)
+          # Add momentum outputs (BUY + SELL + NET)
           git add output_momentum_gold.csv 2>/dev/null || true
           git add output_momentum_gold_*.csv 2>/dev/null || true
           git add output_momentum_gold_sell.csv 2>/dev/null || true
           git add output_momentum_gold_sell_*.csv 2>/dev/null || true
+          git add output_momentum_gold_net.csv 2>/dev/null || true
+          git add output_momentum_gold_net_*.csv 2>/dev/null || true
 
           # ไม่ push Excel (ใหญ่เกินไป)
           git reset HEAD Gold_Momentum_v3.0.xlsx 2>/dev/null || true

@@ -210,6 +210,18 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     <div class="hero" id="heroSection"></div>
     <div class="stats-grid" id="statsGrid"></div>
 
+    <!-- ★ NET BIAS — BUY vs SELL ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Buy vs Sell Momentum — Net Bias</div>
+      <div id="netBiasSection"></div>
+    </div>
+
+    <!-- ★ BUY vs SELL DIMENSION COMPARISON ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Dimension Comparison — Buy vs Sell (/100 each)</div>
+      <div id="dimCompareGrid"></div>
+    </div>
+
     <!-- ★ PIVOT ZONE (Tabbed Multi-TF) ★ -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Multi-TF Pivot Points &times; Momentum Bias</div>
@@ -280,7 +292,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
     <!-- ★ PIVOT BIAS REFERENCE TABLE ★ -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Pivot × Momentum — 10 Bias Scenarios Reference</div>
+      <div class="section-title"><span class="dot"></span>Pivot × Buy × Sell — Bias Scenarios Reference</div>
       <div class="scenario-table-wrap" id="scenarioTable"></div>
     </div>
   </div>
@@ -293,30 +305,36 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
 <script>
 const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold.csv';
+const SELL_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_sell.csv';
+const NET_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_net.csv';
 const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
-let D=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],PRICE_DATA=null;
+let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
 
 async function loadData(){
   const st=document.getElementById('status');
   try{
-    const [sRes,pRes]=await Promise.all([fetch(CSV_URL),fetch(PRICE_CSV_URL)]);
-    if(!sRes.ok)throw new Error('Score CSV: HTTP '+sRes.status);
+    const [sRes,sellRes,netRes,pRes]=await Promise.all([fetch(CSV_URL),fetch(SELL_CSV_URL),fetch(NET_CSV_URL),fetch(PRICE_CSV_URL)]);
+    if(!sRes.ok)throw new Error('Buy CSV: HTTP '+sRes.status);
+    if(!sellRes.ok)throw new Error('Sell CSV: HTTP '+sellRes.status);
+    if(!netRes.ok)throw new Error('Net CSV: HTTP '+netRes.status);
     if(!pRes.ok)throw new Error('Price CSV: HTTP '+pRes.status);
-    const sText=await sRes.text(),pText=await pRes.text();
+    const sText=await sRes.text(),sellText=await sellRes.text(),netText=await netRes.text(),pText=await pRes.text();
     const rows=parseCSV(sText);
-    if(!rows.length)throw new Error('No score data');
+    const sellRows=parseCSV(sellText);
+    const netRows=parseCSV(netText);
+    if(!rows.length)throw new Error('No buy score data');
     D=rows[0];
-    // Load multi-TF pivots from CSV
+    DS=sellRows.length?sellRows[0]:null;
+    DN=netRows.length?netRows[0]:null;
     PIVOT_ALL=loadMultiTFPivots(D);
     PIVOT=PIVOT_ALL['D1']||null;
     CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
     PRICE_DATA=parsePriceCSV(pText);
-    // Set current price for pivot
     if(PIVOT) PIVOT.price=parseFloat(D.Price)||0;
     st.className='status-indicator success';
-    st.innerHTML='<span>●</span> GITHUB DATA LOADED — GOLD + MULTI-TF PIVOT';
+    st.innerHTML='<span>●</span> DATA LOADED — BUY + SELL + NET BIAS + PIVOT';
     document.getElementById('periodLabel').textContent='As of: '+D.As_Of_Running+'  •  BD1: '+D.Base_Date_1+'  •  BD2: '+D.Base_Date_2;
     document.getElementById('loadingMsg').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
@@ -411,7 +429,8 @@ const dimColors=['#60A5FA','#A78BFA','#34D399','#E8B931','#FB923C','#22D3EE'];
 const fp=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
 
 function render(){
-  renderHero();renderStats();renderPivotZone();renderDimensions();renderMacro();
+  renderHero();renderStats();renderNetBias();renderDimCompare();
+  renderPivotZone();renderDimensions();renderMacro();
   renderReturns();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
   renderScenarioTable();
   renderRadarChart();renderBarChart();
@@ -658,31 +677,41 @@ function drawPivotChart(tab){
 }
 
 function renderBiasAndInterpretation(){
-  const bias=computeBias();
   const price=PIVOT.price,score=fi('Net_Score_Avg'),tier=D.Tier;
+  const sellS=DS?parseFloat(DS.Net_Score_Avg):0;
+
+  // Use net bias scenario if available, otherwise fallback
+  let biasIcon,biasSignal,biasCls,biasAction,biasActionCls,biasDetail;
+  if(DN){
+    biasIcon=DN.Scenario_Icon;biasSignal=DN.Scenario_Signal;
+    const sz=DN.Scenario_Zone;
+    biasCls=sz==='BULLISH'?'bullish':sz==='BEARISH'?'bearish':'neutral';
+    biasAction=DN.Scenario_Action;biasActionCls=biasAction==='BUY'?'buy':biasAction==='SELL'?'sell':'hold';
+    biasDetail=DN.Scenario_Detail;
+  }else{
+    const bias=computeBias();
+    biasIcon=bias.icon;biasSignal=bias.signal;biasCls=bias.cls;biasAction=bias.action;biasActionCls=bias.actionCls;biasDetail=bias.detail;
+  }
 
   document.getElementById('biasSignal').innerHTML=`
-    <div class="bias-badge ${bias.cls}"><span style="font-size:1.2rem">${bias.icon}</span> ${bias.signal}<span class="action-badge ${bias.actionCls}">${bias.action}</span></div>
-    <div class="bias-subtitle">${bias.detail}</div>`;
+    <div class="bias-badge ${biasCls}"><span style="font-size:1.2rem">${biasIcon}</span> ${biasSignal}<span class="action-badge ${biasActionCls}">${biasAction}</span></div>
+    <div class="bias-subtitle">${biasDetail}</div>
+    ${DN?`<div style="font-size:.68rem;color:var(--text3);margin-top:4px">Buy: ${score.toFixed(1)} | Sell: ${sellS.toFixed(1)} | Net: ${parseFloat(DN.Net_Bias)>=0?'+':''}${parseFloat(DN.Net_Bias).toFixed(1)}</div>`:''}`;
 
   let linkText='';
   if(price>=PIVOT.R1){
     linkText=score>=75
-      ?`ราคาอยู่เหนือ R1 (D1) และ Momentum Score <strong>${score.toFixed(1)}</strong> (${tier}) แข็งแกร่ง — โอกาสไปต่อสูง ดู R2 (${fp(PIVOT.R2)}) เป็น next target`
-      :`ราคาอยู่เหนือ R1 (D1) แต่ Momentum Score <strong>${score.toFixed(1)}</strong> ไม่แข็งพอ — ระวัง false breakout อาจกลับมาทดสอบ PP`;
+      ?`ราคาอยู่เหนือ R1 (D1) และ Buy Score <strong>${score.toFixed(1)}</strong> (${tier}) แข็ง + Sell ${sellS.toFixed(1)} อ่อน → โอกาสไปต่อ ดู R2 (${fp(PIVOT.R2)})`
+      :`ราคาอยู่เหนือ R1 (D1) แต่ Buy Score <strong>${score.toFixed(1)}</strong> ไม่แข็งพอ — ระวัง false breakout`;
   }else if(price>=PIVOT.PP){
-    linkText=score>=60
-      ?`ราคาอยู่ระหว่าง PP–R1 (D1) กับ Score <strong>${score.toFixed(1)}</strong> (${tier}) — กำลังสะสม momentum ถ้า score ขึ้นต่อ มีโอกาสทะลุ R1 (${fp(PIVOT.R1)})`
-      :`ราคาอยู่เหนือ PP (D1) แต่ Score <strong>${score.toFixed(1)}</strong> ปานกลาง-อ่อน — ทิศทางยังไม่ชัด รอ confirmation`;
+    linkText=`ราคาอยู่ระหว่าง PP–R1 (D1) | Buy <strong>${score.toFixed(1)}</strong> vs Sell <strong>${sellS.toFixed(1)}</strong> → ${score>sellS?'Buy แข็งกว่า กำลังสะสมแรง':'ระวัง Sell เริ่มมีแรง'}`;
   }else if(price>=PIVOT.S1){
-    linkText=score>=75
-      ?`ราคาอยู่ระหว่าง S1–PP (D1) แต่ Score <strong>${score.toFixed(1)}</strong> ยังแข็ง — Divergence! อาจเด้งกลับขึ้นไป PP (${fp(PIVOT.PP)})`
-      :`ราคาอยู่ใต้ PP ใกล้ S1 กับ Score <strong>${score.toFixed(1)}</strong> อ่อนตัว — ระวังหลุด S1 (${fp(PIVOT.S1)})`;
+    linkText=`ราคาอยู่ระหว่าง S1–PP (D1) | Buy <strong>${score.toFixed(1)}</strong> vs Sell <strong>${sellS.toFixed(1)}</strong> → ${score>sellS+20?'Divergence! Buy ยังแข็ง อาจเด้งกลับ':'ทั้งสองฝั่งใกล้กัน รอยืนยัน'}`;
   }else{
-    linkText=`ราคาอยู่ใต้ S1 (D1: ${fp(PIVOT.S1)}) กับ Score <strong>${score.toFixed(1)}</strong> — ${score>=60?'momentum ยังพอมี อาจ recover กลับ S1':'ทั้งราคาและ momentum อ่อน ดู S2/S3 เป็นแนวรับถัดไป'}`;
+    linkText=`ราคาอยู่ใต้ S1 (D1) | Buy <strong>${score.toFixed(1)}</strong> vs Sell <strong>${sellS.toFixed(1)}</strong> → ${sellS>score?'Sell แข็งกว่า เสี่ยงลงต่อ S2/S3':'Buy ยังมีแรง อาจ recover'}`;
   }
   document.getElementById('pivotScoreLink').innerHTML=`
-    <div class="link-title">🔗 Pivot × Score Interpretation</div>
+    <div class="link-title">🔗 Pivot × Buy vs Sell Interpretation</div>
     <div class="link-body">${linkText}</div>`;
 }
 
@@ -783,13 +812,31 @@ function renderConfluenceZones(){
 // ── Hero ──
 function renderHero(){
   const n=fi('Net_Score_Avg'),t=D.Tier,p=fi('Price'),d=fi('Score_Delta'),b1=fi('Net_Score_BD1'),b2=fi('Net_Score_BD2');
+  const sellScore=DS?parseFloat(DS.Net_Score_Avg||0):0;
+  const netBias=DN?parseFloat(DN.Net_Bias||0):n-sellScore;
+  const biasTier=DN?DN.Bias_Tier:'';
+  const scenAction=DN?DN.Scenario_Action:'';
+  const scenSignal=DN?DN.Scenario_Signal:'';
+  const scenIcon=DN?DN.Scenario_Icon:'';
+  const actionCls=scenAction==='BUY'?'buy':scenAction==='SELL'?'sell':'hold';
   document.getElementById('heroSection').innerHTML=`
     <div class="hero-score"><div class="ring"><canvas id="ringCanvas" width="200" height="200"></canvas>
-      <div class="center"><div class="v" style="color:${scoreColor(n)}">${n.toFixed(1)}</div><div class="l">Net Score</div></div></div></div>
+      <div class="center"><div class="v" style="color:${scoreColor(n)}">${n.toFixed(1)}</div><div class="l">Buy Score</div></div></div></div>
     <div class="hero-tier"><div class="tier" style="color:${tierColor(t)}">${t}</div>
-      <div class="price">$${p.toLocaleString('en-US',{minimumFractionDigits:1})}</div><div class="price-label">Gold Spot Price</div></div>
-    <div class="hero-delta"><div class="v" style="color:${d>=0?'var(--emerald)':'var(--red)'}">${d>=0?'+':''}${d.toFixed(2)}</div>
-      <div class="l">Score Delta</div><div class="sub">BD1 ${b1.toFixed(1)} → BD2 ${b2.toFixed(1)}</div></div>`;
+      <div class="price">$${p.toLocaleString('en-US',{minimumFractionDigits:1})}</div><div class="price-label">Gold Spot Price</div>
+      <div style="margin-top:10px;padding:8px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;">
+        <div style="font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;">Sell Score</div>
+        <div style="font-family:var(--font-h);font-size:1.4rem;color:${sellScore>=60?'var(--red)':sellScore>=45?'var(--orange)':'var(--text3)'}">${sellScore.toFixed(1)}</div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div class="hero-delta" style="margin-bottom:10px"><div class="v" style="color:${netBias>=0?'var(--emerald)':'var(--red)'}; font-size:2.2rem">${netBias>=0?'+':''}${netBias.toFixed(1)}</div>
+        <div class="l">Net Bias</div><div class="sub" style="color:${netBias>=25?'var(--emerald)':netBias<=-25?'var(--red)':'var(--gold)'}">${biasTier}</div></div>
+      ${scenSignal?`<div style="padding:8px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;">
+        <div style="font-size:.92rem;font-weight:700;">${scenIcon} ${scenSignal}</div>
+        <span class="sc-action ${actionCls}" style="margin-top:4px;display:inline-block;padding:4px 14px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:1.5px">${scenAction}</span>
+      </div>`:''}
+    </div>`;
   setTimeout(()=>{
     const c=document.getElementById('ringCanvas');if(!c)return;const x=c.getContext('2d');
     const cx=100,cy=100,r=85,lw=10,pct=Math.max(0,Math.min(n/100,1)),sA=-Math.PI/2,eA=sA+pct*2*Math.PI;
@@ -933,76 +980,153 @@ function renderMethodology(){
   document.getElementById('methodGrid').innerHTML=cards.map(c=>`<div class="method-card"><div class="title">${c.title}</div><div class="body">${c.body}</div></div>`).join('');
 }
 
-// ── Charts ──
-function renderScenarioTable(){
-  const bias=computeBias();
-  const scenarios=[
-    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน',
-     cond:'Price ≥ R1 &amp; Score ≥ 75 &amp; Delta &gt; 0',
-     condTh:'ราคาเหนือ R1 + คะแนนแข็ง + momentum เร่งตัว',
-     meaning:'ราคาทะลุแนวต้าน R1 ขึ้นไปพร้อม momentum ที่แข็งแกร่งและยังเร่งตัวอยู่ — โอกาสไปต่อสูง ดู R2/R3 เป็นเป้าหมายถัดไป',
-     action:'BUY',actionCls:'buy'},
-    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',
-     cond:'Price ≥ R1 &amp; Score ≥ 75 &amp; Delta &lt; 0',
-     condTh:'ราคาเหนือ R1 + คะแนนแข็ง + แต่ momentum ชะลอ',
-     meaning:'ทะลุ R1 แล้วและคะแนนยังสูง แต่ delta เริ่มลดลง — อาจเป็นจุดพักตัว พิจารณา take-profit บางส่วน หรือ tighten stop',
-     action:'HOLD',actionCls:'hold'},
-    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',
-     cond:'PP ≤ Price &lt; R1 &amp; Score ≥ 75',
-     condTh:'ราคาระหว่าง PP ถึง R1 + คะแนนแข็ง',
-     meaning:'ราคาอยู่เหนือ Pivot แต่ยังไม่ถึง R1 ขณะที่ momentum แข็ง — กำลังสะสมแรงเพื่อทดสอบ R1 ถ้าทะลุได้จะเข้า Breakout',
-     action:'BUY',actionCls:'buy'},
-    {n:4,icon:'📊',signal:'Cautious Bullish',thai:'ขาขึ้นระมัดระวัง',
-     cond:'Price ≥ PP &amp; Score 60–74',
-     condTh:'ราคาเหนือ Pivot + คะแนนปานกลาง',
-     meaning:'ราคาอยู่ฝั่ง bullish (เหนือ PP) แต่ momentum ยังไม่แข็งพอจะมั่นใจ — ถือรอดู ถ้า score ขึ้น → เปลี่ยนเป็น Accumulation',
-     action:'HOLD',actionCls:'hold'},
-    {n:5,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',
-     cond:'S1 ≤ Price &lt; PP &amp; Score ≥ 75',
-     condTh:'ราคาระหว่าง S1 ถึง PP + คะแนนแข็ง',
-     meaning:'ราคาย่อลงมาใต้ Pivot แต่ momentum ยังแข็งแกร่ง — มีโอกาสเด้งกลับขึ้นไปทดสอบ PP อีกครั้ง เป็นจุดเข้าที่น่าสนใจ',
-     action:'BUY',actionCls:'buy'},
-    {n:6,icon:'↔️',signal:'Neutral Range',thai:'วนอยู่ในกรอบ',
-     cond:'S1 ≤ Price &lt; PP &amp; Score 60–74',
-     condTh:'ราคาระหว่าง S1 ถึง PP + คะแนนปานกลาง',
-     meaning:'ทั้งราคาและ momentum อยู่ในโซนกลางๆ ไม่มีทิศทางชัดเจน — รอสัญญาณยืนยัน ไม่ควรรีบเข้าหรือออก',
-     action:'HOLD',actionCls:'hold'},
-    {n:7,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',
-     cond:'Price &lt; S1 &amp; Score ≥ 75',
-     condTh:'ราคาหลุด S1 + แต่คะแนนยังแข็ง',
-     meaning:'ราคาหลุดแนวรับ S1 ลงมาแล้ว แต่ momentum ภาพรวมยังแข็งแกร่ง — เป็น Divergence ที่บอกว่าอาจ recover กลับได้ เป็นโอกาสเข้าซื้อสำหรับคนรับความเสี่ยงได้',
-     action:'BUY',actionCls:'buy'},
-    {n:8,icon:'⚠️',signal:'Rejection Risk',thai:'เสี่ยงโดนตีกลับ',
-     cond:'Price ≥ R1 &amp; Score &lt; 60',
-     condTh:'ราคาเหนือ R1 + แต่คะแนนอ่อน',
-     meaning:'ราคาทะลุ R1 ขึ้นมาได้ แต่ momentum ไม่หนุน — สัญญาณ false breakout มีสูง เสี่ยงถูก reject กลับลงมาหา PP',
-     action:'SELL',actionCls:'sell'},
-    {n:9,icon:'🔻',signal:'Bearish Trend',thai:'แนวโน้มขาลง',
-     cond:'Price &lt; PP &amp; Score &lt; 60 &amp; Delta &lt; 0',
-     condTh:'ราคาใต้ Pivot + คะแนนอ่อน + momentum ลดลงอีก',
-     meaning:'ทั้งราคาและ momentum อ่อนตัวลงพร้อมกัน และยังไม่มีสัญญาณกลับตัว — ควรลดความเสี่ยง ดู S1/S2 เป็นเป้าหมายขาลง',
-     action:'SELL',actionCls:'sell'},
-    {n:10,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ',
-     cond:'Price &lt; S1 &amp; Score &lt; 60',
-     condTh:'ราคาหลุด S1 + คะแนนอ่อน',
-     meaning:'ราคาหลุดแนวรับ S1 ขณะที่ momentum ก็อ่อนแอ — ทั้งสองสัญญาณสอดคล้องกัน เสี่ยงลงต่อถึง S2/S3 ควรพิจารณาออกหรือ hedge',
-     action:'SELL',actionCls:'sell'},
-  ];
+// ── Net Bias Section ──
+function renderNetBias(){
+  const el=document.getElementById('netBiasSection');
+  if(!DN||!DS){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Net Bias data not available</div>';return;}
+  const buyS=parseFloat(DN.Buy_Score),sellS=parseFloat(DN.Sell_Score),nb=parseFloat(DN.Net_Bias);
+  const bt=DN.Bias_Tier,sa=DN.Scenario_Action,ss=DN.Scenario_Signal,si=DN.Scenario_Icon,sz=DN.Scenario_Zone;
+  const sd=DN.Scenario_Detail,sth=DN.Scenario_Thai;
+  const actionCls=sa==='BUY'?'buy':sa==='SELL'?'sell':'hold';
+  const zoneBg=sz==='BULLISH'?'var(--emerald-dim)':sz==='BEARISH'?'var(--red-dim)':(sz==='CONFLICT'||sz==='LEAN BULLISH'||sz==='LEAN BEARISH')?'var(--gold-dim)':'rgba(255,255,255,.03)';
+  const zoneBorder=sz==='BULLISH'?'rgba(52,211,153,.25)':sz==='BEARISH'?'rgba(248,113,113,.25)':'rgba(232,185,49,.25)';
+  const zoneColor=sz==='BULLISH'?'var(--emerald)':sz==='BEARISH'?'var(--red)':'var(--gold)';
+  const buyPct=Math.max(5,(buyS+sellS>0)?buyS/(buyS+sellS)*100:50);
+  const sellPct=100-buyPct;
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+      <div style="background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:.68rem;color:var(--emerald);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Buy Score</div>
+        <div style="font-family:var(--font-h);font-size:2rem;color:var(--emerald)">${buyS.toFixed(1)}</div>
+        <div style="font-size:.72rem;color:var(--text3)">${DN.Buy_Tier} | Δ ${parseFloat(DN.Buy_Delta)>=0?'+':''}${parseFloat(DN.Buy_Delta).toFixed(1)}</div>
+      </div>
+      <div style="background:${zoneBg};border:1px solid ${zoneBorder};border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:.68rem;color:${zoneColor};text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Net Bias</div>
+        <div style="font-family:var(--font-h);font-size:2rem;color:${nb>=0?'var(--emerald)':'var(--red)'}">${nb>=0?'+':''}${nb.toFixed(1)}</div>
+        <div style="font-size:.72rem;color:${zoneColor}">${bt}</div>
+      </div>
+      <div style="background:var(--red-dim);border:1px solid rgba(248,113,113,.2);border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:.68rem;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Sell Score</div>
+        <div style="font-family:var(--font-h);font-size:2rem;color:var(--red)">${sellS.toFixed(1)}</div>
+        <div style="font-size:.72rem;color:var(--text3)">${DN.Sell_Tier} | Δ ${parseFloat(DN.Sell_Delta)>=0?'+':''}${parseFloat(DN.Sell_Delta).toFixed(1)}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">
+        <span style="color:var(--emerald)">BUY ${buyPct.toFixed(0)}%</span><span style="color:var(--red)">SELL ${sellPct.toFixed(0)}%</span>
+      </div>
+      <div style="height:12px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;display:flex">
+        <div style="width:${buyPct}%;background:linear-gradient(90deg,var(--emerald),#34D399);border-radius:6px 0 0 6px;transition:width .8s"></div>
+        <div style="width:${sellPct}%;background:linear-gradient(90deg,#F87171,var(--red));border-radius:0 6px 6px 0;transition:width .8s"></div>
+      </div>
+    </div>
+    <div style="padding:16px 20px;background:${zoneBg};border:1px solid ${zoneBorder};border-radius:12px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:1.3rem">${si}</span>
+        <span style="font-weight:700;font-size:.92rem">${ss}</span>
+        <span style="font-size:.78rem;color:var(--text2)">${sth}</span>
+        <span class="sc-action ${actionCls}" style="margin-left:auto;padding:5px 16px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:1.5px">${sa}</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text2);margin-top:8px;line-height:1.6">${sd}</div>
+      <div style="font-size:.68rem;color:var(--text3);margin-top:6px">Zone: <strong style="color:${zoneColor}">${sz}</strong> | ${DN.Scenario_Cond}</div>
+    </div>`;
+}
 
-  const currentSignal=bias.signal;
+// ── Dimension Compare (Buy vs Sell) ──
+function renderDimCompare(){
+  const el=document.getElementById('dimCompareGrid');
+  if(!DN||!DS){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Comparison data not available</div>';return;}
+  const dims=['D1','D2','D3','D4','D5','D6'];
+  const names=['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro'];
+  const colors=dimColors;
+  let html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
+  dims.forEach((d,i)=>{
+    const bv=parseFloat(DN['Buy_'+d]||0),sv=parseFloat(DN['Sell_'+d]||0);
+    const diff=bv-sv;
+    html+=`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 12px">
+      <div style="font-size:.68rem;color:${colors[i]};text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">${names[i]}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <span style="font-size:.78rem;color:var(--emerald);font-weight:600">${bv.toFixed(0)}</span>
+        <span style="font-family:var(--font-h);font-size:.92rem;color:${diff>=0?'var(--emerald)':'var(--red)'}"> ${diff>=0?'+':''}${diff.toFixed(0)}</span>
+        <span style="font-size:.78rem;color:var(--red);font-weight:600">${sv.toFixed(0)}</span>
+      </div>
+      <div style="display:flex;gap:2px;height:6px">
+        <div style="flex:1;background:rgba(52,211,153,.12);border-radius:3px;overflow:hidden;display:flex;justify-content:flex-end">
+          <div style="width:${Math.max(3,bv)}%;background:var(--emerald);border-radius:3px"></div>
+        </div>
+        <div style="flex:1;background:rgba(248,113,113,.12);border-radius:3px;overflow:hidden">
+          <div style="width:${Math.max(3,sv)}%;background:var(--red);border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3);margin-top:2px"><span>Buy</span><span>Sell</span></div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+// ── Scenario Reference Table (NEW: Buy+Sell based) ──
+function renderScenarioTable(){
+  const currentSignal=DN?DN.Scenario_Signal:'';
+  const scenarios=[
+    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',
+     cond:'Price≥R1 & Buy≥75 & Sell<45 & Net≥+20 & BuyΔ>0',zone:'BULLISH',
+     meaning:'ราคาทะลุ R1 + Buy momentum แข็ง + Sell ไม่มีแรง + ยังเร่งตัว → Breakout ยืนยัน ดู R2/R3 เป็นเป้าถัดไป',action:'BUY',actionCls:'buy'},
+    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',
+     cond:'Price≥R1 & Buy≥75 & Sell<45 & BuyΔ≤0',zone:'BULLISH',
+     meaning:'ทะลุ R1 + Buy ยังแข็ง + Sell อ่อน แต่ delta เริ่มชะลอ → พิจารณา take-profit บางส่วน',action:'HOLD',actionCls:'hold'},
+    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',
+     cond:'PP≤Price<R1 & Buy≥60 & Sell<45 & Net≥+20',zone:'BULLISH',
+     meaning:'ราคาเหนือ PP กำลังวิ่งหา R1 + Buy แข็ง Sell อ่อน → สะสมแรงเพื่อ breakout',action:'BUY',actionCls:'buy'},
+    {n:4,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',
+     cond:'S1≤Price<PP & Buy≥60 & Sell<45 & Net≥+20',zone:'BULLISH',
+     meaning:'ราคาย่อใต้ PP แต่ Buy แข็ง Sell อ่อนมาก → มีโอกาสเด้งกลับ',action:'BUY',actionCls:'buy'},
+    {n:5,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',
+     cond:'Price<S1 & Buy≥60 & Sell<45 & Net≥+20',zone:'BULLISH',
+     meaning:'ราคาหลุด S1 แต่ Buy ยังแข็ง + Sell ไม่มีแรง → Divergence อาจ recover',action:'BUY',actionCls:'buy'},
+    {n:6,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ — ยืนยันทั้ง Buy+Sell',
+     cond:'Price<S1 & Sell≥75 & Buy<45 & Net≤-20 & SellΔ>0',zone:'BEARISH',
+     meaning:'ราคาหลุด S1 + Sell แข็ง Buy หมดแรง + Sell ยังเร่ง → เสี่ยงลงต่อถึง S2/S3',action:'SELL',actionCls:'sell'},
+    {n:7,icon:'🔻',signal:'Bearish Continuation',thai:'ขาลงต่อเนื่อง',
+     cond:'Price<S1 & Sell≥60 & Buy<45 & Net≤-20',zone:'BEARISH',
+     meaning:'ราคาใต้ S1 + Sell แข็ง Buy อ่อน → ขาลงยังไม่จบ',action:'SELL',actionCls:'sell'},
+    {n:8,icon:'📊',signal:'Bearish Distribution',thai:'กระจายของขาลง',
+     cond:'S1≤Price<PP & Sell≥60 & Buy<45 & Net≤-20',zone:'BEARISH',
+     meaning:'ราคาระหว่าง S1-PP + Sell แข็ง Buy อ่อน → กำลังกระจายก่อนลงต่อ',action:'SELL',actionCls:'sell'},
+    {n:9,icon:'⚠️',signal:'Resistance Rejection',thai:'โดนแนวต้านตีกลับ',
+     cond:'Price≥PP & Sell≥60 & Buy<45 & Net≤-20',zone:'BEARISH',
+     meaning:'ราคาเหนือ PP แต่ Sell แข็งกว่า Buy มาก → เสี่ยงโดนตีกลับ',action:'SELL',actionCls:'sell'},
+    {n:10,icon:'🌪️',signal:'Volatile Breakout',thai:'ทะลุแต่ผันผวนสูง',
+     cond:'Price≥R1 & Buy≥55 & Sell≥55 & |Net|<20',zone:'CONFLICT',
+     meaning:'ราคาเหนือ R1 แต่ทั้ง Buy+Sell มีแรง → ผันผวนสูง อาจทะลุหรือถูก reject รอยืนยัน',action:'HOLD',actionCls:'hold'},
+    {n:11,icon:'⚔️',signal:'Tug of War',thai:'ชักเย่อ — ทั้งสองฝั่งมีแรง',
+     cond:'Buy≥55 & Sell≥55 & |Net|<20',zone:'CONFLICT',
+     meaning:'ทั้ง Buy+Sell momentum สูงพอกัน → ตลาดกำลังตัดสินใจ รอฝั่งใดฝั่งหนึ่งชนะก่อน',action:'HOLD',actionCls:'hold'},
+    {n:12,icon:'💤',signal:'Dead Zone',thai:'ไม่มีทิศทาง — รอสัญญาณ',
+     cond:'Buy<55 & Sell<55',zone:'NEUTRAL',
+     meaning:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',action:'HOLD',actionCls:'hold'},
+    {n:13,icon:'📊',signal:'Cautious Bullish',thai:'เอียง bullish แต่ยังไม่ชัด',
+     cond:'Buy≥55 & Sell<55 & Net>0 (ไม่ถึง threshold)',zone:'LEAN BULLISH',
+     meaning:'Buy แข็งกว่า Sell แต่ยังไม่ชัดเจน → ถือรอ ถ้า Buy เพิ่มจะเข้า Bullish Zone',action:'HOLD',actionCls:'hold'},
+    {n:14,icon:'📉',signal:'Cautious Bearish',thai:'เอียง bearish แต่ยังไม่ชัด',
+     cond:'Sell≥55 & Buy<55 & Net<0 (ไม่ถึง threshold)',zone:'LEAN BEARISH',
+     meaning:'Sell แข็งกว่า Buy แต่ยังไม่ชัดเจน → ระวัง ถ้า Sell เพิ่มจะเข้า Bearish Zone',action:'HOLD',actionCls:'hold'},
+  ];
 
   let html=`<table class="scenario-table">
     <thead><tr>
-      <th>#</th><th></th><th>Signal / สัญญาณ</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
+      <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Zone</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
     </tr></thead><tbody>`;
 
   scenarios.forEach(s=>{
     const isCurrent=s.signal===currentSignal;
+    const zc=s.zone==='BULLISH'?'var(--emerald)':s.zone==='BEARISH'?'var(--red)':s.zone==='CONFLICT'?'var(--orange)':s.zone.includes('LEAN')?'var(--gold)':'var(--text3)';
     html+=`<tr class="${isCurrent?'current-scenario':''}">
       <td class="sc-num">${s.n}</td>
       <td class="sc-icon">${s.icon}</td>
       <td><div class="sc-signal">${s.signal}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
-      <td><div class="sc-cond">${s.cond}</div><div class="sc-cond-th">${s.condTh}</div></td>
+      <td style="text-align:center"><span style="color:${zc};font-size:.68rem;font-weight:700;letter-spacing:.5px">${s.zone}</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td>
       <td class="sc-meaning">${s.meaning}</td>
       <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
     </tr>`;
@@ -1011,8 +1135,9 @@ function renderScenarioTable(){
   html+=`</tbody></table>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
       <strong style="color:var(--gold)">หมายเหตุ:</strong>
-      Bias (BUY/SELL/HOLD) เป็นการประเมินจาก Pivot Position × Momentum Score × Delta Direction เท่านั้น
-      ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ เช่น ข่าว, Macro, และ Risk Management ส่วนบุคคล
+      Scenario ใช้ Buy Score + Sell Score + Net Bias + Pivot Position ร่วมกัน
+      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่แค่ Buy อ่อน — ครอบคลุมกว่าระบบเดิมที่ใช้แค่ Buy Score ตัวเดียว
+      ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ
     </div>`;
 
   document.getElementById('scenarioTable').innerHTML=html;
