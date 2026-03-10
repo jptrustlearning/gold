@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 """
-Gold Momentum Scoring System v2.0 (External Context Edition)
+Gold Momentum Scoring System v3.0 (100-Scale Edition)
 JP Trust Learning
 
-V2 adds Dimension 6: External Context (DXY + VIX) as bonus/penalty layer
-on top of the original 5-dimension scoring from gold_momentum_v22.py.
-
-Changes from v2.2 (original):
-- NEW D6: External Context Score (±10 pts)
-  - DXY Divergence: ±5 pts (gold rising despite strong dollar = bonus)
-  - VIX Regime: ±5 pts (safe-haven confirmation)
-- Net Score range: -25 to 110 (was -15 to 100)
-- New CSV columns: D6_External, DXY_1M_Pct, VIX_Level, DXY_Signal, VIX_Signal
-- Tier thresholds unchanged (based on capped 0-100 display score)
+V3 changes scoring scale:
+- All dimensions D1-D6 now scored 0-100 each
+- Total score = average of all 6 dimensions (0-100)
+- Penalty scaled proportionally from old system
+- Net Score = Gross (avg D1-D6) + Penalty_Scaled
+- Net Score range: ~-14 to 100
 """
 
 import pandas as pd
@@ -61,7 +57,7 @@ BD1_idx = len(df) - 6
 BD1_date = df.iloc[BD1_idx]['Date']
 BD2_date = df.iloc[BD2_idx]['Date']
 
-print(f"Gold Momentum Scoring v2.0 (External Context Edition)")
+print(f"Gold Momentum Scoring v3.0 (100-Scale Edition)")
 print(f"{'='*55}")
 print(f"Base Date 1: {BD1_date.strftime('%Y-%m-%d')} (idx={BD1_idx})")
 print(f"Base Date 2: {BD2_date.strftime('%Y-%m-%d')} (idx={BD2_idx})")
@@ -130,8 +126,8 @@ def calc_volume_percentiles(df, base_idx):
 def weighted_percentile(pctl_dict):
     return sum(pctl_dict[p]['percentile'] * WEIGHTS[p] for p in WEIGHT_ORDER)
 
-def d1_score(wp): return wp / 100 * 20
-def d2_score(wp): return wp / 100 * 20
+def d1_score(wp): return wp  # WP is already 0-100
+def d2_score(wp): return wp  # WP is already 0-100
 
 def calc_rsi(df, base_idx, period=14):
     start = base_idx - 29
@@ -151,12 +147,12 @@ def calc_rsi(df, base_idx, period=14):
     return 100 - (100 / (1 + rs))
 
 def d3_score(rsi):
-    if 50 <= rsi <= 70: return 20
-    if 40 <= rsi < 50: return 16
-    if 70 < rsi <= 80: return 14
-    if 30 <= rsi < 40: return 12
-    if rsi > 80: return 10
-    return 6
+    if 50 <= rsi <= 70: return 100
+    if 40 <= rsi < 50: return 80
+    if 70 < rsi <= 80: return 70
+    if 30 <= rsi < 40: return 60
+    if rsi > 80: return 50
+    return 30
 
 def calc_ma(df, base_idx, window):
     start = base_idx + 1 - window
@@ -165,10 +161,10 @@ def calc_ma(df, base_idx, window):
 
 def d4_score(price, ma50, ma200):
     pts = 0
-    if ma50 is not None and price > ma50: pts += 7
-    if ma200 is not None and price > ma200: pts += 7
-    if ma50 is not None and ma200 is not None and ma50 > ma200: pts += 6
-    return min(pts, 20)
+    if ma50 is not None and price > ma50: pts += 35
+    if ma200 is not None and price > ma200: pts += 35
+    if ma50 is not None and ma200 is not None and ma50 > ma200: pts += 30
+    return min(pts, 100)
 
 def calc_volatility(df, base_idx):
     start = base_idx - 20
@@ -180,13 +176,13 @@ def calc_volatility(df, base_idx):
     return np.std(rets) * np.sqrt(252) * 100
 
 def d5_score(vol):
-    if vol <= 20: return 20
-    if vol <= 30: return 18
-    if vol <= 40: return 14
-    if vol <= 50: return 11
-    if vol <= 60: return 8
-    if vol <= 80: return 5
-    return 2
+    if vol <= 20: return 100
+    if vol <= 30: return 90
+    if vol <= 40: return 70
+    if vol <= 50: return 55
+    if vol <= 60: return 40
+    if vol <= 80: return 25
+    return 10
 
 def calc_penalties(df, base_idx):
     closes = df['Close'].values
@@ -333,9 +329,12 @@ def calc_d6_external(df_gold, gold_idx, df_dxy, df_vix):
                     vix_signal = "⚪ Calm Drift (VIX<20 + gold down)"
 
     total_d6 = max(min(dxy_score + vix_score, 10), -10)
+    # Scale from ±10 to 0-100: -10→0, 0→50, +10→100
+    d6_scaled = (total_d6 + 10) / 20 * 100
     
     return {
-        'd6_total': total_d6,
+        'd6_total': total_d6,       # raw ±10 (for signals/display)
+        'd6_scaled': d6_scaled,      # 0-100 (for scoring)
         'dxy_score': dxy_score,
         'vix_score': vix_score,
         'dxy_1m': dxy_1m,
@@ -374,10 +373,17 @@ def full_score(df, idx, df_dxy, df_vix):
     
     # NEW: External context
     ext = calc_d6_external(df, idx, df_dxy, df_vix)
-    d6 = ext['d6_total']
+    d6 = ext['d6_scaled']  # 0-100 scale
     
-    # V2 Net Score = Gross(D1-D5) + Penalty + D6(External)
-    net = gross + penalties['total'] + d6
+    # V3 Scoring: each dimension is 0-100, gross = average of all 6
+    gross_avg_dims = (d1 + d2 + d3 + d4 + d5 + d6) / 6
+    
+    # Penalty: scale from old system (-15 on ~110) to new system (/100)
+    # Keep same proportional impact: -15/110 ≈ -13.6 on /100 scale
+    penalty_scaled = penalties['total'] * (100 / 110)
+    
+    # Net Score = Gross Average - Penalty (on 0-100 scale)
+    net = gross_avg_dims + penalty_scaled
     golden_cross = (ma50 is not None and ma200 is not None and ma50 > ma200)
     
     return {
@@ -386,9 +392,12 @@ def full_score(df, idx, df_dxy, df_vix):
         'ret_pctls': ret_pctls, 'vol_pctls': vol_pctls,
         'wp_ret': wp_ret, 'wp_vol': wp_vol,
         'd1': d1, 'd2': d2, 'd3': d3, 'd4': d4, 'd5': d5, 'd6': d6,
+        'd6_raw': ext['d6_total'],  # raw ±10 for display
         'rsi': rsi, 'ma50': ma50, 'ma200': ma200,
         'golden_cross': golden_cross, 'volatility': vol,
-        'gross': gross, 'penalties': penalties, 'net': net,
+        'gross': gross_avg_dims, 'penalties': penalties,
+        'penalty_scaled': penalty_scaled,
+        'net': net,
         'external': ext
     }
 
@@ -412,18 +421,18 @@ def tier(score):
 momentum_tier = tier(net_avg)
 
 print(f"\n{'='*55}")
-print(f"Gold Momentum Score v2.0 (External Context)")
+print(f"Gold Momentum Score v3.0 (100-Scale Edition)")
 print(f"{'='*55}")
 print(f"Net Score Avg:  {net_avg:.2f}  ({momentum_tier})")
 print(f"Gross Score Avg: {gross_avg:.2f}")
-print(f"BD1 ({s1['date'].strftime('%Y-%m-%d')}): Net={s1['net']:.2f}  D6={s1['d6']:+d}")
-print(f"BD2 ({s2['date'].strftime('%Y-%m-%d')}): Net={s2['net']:.2f}  D6={s2['d6']:+d}")
+print(f"BD1 ({s1['date'].strftime('%Y-%m-%d')}): Net={s1['net']:.2f}  D6={s1['d6']:.1f}/100 (raw {s1['d6_raw']:+d})")
+print(f"BD2 ({s2['date'].strftime('%Y-%m-%d')}): Net={s2['net']:.2f}  D6={s2['d6']:.1f}/100 (raw {s2['d6_raw']:+d})")
 print(f"Delta: {delta:+.2f}")
 print(f"Price: ${s2['price']:.1f}")
 print(f"RSI: {s2['rsi']:.1f} | Volatility: {s2['volatility']:.1f}%")
-print(f"Penalties: {s2['penalties']['total']} ({s2['penalties']['flags'] or 'None'})")
+print(f"Penalties: {s2['penalties']['total']} (scaled: {s2['penalty_scaled']:.1f}) ({s2['penalties']['flags'] or 'None'})")
 print(f"\n── External Context (BD2) ──")
-print(f"D6 Total: {s2['d6']:+d}")
+print(f"D6 Raw: {s2['d6_raw']:+d} → Scaled: {s2['d6']:.1f}/100")
 print(f"  DXY: {s2['external']['dxy_score']:+d}  ({s2['external']['dxy_signal']})")
 print(f"  VIX: {s2['external']['vix_score']:+d}  ({s2['external']['vix_signal']})")
 if s2['external']['dxy_1m'] is not None:
@@ -649,7 +658,9 @@ csv_row = {
     'D3_RSI': round(s2['d3'], 2),
     'D4_MA': round(s2['d4'], 2),
     'D5_Volatility': round(s2['d5'], 2),
-    'D6_External': s2['d6'],
+    'D6_External': round(s2['d6'], 2),
+    'D6_Raw': s2['d6_raw'],
+    'Penalty_Scaled': round(s2['penalty_scaled'], 2),
     'WP_Return_Pct': round(s2['wp_ret'], 2),
     'WP_Volume_Pct': round(s2['wp_vol'], 2),
     'Ret_1Y_Pct': round(s2['penalties']['ret_1y'], 2),
@@ -727,11 +738,11 @@ def style_cell(ws, row, col, fmt=None):
 
 # ════════════ SHEET 1: SUMMARY ════════════
 ws1 = wb.active
-ws1.title = "Gold Momentum v2.0"
+ws1.title = "Gold Momentum v3.0"
 ws1.sheet_properties.tabColor = "FFD700"
 
 ws1.merge_cells('A1:H1')
-ws1['A1'] = "🥇 Gold Momentum Score v2.0 — External Context Edition"
+ws1['A1'] = "🥇 Gold Momentum Score v3.0 — 100-Scale Edition"
 ws1['A1'].font = big_font
 ws1['A1'].alignment = Alignment(horizontal='center')
 
@@ -761,14 +772,15 @@ style_header_row(ws1, row, len(headers))
 
 data_rows = [
     ['Net Score', s1['net'], s2['net'], net_avg, delta],
-    ['Gross Score (D1-D5)', s1['gross'], s2['gross'], gross_avg, s2['gross']-s1['gross']],
-    ['D1 Return Rank', s1['d1'], s2['d1'], (s1['d1']+s2['d1'])/2, s2['d1']-s1['d1']],
-    ['D2 Volume Rank', s1['d2'], s2['d2'], (s1['d2']+s2['d2'])/2, s2['d2']-s1['d2']],
-    ['D3 RSI', s1['d3'], s2['d3'], (s1['d3']+s2['d3'])/2, s2['d3']-s1['d3']],
-    ['D4 MA Trend', s1['d4'], s2['d4'], (s1['d4']+s2['d4'])/2, s2['d4']-s1['d4']],
-    ['D5 Volatility', s1['d5'], s2['d5'], (s1['d5']+s2['d5'])/2, s2['d5']-s1['d5']],
-    ['D6 External Context', s1['d6'], s2['d6'], (s1['d6']+s2['d6'])/2, s2['d6']-s1['d6']],
-    ['Penalty', s1['penalties']['total'], s2['penalties']['total'], (s1['penalties']['total']+s2['penalties']['total'])/2, s2['penalties']['total']-s1['penalties']['total']],
+    ['Gross Score (Avg D1-D6)', s1['gross'], s2['gross'], gross_avg, s2['gross']-s1['gross']],
+    ['D1 Return Rank (/100)', s1['d1'], s2['d1'], (s1['d1']+s2['d1'])/2, s2['d1']-s1['d1']],
+    ['D2 Volume Rank (/100)', s1['d2'], s2['d2'], (s1['d2']+s2['d2'])/2, s2['d2']-s1['d2']],
+    ['D3 RSI (/100)', s1['d3'], s2['d3'], (s1['d3']+s2['d3'])/2, s2['d3']-s1['d3']],
+    ['D4 MA Trend (/100)', s1['d4'], s2['d4'], (s1['d4']+s2['d4'])/2, s2['d4']-s1['d4']],
+    ['D5 Volatility (/100)', s1['d5'], s2['d5'], (s1['d5']+s2['d5'])/2, s2['d5']-s1['d5']],
+    ['D6 External (/100)', s1['d6'], s2['d6'], (s1['d6']+s2['d6'])/2, s2['d6']-s1['d6']],
+    ['Penalty (raw)', s1['penalties']['total'], s2['penalties']['total'], (s1['penalties']['total']+s2['penalties']['total'])/2, s2['penalties']['total']-s1['penalties']['total']],
+    ['Penalty (scaled /100)', s1['penalty_scaled'], s2['penalty_scaled'], (s1['penalty_scaled']+s2['penalty_scaled'])/2, s2['penalty_scaled']-s1['penalty_scaled']],
 ]
 for r, row_data in enumerate(data_rows):
     rn = row + 1 + r
@@ -967,22 +979,22 @@ for c in range(1, 6):
     ws4.column_dimensions[get_column_letter(c)].width = 35
 
 # ════════════ SHEET 5: METHODOLOGY v2.0 ════════════
-ws5 = wb.create_sheet("Methodology v2.0")
+ws5 = wb.create_sheet("Methodology v3.0")
 ws5.sheet_properties.tabColor = "7030A0"
 
-ws5['A1'] = "📘 Methodology — Gold Momentum Scoring v2.0 (External Context)"
+ws5['A1'] = "📘 Methodology — Gold Momentum Scoring v3.0 (100-Scale)"
 ws5['A1'].font = title_font
 ws5.merge_cells('A1:C1')
 
 methods = [
-    ("D1: Return Rank (0-20)", "Rolling Percentile of returns vs self over 252 days\nWeights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%\nScore = Weighted Percentile / 100 × 20"),
-    ("D2: Volume Rank (0-20)", "Rolling Percentile of cumulative volume vs self over 252 days\nSame weights as D1\nScore = Weighted Percentile / 100 × 20"),
-    ("D3: RSI (0-20)", "14-day RSI\n50-70→20pts, 40-49→16pts, 71-80→14pts\n30-39→12pts, >80→10pts, <30→6pts"),
-    ("D4: MA Trend (0-20)", "Price>MA50→+7, Price>MA200→+7, Golden Cross(MA50>MA200)→+6\nMax: 20 pts"),
-    ("D5: Volatility (0-20)", "21-day annualized volatility\n≤20%→20, 21-30%→18, 31-40%→14, 41-50%→11\n51-60%→8, 61-80%→5, >80%→2"),
-    ("🆕 D6: External Context (±10)", "Part A — DXY Divergence (±5 pts):\n  Gold↑ + DXY↑ = +5 (bullish divergence)\n  Gold↑ + DXY↓ = +2 (normal)\n  Gold↓ + DXY↓ =  0 (neutral)\n  Gold↓ + DXY↑ = -5 (headwind)\n\nPart B — VIX Regime (±5 pts):\n  VIX>30 + Gold↑ = +5 (safe-haven confirmed)\n  VIX 20-30 + Gold↑ = +3\n  VIX<20 + Gold↑ = +1\n  VIX>30 + Gold↓ = -3 (panic selling)\n  VIX 20-30 + Gold↓ = -2\n  VIX<20 + Gold↓ = 0"),
-    ("Penalty System (0 to -15)", "Mild Reversal: -5 (1Y>0 & 1M<0 & 1W<0)\nStrong Reversal: -10 (1Y>20% & 1M<-5% & 1W<-3%)\nDeath Cross: -5 (MA50<MA200)\nMax penalty: -15 (capped)"),
-    ("Net Score Formula", "Net = Gross(D1+D2+D3+D4+D5) + Penalty + D6\nGross range: 0-100\nPenalty: 0 to -15\nD6: -10 to +10\nNet range: -25 to 110 (tier uses 0-100 clamped)"),
+    ("D1: Return Rank (0-100)", "Rolling Percentile of returns vs self over 252 days\nWeights: 1Y=30%, 6M=25%, 3M=20%, 1M=15%, 1W=10%\nScore = Weighted Percentile (already 0-100)"),
+    ("D2: Volume Rank (0-100)", "Rolling Percentile of cumulative volume vs self over 252 days\nSame weights as D1\nScore = Weighted Percentile (already 0-100)"),
+    ("D3: RSI (0-100)", "14-day RSI\n50-70→100, 40-49→80, 71-80→70\n30-39→60, >80→50, <30→30"),
+    ("D4: MA Trend (0-100)", "Price>MA50→+35, Price>MA200→+35, Golden Cross(MA50>MA200)→+30\nMax: 100 pts"),
+    ("D5: Volatility (0-100)", "21-day annualized volatility\n≤20%→100, 21-30%→90, 31-40%→70, 41-50%→55\n51-60%→40, 61-80%→25, >80%→10"),
+    ("D6: External Context (0-100)", "Raw score ±10 mapped to 0-100 (center=50)\n-10→0, 0→50, +10→100\nPart A — DXY Divergence (±5)\nPart B — VIX Regime (±5)"),
+    ("Penalty System (0 to -14)", "Same triggers as before, scaled from /110 to /100:\nPenalty_Scaled = Penalty_Raw × (100/110)\nMild Reversal: ~-4.5 | Strong Reversal: ~-9.1 | Death Cross: ~-4.5\nMax: ~-13.6 (capped)"),
+    ("Net Score Formula", "Gross = Average(D1, D2, D3, D4, D5, D6)  [all /100]\nNet = Gross + Penalty_Scaled\nAll dimensions weighted equally (1/6 each)"),
     ("Data Sources", f"Gold: Yahoo Finance GC=F | DXY: Yahoo Finance DX-Y.NYB\nVIX: Yahoo Finance ^VIX\nRepo: github.com/jptrustlearning/gold\nRange: {df.iloc[0]['Date'].strftime('%Y-%m-%d')} to {df.iloc[-1]['Date'].strftime('%Y-%m-%d')}")
 ]
 
@@ -996,10 +1008,10 @@ ws5.column_dimensions['A'].width = 35
 ws5.column_dimensions['B'].width = 75
 
 # ── SAVE EXCEL ──
-excel_path = os.path.join(base_dir, 'Gold_Momentum_v2.0.xlsx')
+excel_path = os.path.join(base_dir, 'Gold_Momentum_v3.0.xlsx')
 wb.save(excel_path)
 print(f"\nExcel saved: {excel_path}")
 
 print(f"\n✅ All outputs generated successfully!")
 print(f"   CSV: output_momentum_gold.csv + output_momentum_gold_{TS_FILE}.csv")
-print(f"   Excel: Gold_Momentum_v2.0.xlsx")
+print(f"   Excel: Gold_Momentum_v3.0.xlsx")

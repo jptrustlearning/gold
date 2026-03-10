@@ -204,7 +204,7 @@ jobs:
       # ════════════════════════════════════════════════════════════
       - name: "Step 3: Run Momentum Scoring V2 (with external context)"
         run: |
-          echo "🎯 Running Gold Momentum Score v2.0..."
+          echo "🎯 Running Gold Momentum Score v3.0..."
           python3 gold_momentum_v2.py
           echo "✅ Momentum scoring complete"
 
@@ -231,13 +231,13 @@ jobs:
           git add output_momentum_gold_*.csv 2>/dev/null || true
 
           # ไม่ push Excel (ใหญ่เกินไป)
-          git reset HEAD Gold_Momentum_v2.0.xlsx 2>/dev/null || true
+          git reset HEAD Gold_Momentum_v3.0.xlsx 2>/dev/null || true
 
           if git diff --cached --quiet; then
             echo "✅ No changes to push"
           else
             # Commit message รวมทุก step
-            MSG="🔄 Full Pipeline: Market(${MARKET_SUMMARY}) | Gold(${GOLD_INFO}) | Score v2.0 — ${TIMESTAMP}"
+            MSG="🔄 Full Pipeline: Market(${MARKET_SUMMARY}) | Gold(${GOLD_INFO}) | Score v3.0 — ${TIMESTAMP}"
             git commit -m "$MSG"
             git push
             echo "✅ Pushed to GitHub"
