@@ -474,9 +474,9 @@ def calc_multi_tf_pivots(df):
     current_price = df['Close'].values[-1]
     latest_date = df['Date'].max()
     
-    # ── D1: Previous day H/L/C ──
-    if len(df) >= 2:
-        prev = df.iloc[-2]
+    # ── D1: Last completed day H/L/C (วันล่าสุดที่มีราคาปิดแล้ว) ──
+    if len(df) >= 1:
+        prev = df.iloc[-1]
         levels = calc_pivot_levels(prev['High'], prev['Low'], prev['Close'])
         result['D1'] = {**levels, 'H': round(prev['High'], 2), 'L': round(prev['Low'], 2),
                         'C': round(prev['Close'], 2), 'date': prev['Date'].strftime('%Y-%m-%d')}
