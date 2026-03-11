@@ -34,7 +34,7 @@ jobs:
           import yfinance as yf
           import pandas as pd
           from datetime import datetime, timedelta
-          import os
+          import os, time
 
           FALLBACK_START = '2020-01-01'
 
@@ -73,12 +73,23 @@ jobs:
               end_date = datetime.now().strftime('%Y-%m-%d')
               print(f'🔄 Fetching: {start_date} → {end_date}')
 
-              try:
-                  ticker = yf.Ticker(symbol)
-                  df_new = ticker.history(start=start_date, end=end_date)
-              except Exception as e:
-                  print(f'❌ Error fetching {symbol}: {e}')
-                  results.append({"name": name, "status": "error", "new": 0})
+              df_new = pd.DataFrame()
+              for attempt in range(3):
+                  try:
+                      ticker = yf.Ticker(symbol)
+                      df_new = ticker.history(start=start_date, end=end_date)
+                      break
+                  except Exception as e:
+                      print(f'⚠️  Attempt {attempt+1}/3 failed for {symbol}: {e}')
+                      if attempt < 2:
+                          wait = 30 * (attempt + 1)
+                          print(f'⏳ Waiting {wait}s before retry...')
+                          time.sleep(wait)
+                      else:
+                          print(f'❌ All retries failed for {symbol}')
+                          results.append({"name": name, "status": "error", "new": 0})
+              
+              if df_new is None or (hasattr(df_new, 'empty') and df_new.empty and len(results) > 0 and results[-1].get("status") == "error"):
                   continue
 
               if df_new.empty:
@@ -115,6 +126,9 @@ jobs:
                   print(f'❌ Error processing {name}: {e}')
                   results.append({"name": name, "status": "error", "new": 0})
 
+              # Delay between assets to avoid rate limit
+              time.sleep(5)
+
           # Summary
           print(f'\n{"="*50}')
           print('📋 MARKET DATA SUMMARY')
@@ -142,7 +156,7 @@ jobs:
           import yfinance as yf
           import pandas as pd
           from datetime import datetime, timedelta
-          import os
+          import os, time
 
           SYMBOL = 'GC=F'
           CSV_FILE = 'gold_prices.csv'
@@ -162,8 +176,25 @@ jobs:
           end_date = datetime.now().strftime('%Y-%m-%d')
           print(f'🔄 Fetching {SYMBOL}: {start_date} → {end_date}')
 
-          gold = yf.Ticker(SYMBOL)
-          df_new = gold.history(start=start_date, end=end_date)
+          # Wait before fetching to avoid rate limit from Step 1
+          print('⏳ Waiting 30s to avoid Yahoo Finance rate limit...')
+          time.sleep(30)
+
+          df_new = pd.DataFrame()
+          for attempt in range(3):
+              try:
+                  gold = yf.Ticker(SYMBOL)
+                  df_new = gold.history(start=start_date, end=end_date)
+                  break
+              except Exception as e:
+                  print(f'⚠️  Attempt {attempt+1}/3 failed: {e}')
+                  if attempt < 2:
+                      wait = 30 * (attempt + 1)
+                      print(f'⏳ Waiting {wait}s before retry...')
+                      time.sleep(wait)
+                  else:
+                      print(f'❌ All retries failed for {SYMBOL}')
+                      raise
 
           if df_new.empty:
               print('ℹ️  No new gold data')
