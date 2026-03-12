@@ -2,8 +2,8 @@ name: Gold Intraday Price Update (H1 + H4)
 
 on:
   schedule:
-    # รันทุก 5 นาที
-    - cron: '*/5 * * * *'
+    # รันทุก 1 ชม. จันทร์-ศุกร์ (UTC) — ประหยัด Free plan
+    - cron: '0 * * * 1-5'
   workflow_dispatch:
     inputs:
       backfill:
