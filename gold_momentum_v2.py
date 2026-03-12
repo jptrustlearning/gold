@@ -649,10 +649,18 @@ def calc_zscore_regime(df, base_idx):
     Calculate Z-Score regime indicators for the given base date index.
     
     Uses Z-Score of closing price relative to rolling mean/std to classify
-    the current market regime:
-      - Normal:   -1.5 < Z < +1.5 — momentum score reliable as-is
-      - Extended: Z >= +1.5       — price stretched above mean, pullback risk elevated
-      - Depressed: Z <= -1.5     — price stretched below mean, bounce potential
+    the current market regime.
+    
+    Thresholds are ASYMMETRIC — calibrated for gold's positive drift bias:
+      Gold Z-Score 50d historically averages +0.47 (full dataset) to +1.4 (2025-2026).
+      Symmetric ±1.5 triggers "Extended" ~45% of the time in trending periods → useless.
+    
+    Calibrated thresholds (Option B):
+      - Extreme Extended: Z >= +2.5  (~6.5% of time)
+      - Extended:         Z >= +2.0  (~8.7% additional)
+      - Normal:           -1.5 < Z < +2.0  (~77% of time)
+      - Depressed:        Z <= -1.5  (~3.3% additional)
+      - Extreme Depressed: Z <= -2.0  (~4.2% of time)
     
     Returns dict with Z-Scores at 3 lookback periods (50d, 100d, 200d),
     primary zone classification, and regime description.
@@ -675,21 +683,22 @@ def calc_zscore_regime(df, base_idx):
     # Primary Z-Score = 50d (most responsive, best for regime detection)
     z_primary = result.get('z_50d')
     
+    # Asymmetric thresholds — calibrated for gold's upward drift bias
     if z_primary is None:
         result['zone'] = 'N/A'
         result['regime'] = 'Insufficient data for Z-Score'
         result['signal'] = '⚪ N/A'
-    elif z_primary >= 2.0:
+    elif z_primary >= 2.5:
         result['zone'] = 'Extreme Extended'
-        result['regime'] = 'ราคาวิ่งเกิน +2σ — pullback risk สูงมาก ควรระวังการเปิด Long ใหม่'
-        result['signal'] = '🔴 Extreme Extended (Z≥+2.0)'
-    elif z_primary >= 1.5:
+        result['regime'] = 'ราคาวิ่งเกิน +2.5σ — pullback risk สูงมาก ควรระวังการเปิด Long ใหม่'
+        result['signal'] = '🔴 Extreme Extended (Z≥+2.5)'
+    elif z_primary >= 2.0:
         result['zone'] = 'Extended'
-        result['regime'] = 'ราคาเหนือ +1.5σ — momentum อาจแรงจริง แต่ pullback risk เพิ่มขึ้น'
-        result['signal'] = '🟡 Extended (Z≥+1.5)'
+        result['regime'] = 'ราคาเหนือ +2.0σ — momentum อาจแรงจริง แต่ pullback risk เพิ่มขึ้น'
+        result['signal'] = '🟡 Extended (Z≥+2.0)'
     elif z_primary <= -2.0:
         result['zone'] = 'Extreme Depressed'
-        result['regime'] = 'ราคาตกเกิน -2σ — oversold สุดโต่ง bounce potential สูง'
+        result['regime'] = 'ราคาตกเกิน -2.0σ — oversold สุดโต่ง bounce potential สูง'
         result['signal'] = '🟢 Extreme Depressed (Z≤-2.0)'
     elif z_primary <= -1.5:
         result['zone'] = 'Depressed'
@@ -697,7 +706,7 @@ def calc_zscore_regime(df, base_idx):
         result['signal'] = '🔵 Depressed (Z≤-1.5)'
     else:
         result['zone'] = 'Normal'
-        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +1.5σ) — momentum score ใช้ได้ตามปกติ'
+        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +2.0σ) — momentum score ใช้ได้ตามปกติ'
         result['signal'] = '🟢 Normal'
     
     # Additional context: direction of Z movement (using 50d Z now vs approx 5 days ago)
