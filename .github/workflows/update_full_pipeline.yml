@@ -3,9 +3,9 @@ name: Daily Full Pipeline (Market Data → Gold Price → Momentum Score)
 on:
   schedule:
     # รัน 4 รอบ ห่างกัน 1 ชม. — ป้องกัน data ยังไม่มา
-    # 23:00, 00:00, 01:00, 02:00 UTC = 06:00, 07:00, 08:00, 09:00 ไทย
+    # 23:30, 00:30, 01:30, 02:30 UTC = 06:30, 07:30, 08:30, 09:30 ไทย
     # ใช้นาที :30 เลี่ยง conflict กับ H1 workflow ที่รันนาที :05
-    - cron: '0 23 * * *'
+    - cron: '30 23 * * *'
     - cron: '30 0 * * *'
     - cron: '30 1 * * *'
     - cron: '30 2 * * *'
