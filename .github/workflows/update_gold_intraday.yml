@@ -2,9 +2,8 @@ name: Gold Intraday Price Update (H1 + H4)
 
 on:
   schedule:
-    # รันทุกวัน 23:30 UTC = 06:30 เวลาไทย (หลัง daily pipeline 30 นาที)
-    # ตลาด COMEX ปิด ~19:00 UTC — ข้อมูลพร้อมแน่นอน
-    - cron: '30 23 * * *'
+    # รันทุก 5 นาที
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       backfill:
