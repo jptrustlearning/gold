@@ -1,14 +1,22 @@
-name: Gold H1 Momentum Score (Buy + Sell + Net)
+name: Gold H1 Pipeline (Price + Buy + Sell + Net)
 
 on:
   schedule:
-    # รันทุก 4 ชม. จันทร์-ศุกร์
-    # 02:10, 06:10, 10:10, 14:10, 18:10, 22:10 UTC
-    - cron: '10 2,6,10,14,18,22 * * 1-5'
+    # รันทุก 1 ชม. จันทร์-ศุกร์
+    - cron: '5 * * * 1-5'
   workflow_dispatch:
+    inputs:
+      backfill:
+        description: 'Backfill H1 data 730 days (ครั้งแรก หรือต้องการดึงย้อนหลังใหม่)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
-  h1-momentum:
+  h1-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -26,9 +34,16 @@ jobs:
       - name: Install dependencies
         run: pip install yfinance pandas numpy openpyxl
 
-      - name: "Step 1: Update H1 + H4 price data"
-        run: python3 update_gold_intraday.py
+      # Step 1: ดึงราคา H1 + resample H4
+      - name: "Step 1: Fetch H1 + H4 price data"
+        run: |
+          if [ "${{ github.event.inputs.backfill }}" = "true" ]; then
+            python3 update_gold_intraday.py --backfill
+          else
+            python3 update_gold_intraday.py
+          fi
 
+      # Step 2-4: คำนวณ Momentum Score (Buy + Sell + Net)
       - name: "Step 2: Run H1 Momentum Score — BUY"
         run: python3 gold_momentum_h1.py
 
@@ -38,13 +53,17 @@ jobs:
       - name: "Step 4: Calculate H1 Net Bias"
         run: python3 gold_momentum_h1_net.py
 
+      # Step 5: Push ทุกอย่างพร้อมกัน
       - name: "Step 5: Commit and push"
         run: |
           git config user.email "jptrustlearning@users.noreply.github.com"
           git config user.name "JP Trust Learning"
 
+          # H1/H4 price data
           git add gold_prices_h1.csv gold_prices_h4.csv
           git add gold_prices_h1_tail.csv 2>/dev/null || true
+
+          # Momentum outputs (buy + sell + net)
           git add output_momentum_gold_h1.csv 2>/dev/null || true
           git add output_momentum_gold_h1_*.csv 2>/dev/null || true
           git add output_momentum_gold_h1_sell.csv 2>/dev/null || true
@@ -54,6 +73,7 @@ jobs:
 
           git diff --cached --quiet || (
             TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
-            git commit -m "🥇 Gold H1 Momentum (Buy+Sell+Net) — ${TIMESTAMP}"
+            H1_ROWS=$(wc -l < gold_prices_h1.csv)
+            git commit -m "🥇 Gold H1 Pipeline (Price+Score) — ${TIMESTAMP} (H1: ${H1_ROWS} rows)"
             git push
           )
