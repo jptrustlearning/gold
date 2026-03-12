@@ -156,6 +156,23 @@ print(f"Zone: {scenario['zone']} | Action: {scenario['action']}")
 
 
 # ══════════════════════════════════════════════════════
+# COMBINED SIGNAL (matches reference table)
+# ══════════════════════════════════════════════════════
+
+COMBINED_SIGNAL_MAP = {
+    1: 'Full Bullish Confirmed', 2: 'Full Bullish Confirmed',
+    3: 'Bullish Dominant', 4: 'Bullish Dominant', 5: 'Bullish Dominant',
+    6: 'Full Bearish Confirmed',
+    7: 'Bearish Dominant', 8: 'Bearish Dominant', 9: 'Bearish Dominant',
+    10: 'Tug of War', 11: 'Tug of War',
+    12: 'Dead Zone', 13: 'Lean Bullish', 14: 'Lean Bearish',
+}
+
+combined_signal = COMBINED_SIGNAL_MAP.get(scenario['num'], 'Mixed Signal')
+print(f"Combined: {combined_signal}")
+
+
+# ══════════════════════════════════════════════════════
 # CSV OUTPUT
 # ══════════════════════════════════════════════════════
 
@@ -163,6 +180,7 @@ csv_row = {
     'Ticker': 'GOLD_H1', 'Timeframe': 'H1',
     'Buy_Score': round(buy_score, 2), 'Sell_Score': round(sell_score, 2),
     'Net_Bias': round(net_bias, 2), 'Bias_Tier': bias_tier,
+    'Combined_Signal': combined_signal,
     'Buy_Tier': buy['Tier'], 'Sell_Tier': sell['Tier'],
     'Buy_Delta': round(buy_delta, 2), 'Sell_Delta': round(sell_delta, 2),
     'Scenario_Num': scenario['num'], 'Scenario_Signal': scenario['signal'],

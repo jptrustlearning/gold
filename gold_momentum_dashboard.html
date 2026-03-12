@@ -882,21 +882,19 @@ function renderHero(){
   const sellDelta=DN?parseFloat(DN.Sell_Delta||0):(sellScore-sellBD1);
   const buyPrev=n-buyDelta;
   const sellPrev=sellScore-sellDelta;
-  // Compute Combined Signal from scenario reference table (matches table exactly)
+  // Combined Signal — read directly from net CSV
   const buyS=n,sellS=sellScore,nb=netBias;
-  const scenNum=DN?parseInt(DN.Scenario_Num):0;
-  const scenZone=DN?DN.Scenario_Zone:'';
+  const comboRaw=DN?DN.Combined_Signal:'';
   let comboName='',comboColor2='';
-  // Map scenario number → combined signal (same as reference table)
-  if(scenNum===1||scenNum===2){comboName='🟢 Full Bullish Confirmed';comboColor2='var(--emerald)';}
-  else if(scenNum>=3&&scenNum<=5){comboName='🟢 Bullish Dominant';comboColor2='#8BD4B0';}
-  else if(scenNum===6){comboName='🔴 Full Bearish Confirmed';comboColor2='var(--red)';}
-  else if(scenNum>=7&&scenNum<=9){comboName='🔴 Bearish Dominant';comboColor2='#F87171';}
-  else if(scenNum===10||scenNum===11){comboName='🟡 Tug of War';comboColor2='var(--gold)';}
-  else if(scenNum===12){comboName='⚪ Dead Zone';comboColor2='var(--text3)';}
-  else if(scenNum===13){comboName='🟢 Lean Bullish';comboColor2='#8BD4B0';}
-  else if(scenNum===14){comboName='🔴 Lean Bearish';comboColor2='#F87171';}
-  else{comboName='⚪ Mixed Signal';comboColor2='var(--text3)';}
+  if(comboRaw.includes('Full Bullish')){comboName='🟢 '+comboRaw;comboColor2='var(--emerald)';}
+  else if(comboRaw.includes('Bullish Dominant')){comboName='🟢 '+comboRaw;comboColor2='#8BD4B0';}
+  else if(comboRaw.includes('Full Bearish')){comboName='🔴 '+comboRaw;comboColor2='var(--red)';}
+  else if(comboRaw.includes('Bearish Dominant')){comboName='🔴 '+comboRaw;comboColor2='#F87171';}
+  else if(comboRaw.includes('Tug')){comboName='🟡 '+comboRaw;comboColor2='var(--gold)';}
+  else if(comboRaw.includes('Lean Bullish')){comboName='🟢 '+comboRaw;comboColor2='#8BD4B0';}
+  else if(comboRaw.includes('Lean Bearish')){comboName='🔴 '+comboRaw;comboColor2='#F87171';}
+  else if(comboRaw.includes('Dead')){comboName='⚪ '+comboRaw;comboColor2='var(--text3)';}
+  else{comboName='⚪ '+(comboRaw||'Mixed Signal');comboColor2='var(--text3)';}
 
   document.getElementById('heroSection').innerHTML=`
     <div class="hero-score"><div class="ring"><canvas id="ringCanvas" width="200" height="200"></canvas>
@@ -1069,37 +1067,22 @@ function renderTierLegend(){
     {name:'Strong Bearish ↓↓',range:'≤-25',test:nb<=-25,color:'var(--red)',bg:'var(--red-dim)',border:'rgba(248,113,113,.3)'},
   ];
 
-  // Combined Signal Zone — from scenario number (matches reference table)
-  const scenNumT=DN?parseInt(DN.Scenario_Num):0;
+  // Combined Signal Zone — read from net CSV
+  const comboRawT=DN?DN.Combined_Signal:'';
   let comboName='',comboColor='',comboBg='',comboBorder='',comboDesc='';
-  if(scenNumT===1||scenNumT===2){
-    comboName='🟢 Full Bullish Confirmed';comboDesc='Buy แข็ง + Sell หมดแรง + Net ห่างชัด → ขาขึ้นยืนยันครบ';
-    comboColor='var(--emerald)';comboBg='var(--emerald-dim)';comboBorder='rgba(52,211,153,.3)';
-  } else if(scenNumT>=3&&scenNumT<=5){
-    comboName='🟢 Bullish Dominant';comboDesc='Buy แข็งพอ + Sell อ่อน + Net เอียง Buy → ขาขึ้นมีน้ำหนัก';
-    comboColor='#8BD4B0';comboBg='rgba(52,168,83,.08)';comboBorder='rgba(52,211,153,.2)';
-  } else if(scenNumT===6){
-    comboName='🔴 Full Bearish Confirmed';comboDesc='Sell แข็ง + Buy หมดแรง + Net ห่างชัด → ขาลงยืนยันครบ';
-    comboColor='var(--red)';comboBg='var(--red-dim)';comboBorder='rgba(248,113,113,.3)';
-  } else if(scenNumT>=7&&scenNumT<=9){
-    comboName='🔴 Bearish Dominant';comboDesc='Sell แข็งพอ + Buy อ่อน + Net เอียง Sell → ขาลงมีน้ำหนัก';
-    comboColor='#F87171';comboBg='rgba(234,67,53,.08)';comboBorder='rgba(248,113,113,.2)';
-  } else if(scenNumT===10||scenNumT===11){
-    comboName='🟡 Tug of War';comboDesc='ทั้ง Buy+Sell มีแรงพอกัน + Net ไม่ห่าง → ชักเย่อ รอฝั่งใดชนะ';
-    comboColor='var(--gold)';comboBg='var(--gold-dim)';comboBorder='rgba(232,185,49,.3)';
-  } else if(scenNumT===13){
-    comboName='🟢 Lean Bullish';comboDesc='Buy แข็งกว่า + Sell ไม่มีแรง แต่ Net ยังไม่ห่างพอ → เอียง Buy แต่ยังไม่ยืนยัน';
-    comboColor='#8BD4B0';comboBg='rgba(52,211,153,.05)';comboBorder='rgba(52,211,153,.15)';
-  } else if(scenNumT===14){
-    comboName='🔴 Lean Bearish';comboDesc='Sell แข็งกว่า + Buy ไม่มีแรง แต่ Net ยังไม่ห่างพอ → เอียง Sell แต่ยังไม่ยืนยัน';
-    comboColor='#F87171';comboBg='rgba(248,113,113,.05)';comboBorder='rgba(248,113,113,.15)';
-  } else if(scenNumT===12){
-    comboName='⚪ Dead Zone';comboDesc='ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout';
-    comboColor='var(--text3)';comboBg='rgba(156,163,175,.05)';comboBorder='rgba(156,163,175,.15)';
-  } else {
-    comboName='⚪ Mixed Signal';comboDesc='สัญญาณผสม ไม่ตรงเงื่อนไขชัด → ระวังและรอยืนยัน';
-    comboColor='var(--text3)';comboBg='rgba(156,163,175,.05)';comboBorder='rgba(156,163,175,.15)';
-  }
+  const comboLookup={
+    'Full Bullish Confirmed':{d:'Buy แข็ง + Sell หมดแรง + Net ห่างชัด → ขาขึ้นยืนยันครบ',c:'var(--emerald)',bg:'var(--emerald-dim)',b:'rgba(52,211,153,.3)'},
+    'Bullish Dominant':{d:'Buy แข็งพอ + Sell อ่อน + Net เอียง Buy → ขาขึ้นมีน้ำหนัก',c:'#8BD4B0',bg:'rgba(52,168,83,.08)',b:'rgba(52,211,153,.2)'},
+    'Full Bearish Confirmed':{d:'Sell แข็ง + Buy หมดแรง + Net ห่างชัด → ขาลงยืนยันครบ',c:'var(--red)',bg:'var(--red-dim)',b:'rgba(248,113,113,.3)'},
+    'Bearish Dominant':{d:'Sell แข็งพอ + Buy อ่อน + Net เอียง Sell → ขาลงมีน้ำหนัก',c:'#F87171',bg:'rgba(234,67,53,.08)',b:'rgba(248,113,113,.2)'},
+    'Tug of War':{d:'ทั้ง Buy+Sell มีแรงพอกัน + Net ไม่ห่าง → ชักเย่อ รอฝั่งใดชนะ',c:'var(--gold)',bg:'var(--gold-dim)',b:'rgba(232,185,49,.3)'},
+    'Lean Bullish':{d:'Buy แข็งกว่า + Sell ไม่มีแรง แต่ Net ยังไม่ห่างพอ → เอียง Buy แต่ยังไม่ยืนยัน',c:'#8BD4B0',bg:'rgba(52,211,153,.05)',b:'rgba(52,211,153,.15)'},
+    'Lean Bearish':{d:'Sell แข็งกว่า + Buy ไม่มีแรง แต่ Net ยังไม่ห่างพอ → เอียง Sell แต่ยังไม่ยืนยัน',c:'#F87171',bg:'rgba(248,113,113,.05)',b:'rgba(248,113,113,.15)'},
+    'Dead Zone':{d:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',c:'var(--text3)',bg:'rgba(156,163,175,.05)',b:'rgba(156,163,175,.15)'},
+  };
+  const cl=comboLookup[comboRawT]||{d:'สัญญาณผสม ไม่ตรงเงื่อนไขชัด → ระวังและรอยืนยัน',c:'var(--text3)',bg:'rgba(156,163,175,.05)',b:'rgba(156,163,175,.15)'};
+  const icon=comboRawT.includes('Bullish')?'🟢':comboRawT.includes('Bearish')?'🔴':comboRawT.includes('Tug')?'🟡':'⚪';
+  comboName=icon+' '+comboRawT;comboDesc=cl.d;comboColor=cl.c;comboBg=cl.bg;comboBorder=cl.b;
 
   const comboZones=[
     {name:'Full Bullish Confirmed',cond:'Buy≥75 & Sell<45 & Net≥+20',color:'var(--emerald)',bg:'var(--emerald-dim)',border:'rgba(52,211,153,.3)'},
