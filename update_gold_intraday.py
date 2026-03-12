@@ -158,7 +158,7 @@ def main():
         # Incremental: fetch from last date
         last_dt = df_h1_existing['Datetime'].max()
         start = (last_dt - timedelta(hours=4)).strftime('%Y-%m-%d')
-        end = datetime.now().strftime('%Y-%m-%d')
+        end = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
         df_h1_new = fetch_h1_data(start=start, end=end)
 
     if df_h1_new.empty and df_h1_existing.empty:
