@@ -239,8 +239,8 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 <body>
 <div class="container">
   <header class="header">
-    <h1>Gold Momentum Score — H1</h1>
-    <div class="sub">JP Trust Learning &bull; Intraday Rolling Percentile + Macro Factor Analysis — H1 Timeframe</div>
+    <h1>Gold Momentum Score</h1>
+    <div class="sub">JP Trust Learning &bull; H1 Intraday Rolling Percentile + Macro Factor Analysis — All Dimensions /100</div>
     <div class="period" id="periodLabel">Loading...</div>
   </header>
 
@@ -285,7 +285,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     </div>
 
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>⚡ Confluence Zones — โซนที่ Pivot หลาย TF ซ้อนกัน (ภายใน 20 จุด)</div>
+      <div class="section-title"><span class="dot"></span>⚡ Confluence Zones — โซนที่ Pivot หลาย TF ซ้อนกัน (ภายใน 15 จุด)</div>
       <div id="confluenceSection" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
     </div>
 
@@ -357,7 +357,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
   <footer class="footer">
     <p><strong>JP Trust Learning</strong> &bull; Gold Momentum H1 Dashboard + Multi-TF Pivot</p>
-    <p style="margin-top:4px">H1 Intraday Rolling Percentile + Macro Factor + Multi-TF Pivot &amp; Confluence Analysis</p>
+    <p style="margin-top:4px">H1 Intraday Rolling Percentile + Macro Factor + Multi-TF Pivot Analysis</p>
   </footer>
 </div>
 
@@ -373,12 +373,14 @@ document.addEventListener('DOMContentLoaded',loadData);
 async function loadData(){
   const st=document.getElementById('status');
   try{
-    const [sRes,sellRes,netRes,pRes]=await Promise.all([fetch(CSV_URL),fetch(SELL_CSV_URL),fetch(NET_CSV_URL),fetch(PRICE_CSV_URL)]);
+    // Buy CSV is required, others are optional
+    const sRes=await fetch(CSV_URL);
     if(!sRes.ok)throw new Error('Buy CSV: HTTP '+sRes.status);
-    if(!sellRes.ok)throw new Error('Sell CSV: HTTP '+sellRes.status);
-    if(!netRes.ok)throw new Error('Net CSV: HTTP '+netRes.status);
-    if(!pRes.ok)throw new Error('Price CSV: HTTP '+pRes.status);
-    const sText=await sRes.text(),sellText=await sellRes.text(),netText=await netRes.text(),pText=await pRes.text();
+    const sText=await sRes.text();
+    let sellText='',netText='',pText='';
+    try{const r=await fetch(SELL_CSV_URL);if(r.ok)sellText=await r.text();}catch(e){console.warn('Sell CSV unavailable');}
+    try{const r=await fetch(NET_CSV_URL);if(r.ok)netText=await r.text();}catch(e){console.warn('Net CSV unavailable');}
+    try{const r=await fetch(PRICE_CSV_URL);if(r.ok)pText=await r.text();}catch(e){console.warn('Price CSV unavailable');}
     const rows=parseCSV(sText);
     const sellRows=parseCSV(sellText);
     const netRows=parseCSV(netText);
@@ -504,7 +506,7 @@ function renderPivotZone(){
     return;
   }
 
-  // Build tabs: Confluence / H4 / D1 / W1
+  // Build tabs: Confluence / D1 / W1 / MN
   const tabs=[{id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length}];
   ['H4','D1','W1'].forEach(tf=>{if(PIVOT_ALL[tf])tabs.push({id:tf,label:tf});});
   
@@ -547,7 +549,7 @@ function drawPivotChart(tab){
   let confLevels=[];  // extra confluence-only levels from other TFs
   
   if(tab==='conf'){
-    // Show H4 as base + only confluence-matching levels from D1/W1
+    // Show D1 as base + only confluence-matching levels from W1/MN
     showTFs=['H4'];
     // Gather confluence level labels
     const confSet=new Set();
@@ -1013,10 +1015,10 @@ function renderInfo(){
   const items=[
     {k:'Price',v:'$'+fi('Price').toLocaleString('en-US',{minimumFractionDigits:2})},
     {k:'Gross Score',v:f('Gross_Score_Avg')},
-    {k:D.MA_Short_Period?'MA'+D.MA_Short_Period:'MA120',v:'$'+fi(D.MA_Short_Period?'MA'+D.MA_Short_Period:'MA120').toLocaleString('en-US',{minimumFractionDigits:2})},
-    {k:D.MA_Long_Period?'MA'+D.MA_Long_Period:'MA480',v:'$'+fi(D.MA_Long_Period?'MA'+D.MA_Long_Period:'MA480').toLocaleString('en-US',{minimumFractionDigits:2})},
-    {k:'Golden Cross (MA Short > MA Long)':'❌ MA Short < MA Long'},
-    {k:'RSI (14-bar)',v:fi('RSI_Value').toFixed(1)},
+    {k:'MA Short',v:'$'+fi('MA_Short').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'MA Long',v:'$'+fi('MA_Long').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'Golden Cross',v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ MA Short > MA Long':'❌ MA Short < MA Long'},
+    {k:'RSI (14-bar H1)',v:fi('RSI_Value').toFixed(1)},
     {k:'Volatility (Ann.)',v:fi('Volatility_Pct').toFixed(1)+'%'},
     {k:'WP Return Pctl',v:fi('WP_Return_Pct').toFixed(1)+'%'},
     {k:'WP Volume Pctl',v:fi('WP_Volume_Pct').toFixed(1)+'%'},
@@ -1039,7 +1041,7 @@ function renderInfo(){
   if(PIVOT_ALL['W1']){
     items.push({k:'W1 Pivot (PP)',v:fp(PIVOT_ALL['W1'].PP)},{k:'W1 R1 / S1',v:fp(PIVOT_ALL['W1'].R1)+' / '+fp(PIVOT_ALL['W1'].S1)});
   }
-  items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (D1)',v:D.Pivot_Position||'—'});
+  items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (H4)',v:D.Pivot_Position||'—'});
   document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
 }
 
@@ -1152,7 +1154,7 @@ function renderMethodology(){
     {title:'D5: Volatility (0–100)',body:'Annualized 21-day volatility. Lower = better (stable uptrend). ≤20%=100, 21–30%=90, 31–40%=70, 41–50%=55, 51–60%=40, 61–80%=25, &gt;80%=10.'},
     {title:'D6: External Macro (0–100)',body:'DXY weak + VIX elevated = bullish gold (safe haven). Raw score ±10 mapped to 0–100. Each dimension weighted equally (1/6).'},
     {title:'Penalty System',body:'Momentum Reversal (bearish): short-term return flips negative while long-term positive → -5 (mild) or -10 (strong). Death Cross (MA50&lt;MA200) → -5. Scaled ×(100/110). Capped ~-13.6.'},
-    {title:'Pivot × Score',body:'Multi-TF Classic Pivot Points (H4/D1/W1). Price above PP+R1 with strong Buy = Bullish Breakout. Confluence zones = pivots overlapping within 20 pts.'},
+    {title:'Pivot × Score',body:'Multi-TF Classic Pivot Points (D1/W1/MN). Price above PP+R1 with strong Buy = Bullish Breakout. Confluence zones = pivots overlapping within 20 pts.'},
   ];
   const sellCards=[
     {title:'D1s: Return Rank (0–100)',body:'FLIPPED percentile — Low return percentile = price dropping harder than history = strong sell signal. ตรงข้ามกับ Buy: ยิ่งตกแรง ยิ่งได้คะแนนสูง.'},
