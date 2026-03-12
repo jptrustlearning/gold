@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Momentum H1 Dashboard | JP Trust Learning</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0E11;--bg2:#111518;--bg3:#181D22;--card:#151A1F;
+  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);
+  --gold:#E8B931;--gold2:#D4A72C;--gold-dim:rgba(232,185,49,.15);--gold-glow:rgba(232,185,49,.3);
+  --emerald:#34D399;--emerald-dim:rgba(52,211,153,.15);
+  --red:#F87171;--red-dim:rgba(248,113,113,.15);
+  --blue:#60A5FA;--blue-dim:rgba(96,165,250,.15);
+  --purple:#A78BFA;--purple-dim:rgba(167,139,250,.15);
+  --orange:#FB923C;--orange-dim:rgba(251,146,60,.15);
+  --cyan:#22D3EE;--cyan-dim:rgba(34,211,238,.15);
+  --text:#E8E6E1;--text2:#9CA3AF;--text3:#6B7280;
+  --font-h:'DM Serif Display',serif;--font-b:'Instrument Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{text-align:center;padding:40px 0 24px;position:relative}
+.header::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(232,185,49,.08) 0%,rgba(232,185,49,.02) 40%,transparent 70%);pointer-events:none}
+.header h1{font-family:var(--font-h);font-size:clamp(1.8rem,4.5vw,3rem);background:linear-gradient(135deg,#E8B931,#F5D76E,#E8B931,#D4A72C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;margin-bottom:4px}
+.header .sub{font-size:.82rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+.header .tf-badge{display:inline-block;padding:5px 20px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:100px;color:var(--gold);font-weight:700;font-size:.85rem;letter-spacing:2px;margin-bottom:10px}
+.header .period{display:inline-block;padding:6px 22px;background:var(--bg3);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-size:.78rem}
+.status-bar{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.status-indicator{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.8rem;padding:6px 16px;border-radius:50px;background:rgba(255,255,255,.03);border:1px solid var(--border2);transition:.3s}
+.status-indicator.loading{color:var(--gold);border-color:var(--gold);background:var(--gold-dim)}
+.status-indicator.success{color:var(--emerald);border-color:var(--emerald);background:var(--emerald-dim)}
+.status-indicator.error{color:var(--red);border-color:var(--red);background:var(--red-dim)}
+
+/* Hero */
+.hero{display:flex;justify-content:center;align-items:center;gap:36px;margin-bottom:28px;flex-wrap:wrap}
+.hero-score{text-align:center;position:relative}
+.hero-score .ring{width:180px;height:180px;position:relative}
+.hero-score .ring canvas{position:absolute;top:0;left:0}
+.hero-score .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.hero-score .center .v{font-family:var(--font-h);font-size:2.8rem;line-height:1}
+.hero-score .center .l{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.hero-tier{text-align:center}
+.hero-tier .tier{font-family:var(--font-h);font-size:1.8rem;margin-bottom:4px}
+.hero-tier .price{font-size:1.3rem;color:var(--gold);font-weight:700;margin-bottom:2px}
+.hero-tier .price-label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
+.hero-delta{text-align:center;padding:14px 22px;background:var(--card);border:1px solid var(--border2);border-radius:16px}
+.hero-delta .label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.hero-delta .val{font-family:var(--font-h);font-size:1.6rem}
+.hero-delta .sub{font-size:.72rem;color:var(--text3);margin-top:2px}
+
+/* Section */
+.section{margin-bottom:24px}
+.section-title{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title .dot{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center}
+.stat-card .label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.stat-card .val{font-family:var(--font-h);font-size:1.4rem;color:var(--text)}
+.stat-card .extra{font-size:.7rem;color:var(--text3);margin-top:2px}
+
+/* Dimension Grid */
+.dim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.dim-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.dim-card .name{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.dim-card .score{font-family:var(--font-h);font-size:1.6rem;margin-bottom:6px}
+.dim-card .bar-bg{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.dim-card .bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+
+/* Return Grid */
+.ret-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.ret-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.ret-card .period{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.ret-card .ret{font-family:var(--font-h);font-size:1.3rem}
+.ret-card .pctl{font-size:.72rem;color:var(--text3);margin-top:2px}
+
+/* Charts */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;margin-bottom:24px}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;height:300px}
+
+/* Penalty */
+.penalty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.penalty-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.penalty-card .label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.penalty-card .val{font-family:var(--font-h);font-size:1.3rem}
+.penalty-card.clean{border-color:var(--emerald)}
+.penalty-card.warn{border-color:var(--red)}
+
+/* Info Grid */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.info-item{display:flex;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:.82rem}
+.info-item .k{color:var(--text3)}.info-item .v{font-weight:600}
+
+/* Tier Legend */
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.tier-box{padding:10px;border-radius:8px;text-align:center;border:1px solid var(--border);font-size:.82rem}
+.tier-box.active{border-color:var(--gold);background:var(--gold-dim);font-weight:700}
+
+/* Pivot Section */
+.pivot-tabs{display:flex;gap:8px;margin-bottom:12px}
+.pivot-tab{padding:6px 16px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:.78rem;font-weight:600;transition:.2s}
+.pivot-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.pivot-chart-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;height:320px;position:relative}
+.pivot-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-top:10px}
+.pivot-level{padding:6px 10px;border-radius:6px;text-align:center;font-size:.78rem;border:1px solid var(--border)}
+.pivot-level.r{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.2);color:var(--red)}
+.pivot-level.s{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2);color:var(--emerald)}
+.pivot-level.pp{background:var(--gold-dim);border-color:rgba(232,185,49,.3);color:var(--gold)}
+
+.hidden{display:none}
+.loading-msg{text-align:center;color:var(--text3);font-size:.9rem;padding:60px 0}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .5s ease both}
+.fade-up:nth-child(2){animation-delay:.05s}.fade-up:nth-child(3){animation-delay:.1s}
+
+@media(max-width:768px){
+  .container{padding:14px 10px}
+  .hero{gap:20px}
+  .dim-grid{grid-template-columns:repeat(3,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .chart-box{height:250px}
+  .hero-score .ring{width:150px;height:150px}
+  .hero-score .center .v{font-size:2.2rem}
+}
+@media(max-width:480px){
+  .dim-grid{grid-template-columns:repeat(2,1fr)}
+  .ret-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>Gold Momentum Score</h1>
+    <div class="sub">JP Trust Learning &bull; Intraday Analysis</div>
+    <div class="tf-badge">H1 TIMEFRAME</div>
+    <div class="period" id="periodLabel">Loading...</div>
+  </header>
+  <div class="status-bar">
+    <div id="status" class="status-indicator loading"><span>●</span> CONNECTING TO GITHUB...</div>
+  </div>
+  <div id="loadingMsg" class="loading-msg">/// LOADING H1 DATA FROM GITHUB...</div>
+  <div id="dashboard" class="hidden">
+    <div class="hero" id="heroSection"></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Momentum Dimensions (/100 each)</div>
+      <div class="dim-grid" id="dimGrid"></div>
+    </div>
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Return Performance &amp; Rolling Percentile</div>
+      <div class="ret-grid" id="retGrid"></div>
+    </div>
+    <div class="charts-grid">
+      <div class="section fade-up">
+        <div class="section-title"><span class="dot"></span>Dimension Radar</div>
+        <div class="chart-box"><canvas id="radarChart"></canvas></div>
+      </div>
+      <div class="section fade-up">
+        <div class="section-title"><span class="dot"></span>Score Breakdown</div>
+        <div class="chart-box"><canvas id="barChart"></canvas></div>
+      </div>
+    </div>
+    <!-- Pivot Zone -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Multi-TF Pivot Points (H4 / D1 / W1)</div>
+      <div class="pivot-tabs" id="pivotTabs"></div>
+      <div class="pivot-chart-box"><canvas id="pivotChart"></canvas></div>
+      <div class="pivot-info" id="pivotInfo"></div>
+    </div>
+    <!-- Penalty -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Warning Flags &amp; Penalty</div>
+      <div class="penalty-grid" id="penaltyGrid"></div>
+    </div>
+    <!-- External Context -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>External Context (DXY + VIX — Daily Values)</div>
+      <div class="info-grid" id="externalGrid"></div>
+    </div>
+    <!-- Technical Details -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Technical Details</div>
+      <div class="info-grid" id="infoGrid"></div>
+    </div>
+    <!-- Tier Legend -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Momentum Tier Reference</div>
+      <div class="tier-grid" id="tierGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1.csv';
+let D={}, pivotData={}, pivotChart=null;
+
+async function loadData(){
+  try{
+    const res=await fetch(CSV_URL);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();
+    const rows=parseCSV(txt);
+    if(!rows.length)throw new Error('Empty CSV');
+    D=rows[0];
+    loadPivots(D);
+    document.getElementById('status').className='status-indicator success';
+    document.getElementById('status').innerHTML='<span>●</span> LIVE — H1 DATA LOADED';
+    document.getElementById('loadingMsg').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    render();
+  }catch(e){
+    document.getElementById('status').className='status-indicator error';
+    document.getElementById('status').innerHTML='<span>●</span> ERROR: '+e.message;
+    document.getElementById('loadingMsg').textContent='❌ Failed to load H1 data: '+e.message;
+  }
+}
+
+function parseCSV(t){const l=t.trim().split('\n'),h=csvL(l[0]),r=[];for(let i=1;i<l.length;i++){const v=csvL(l[i]);if(v.length<h.length)continue;const o={};h.forEach((k,j)=>o[k]=v[j]);r.push(o);}return r;}
+function csvL(l){const r=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"')q=!q;else if(ch===','&&!q){r.push(c.trim());c='';}else c+=ch;}r.push(c.trim());return r;}
+
+function loadPivots(d){
+  ['H4','D1','W1'].forEach(tf=>{
+    const pp=parseFloat(d['Pivot_'+tf+'_PP']);
+    if(!isNaN(pp)){
+      pivotData[tf]={
+        PP:pp,R1:+d['Pivot_'+tf+'_R1'],R2:+d['Pivot_'+tf+'_R2'],R3:+d['Pivot_'+tf+'_R3'],
+        S1:+d['Pivot_'+tf+'_S1'],S2:+d['Pivot_'+tf+'_S2'],S3:+d['Pivot_'+tf+'_S3'],
+        H:+d['Pivot_'+tf+'_H'],L:+d['Pivot_'+tf+'_L'],C:+d['Pivot_'+tf+'_C'],
+        date:d['Pivot_'+tf+'_Date']||''
+      };
+    }
+  });
+}
+
+function n(v,dec=2){const f=parseFloat(v);return isNaN(f)?'—':f.toFixed(dec);}
+function clr(v){return parseFloat(v)>=0?'var(--emerald)':'var(--red)';}
+function sign(v){const f=parseFloat(v);return f>0?'+'+f.toFixed(2):f.toFixed(2);}
+
+function render(){
+  const bd1=D.Base_Date_1||'';const bd2=D.Base_Date_2||'';
+  document.getElementById('periodLabel').textContent=bd1+' → '+bd2+' | Updated: '+(D.As_Of_Running||'');
+  renderHero();renderStats();renderDimensions();renderReturns();
+  renderCharts();renderPivotSection();renderPenalty();renderExternal();renderInfo();renderTierLegend();
+}
+
+function renderHero(){
+  const score=parseFloat(D.Net_Score_Avg)||0;
+  const tier=D.Tier||'—';
+  const price=n(D.Price);
+  const delta=parseFloat(D.Score_Delta)||0;
+  const bd1s=n(D.Net_Score_BD1);const bd2s=n(D.Net_Score_BD2);
+  const pct=Math.min(Math.max(score,0),100);
+  const tierColor=score>=85?'var(--emerald)':score>=75?'var(--blue)':score>=60?'var(--gold)':score>=45?'var(--text2)':score>=30?'var(--orange)':'var(--red)';
+
+  document.getElementById('heroSection').innerHTML=`
+    <div class="hero-score"><div class="ring"><canvas id="ringCanvas" width="180" height="180"></canvas>
+      <div class="center"><div class="v" style="color:${tierColor}">${score.toFixed(1)}</div><div class="l">Net Score</div></div></div></div>
+    <div class="hero-tier"><div class="tier" style="color:${tierColor}">${tier}</div>
+      <div class="price">$${price}</div><div class="price-label">Gold Price (H1 Close)</div></div>
+    <div class="hero-delta"><div class="label">Score Delta</div>
+      <div class="val" style="color:${clr(delta)}">${sign(delta)}</div>
+      <div class="sub">${bd1s} → ${bd2s}</div></div>`;
+
+  // Draw ring
+  const c=document.getElementById('ringCanvas');const ctx=c.getContext('2d');
+  const cx=90,cy=90,r=78,lw=10;
+  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI*.75,Math.PI*.75);ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+  const endAngle=-Math.PI*.75+(Math.PI*1.5)*(pct/100);
+  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI*.75,endAngle);ctx.strokeStyle=tierColor;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+}
+
+function renderStats(){
+  const gc=String(D.Golden_Cross).toLowerCase()==='true';
+  const items=[
+    {l:'Gross Score',v:n(D.Gross_Score_Avg)},
+    {l:'RSI (14)',v:n(D.RSI_Value,1)},
+    {l:'Golden Cross',v:gc?'✅ Yes':'❌ No',extra:`MA${D.MA_Short_Period} vs MA${D.MA_Long_Period}`},
+    {l:'Volatility',v:n(D.Volatility_Pct,1)+'%'},
+    {l:'MA '+D.MA_Short_Period,v:'$'+n(D.MA_Short)},
+    {l:'MA '+D.MA_Long_Period,v:'$'+n(D.MA_Long)},
+    {l:'Penalty',v:D.Penalty_Total||'0',extra:D.Warning_Flags!=='None'?D.Warning_Flags:'Clean'}
+  ];
+  document.getElementById('statsGrid').innerHTML=items.map(i=>`<div class="stat-card fade-up"><div class="label">${i.l}</div><div class="val">${i.v}</div>${i.extra?`<div class="extra">${i.extra}</div>`:''}</div>`).join('');
+}
+
+function renderDimensions(){
+  const dims=[
+    {name:'D1 Return Rank',key:'D1_ReturnRank',color:'var(--gold)'},
+    {name:'D2 Volume Rank',key:'D2_VolumeRank',color:'var(--blue)'},
+    {name:'D3 RSI',key:'D3_RSI',color:'var(--emerald)'},
+    {name:'D4 MA Trend',key:'D4_MA',color:'var(--purple)'},
+    {name:'D5 Volatility',key:'D5_Volatility',color:'var(--cyan)'},
+    {name:'D6 External',key:'D6_External',color:'var(--orange)'}
+  ];
+  document.getElementById('dimGrid').innerHTML=dims.map(d=>{
+    const v=parseFloat(D[d.key])||0;
+    return `<div class="dim-card fade-up"><div class="name">${d.name}</div><div class="score" style="color:${d.color}">${v.toFixed(1)}<span style="font-size:.7rem;color:var(--text3)">/100</span></div><div class="bar-bg"><div class="bar-fill" style="width:${v}%;background:${d.color}"></div></div></div>`;
+  }).join('');
+}
+
+function renderReturns(){
+  const periods=[
+    {label:'4H',key:'Ret_4H_Pct'},
+    {label:'1 Day',key:'Ret_1D_Pct'},
+    {label:'1 Week',key:'Ret_1W_Pct'},
+    {label:'2 Weeks',key:'Ret_2W_Pct'},
+    {label:'1 Month',key:'Ret_1M_Pct'}
+  ];
+  document.getElementById('retGrid').innerHTML=periods.map(p=>{
+    const v=parseFloat(D[p.key])||0;
+    return `<div class="ret-card fade-up"><div class="period">${p.label}</div><div class="ret" style="color:${clr(v)}">${v>=0?'+':''}${v.toFixed(2)}%</div></div>`;
+  }).join('');
+}
+
+function renderCharts(){
+  // Radar
+  const dims=['D1_ReturnRank','D2_VolumeRank','D3_RSI','D4_MA','D5_Volatility','D6_External'];
+  const labels=['Return','Volume','RSI','MA Trend','Volatility','External'];
+  const vals=dims.map(k=>parseFloat(D[k])||0);
+  new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels,datasets:[{label:'H1 Score',data:vals,backgroundColor:'rgba(232,185,49,.15)',borderColor:'#E8B931',pointBackgroundColor:'#E8B931',pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:20,color:'#6B7280',backdropColor:'transparent'},grid:{color:'rgba(255,255,255,.06)'},pointLabels:{color:'#9CA3AF',font:{size:11}}}},plugins:{legend:{display:false}}}});
+
+  // Bar
+  const barLabels=['D1','D2','D3','D4','D5','D6','Penalty'];
+  const barVals=[...vals,parseFloat(D.Penalty_Scaled)||0];
+  const barColors=['#E8B931','#60A5FA','#34D399','#A78BFA','#22D3EE','#FB923C','#F87171'];
+  new Chart(document.getElementById('barChart'),{type:'bar',data:{labels:barLabels,datasets:[{data:barVals,backgroundColor:barColors,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:-20,max:100,ticks:{color:'#6B7280'},grid:{color:'rgba(255,255,255,.06)'}},x:{ticks:{color:'#9CA3AF'},grid:{display:false}}},plugins:{legend:{display:false}}}});
+}
+
+function renderPivotSection(){
+  const tfs=Object.keys(pivotData);
+  if(!tfs.length){document.getElementById('pivotTabs').innerHTML='<span style="color:var(--text3)">No pivot data</span>';return;}
+  document.getElementById('pivotTabs').innerHTML=tfs.map((tf,i)=>`<button class="pivot-tab${i===0?' active':''}" onclick="switchPivotTab('${tf}')">${tf}</button>`).join('');
+  drawPivotChart(tfs[0]);
+}
+
+function switchPivotTab(tf){
+  document.querySelectorAll('.pivot-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.pivot-tab[onclick*="${tf}"]`).classList.add('active');
+  drawPivotChart(tf);
+}
+
+function drawPivotChart(tf){
+  const p=pivotData[tf];if(!p)return;
+  const price=parseFloat(D.Price)||0;
+  if(pivotChart)pivotChart.destroy();
+
+  const levels=[
+    {label:'S3',val:p.S3,color:'#34D399'},{label:'S2',val:p.S2,color:'#34D399'},{label:'S1',val:p.S1,color:'#34D399'},
+    {label:'PP',val:p.PP,color:'#E8B931'},
+    {label:'R1',val:p.R1,color:'#F87171'},{label:'R2',val:p.R2,color:'#F87171'},{label:'R3',val:p.R3,color:'#F87171'},
+    {label:'Price',val:price,color:'#60A5FA'}
+  ].sort((a,b)=>a.val-b.val);
+
+  pivotChart=new Chart(document.getElementById('pivotChart'),{type:'bar',data:{
+    labels:levels.map(l=>l.label),
+    datasets:[{data:levels.map(l=>l.val),backgroundColor:levels.map(l=>l.label==='Price'?'rgba(96,165,250,.6)':l.color==='#E8B931'?'rgba(232,185,49,.4)':l.color==='#34D399'?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)'),
+      borderColor:levels.map(l=>l.color),borderWidth:2,borderRadius:4}]
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:'#9CA3AF',callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#9CA3AF'},grid:{display:false}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.raw.toLocaleString()}}}}});
+
+  document.getElementById('pivotInfo').innerHTML=`
+    <div class="pivot-level pp">PP $${p.PP.toLocaleString()}</div>
+    <div class="pivot-level r">R1 $${p.R1.toLocaleString()}</div><div class="pivot-level r">R2 $${p.R2.toLocaleString()}</div><div class="pivot-level r">R3 $${p.R3.toLocaleString()}</div>
+    <div class="pivot-level s">S1 $${p.S1.toLocaleString()}</div><div class="pivot-level s">S2 $${p.S2.toLocaleString()}</div><div class="pivot-level s">S3 $${p.S3.toLocaleString()}</div>
+    <div class="pivot-level" style="grid-column:1/-1;text-align:left;font-size:.72rem;color:var(--text3)">Source: ${tf} ${p.date} | H=$${p.H} L=$${p.L} C=$${p.C}</div>`;
+}
+
+function renderPenalty(){
+  const total=parseInt(D.Penalty_Total)||0;
+  const rev=parseInt(D.Penalty_Reversal)||0;
+  const dc=parseInt(D.Penalty_DeathCross)||0;
+  const flags=D.Warning_Flags||'None';
+  const cls=total<0?'warn':'clean';
+  document.getElementById('penaltyGrid').innerHTML=`
+    <div class="penalty-card ${cls}"><div class="label">Total Penalty</div><div class="val" style="color:${total<0?'var(--red)':'var(--emerald)'}">${total}</div><div class="extra" style="font-size:.72rem;color:var(--text3)">${flags==='None'?'✅ No warnings':flags}</div></div>
+    <div class="penalty-card"><div class="label">Reversal</div><div class="val">${rev}</div></div>
+    <div class="penalty-card"><div class="label">Death Cross</div><div class="val">${dc}</div></div>
+    <div class="penalty-card"><div class="label">Position</div><div class="val" style="font-size:1rem">${D.Pivot_Position||'—'}</div></div>`;
+}
+
+function renderExternal(){
+  const items=[
+    {k:'D6 Score (Scaled)',v:n(D.D6_External)+'/100'},
+    {k:'D6 Raw',v:(parseInt(D.D6_Raw)>=0?'+':'')+D.D6_Raw},
+    {k:'DXY Signal',v:D.DXY_Signal||'N/A'},
+    {k:'VIX Signal',v:D.VIX_Signal||'N/A'},
+    {k:'DXY 1M Change',v:D.DXY_1M_Pct?n(D.DXY_1M_Pct)+'%':'N/A'},
+    {k:'VIX Level',v:D.VIX_Level?n(D.VIX_Level):'N/A'}
+  ];
+  document.getElementById('externalGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
+}
+
+function renderInfo(){
+  const items=[
+    {k:'Timeframe',v:'H1 (Hourly)'},
+    {k:'Price',v:'$'+n(D.Price)},
+    {k:'MA '+D.MA_Short_Period,v:'$'+n(D.MA_Short)},
+    {k:'MA '+D.MA_Long_Period,v:'$'+n(D.MA_Long)},
+    {k:'Golden Cross',v:String(D.Golden_Cross).toLowerCase()==='true'?'✅ Yes':'❌ No'},
+    {k:'RSI (14)',v:n(D.RSI_Value,1)},
+    {k:'Volatility',v:n(D.Volatility_Pct,1)+'%'},
+    {k:'WP Return',v:n(D.WP_Return_Pct,1)+'%'},
+    {k:'WP Volume',v:n(D.WP_Volume_Pct,1)+'%'},
+    {k:'BD1',v:D.Base_Date_1||''},
+    {k:'BD2',v:D.Base_Date_2||''},
+    {k:'As Of',v:D.As_Of_Running||''}
+  ];
+  document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
+}
+
+function renderTierLegend(){
+  const score=parseFloat(D.Net_Score_Avg)||0;
+  const tiers=[
+    {l:'Very Strong ↑↑',min:85,color:'var(--emerald)'},
+    {l:'Strong ↑',min:75,color:'var(--blue)'},
+    {l:'Moderate ↑',min:60,color:'var(--gold)'},
+    {l:'Neutral →',min:45,color:'var(--text2)'},
+    {l:'Weak ↓',min:30,color:'var(--orange)'},
+    {l:'Very Weak ↓↓',min:0,color:'var(--red)'}
+  ];
+  let current='';
+  for(const t of tiers){if(score>=t.min){current=t.l;break;}}
+  document.getElementById('tierGrid').innerHTML=tiers.map(t=>`<div class="tier-box${t.l===current?' active':''}" style="color:${t.color}">${t.l}<br><span style="font-size:.68rem;color:var(--text3)">≥${t.min}</span></div>`).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>

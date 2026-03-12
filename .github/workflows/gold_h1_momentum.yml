@@ -1,0 +1,52 @@
+name: Gold H1 Momentum Score
+
+on:
+  schedule:
+    # รันทุก 4 ชม. จันทร์-ศุกร์ — sync กับ H1 intraday update
+    # 02:00, 06:00, 10:00, 14:00, 18:00, 22:00 UTC
+    - cron: '10 2,6,10,14,18,22 * * 1-5'
+  workflow_dispatch: # รัน manual ได้จาก Actions tab
+
+jobs:
+  h1-momentum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas numpy openpyxl
+
+      - name: Update H1 price data first
+        run: python3 update_gold_intraday.py
+
+      - name: Run H1 Momentum Score
+        run: python3 gold_momentum_h1.py
+
+      - name: Commit and push
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+
+          # Add H1 price data
+          git add gold_prices_h1.csv gold_prices_h4.csv
+
+          # Add H1 momentum output (fixed + timestamped)
+          git add output_momentum_gold_h1.csv
+          git add output_momentum_gold_h1_*.csv
+
+          # Only commit if there are changes
+          git diff --cached --quiet || (
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "🥇 Gold H1 Momentum Score — ${TIMESTAMP}"
+            git push
+          )
