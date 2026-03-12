@@ -72,6 +72,7 @@ def load_daily_csv(filename):
 df = load_h1_csv('gold_prices_h1.csv')
 df_dxy = load_daily_csv('dxy_prices.csv')
 df_vix = load_daily_csv('vix_prices.csv')
+df_gold_daily = load_daily_csv('gold_prices.csv')  # for D1/W1 pivots (exact same as daily dashboard)
 
 if df is None:
     print("❌ gold_prices_h1.csv not found — cannot continue")
@@ -450,56 +451,73 @@ def calc_pivot_levels(high, low, close):
             'S1': round(S1, 2), 'S2': round(S2, 2), 'S3': round(S3, 2)}
 
 
-def calc_h1_pivots(df):
+def calc_h1_pivots(df_h1, df_daily=None):
     """
-    Calculate pivot points for H4, D1, W1 timeframes from H1 data.
-    - H4: previous completed 4-hour block
-    - D1: previous completed day
-    - W1: previous completed week
+    Calculate pivot points for H4, D1, W1 timeframes.
+    - H4: resample from H1 data (same data source, accurate)
+    - D1: from daily CSV directly (matches daily dashboard exactly)
+    - W1: from daily CSV aggregated weekly (matches daily dashboard exactly)
     """
-    df = df.copy()
+    df = df_h1.copy()
     df['Datetime'] = pd.to_datetime(df['Datetime'])
     df = df.sort_values('Datetime').reset_index(drop=True)
     result = {}
     current_price = df['Close'].values[-1]
-    latest_dt = df['Datetime'].max()
 
-    # ── H4: Resample to 4H, take previous completed bar ──
+    # ── H4: Resample H1 → 4H, take previous completed bar ──
     df_temp = df.set_index('Datetime')
     h4 = df_temp.resample('4h').agg({
         'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
     }).dropna(subset=['Open'])
 
     if len(h4) >= 2:
-        prev_h4 = h4.iloc[-2]  # previous completed H4 bar
+        prev_h4 = h4.iloc[-2]
         levels = calc_pivot_levels(prev_h4['High'], prev_h4['Low'], prev_h4['Close'])
         result['H4'] = {**levels,
                         'H': round(prev_h4['High'], 2), 'L': round(prev_h4['Low'], 2),
                         'C': round(prev_h4['Close'], 2), 'date': str(h4.index[-2])}
 
-    # ── D1: Resample to daily, take previous completed day ──
-    d1 = df_temp.resample('1D').agg({
-        'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
-    }).dropna(subset=['Open'])
+    # ── D1 + W1: from daily CSV (exact same source as daily dashboard) ──
+    if df_daily is not None and len(df_daily) >= 2:
+        df_d = df_daily.copy()
+        df_d['Date'] = pd.to_datetime(df_d['Date'])
+        df_d = df_d.sort_values('Date').reset_index(drop=True)
 
-    if len(d1) >= 2:
-        prev_d1 = d1.iloc[-2]
-        levels = calc_pivot_levels(prev_d1['High'], prev_d1['Low'], prev_d1['Close'])
+        # D1: last completed trading day
+        prev = df_d.iloc[-1]
+        levels = calc_pivot_levels(prev['High'], prev['Low'], prev['Close'])
         result['D1'] = {**levels,
-                        'H': round(prev_d1['High'], 2), 'L': round(prev_d1['Low'], 2),
-                        'C': round(prev_d1['Close'], 2), 'date': str(d1.index[-2].date())}
+                        'H': round(prev['High'], 2), 'L': round(prev['Low'], 2),
+                        'C': round(prev['Close'], 2), 'date': prev['Date'].strftime('%Y-%m-%d')}
 
-    # ── W1: Resample to weekly, take previous completed week ──
-    w1 = df_temp.resample('W-FRI').agg({
-        'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
-    }).dropna(subset=['Open'])
+        # W1: previous completed week
+        df_d['iso_year'] = df_d['Date'].dt.isocalendar().year.astype(int)
+        df_d['iso_week'] = df_d['Date'].dt.isocalendar().week.astype(int)
+        df_d['yw_key'] = df_d['iso_year'] * 100 + df_d['iso_week']
+        latest_yw = df_d['Date'].max().isocalendar()
+        current_yw_key = latest_yw.year * 100 + latest_yw.week
+        weekly = df_d[df_d['yw_key'] < current_yw_key].groupby('yw_key').agg(
+            High=('High', 'max'), Low=('Low', 'min'), Close=('Close', 'last'),
+            Date_last=('Date', 'max')
+        ).reset_index().sort_values('yw_key')
 
-    if len(w1) >= 2:
-        prev_w1 = w1.iloc[-2]
-        levels = calc_pivot_levels(prev_w1['High'], prev_w1['Low'], prev_w1['Close'])
-        result['W1'] = {**levels,
-                        'H': round(prev_w1['High'], 2), 'L': round(prev_w1['Low'], 2),
-                        'C': round(prev_w1['Close'], 2), 'date': str(w1.index[-2].date())}
+        if len(weekly) >= 1:
+            prev_w = weekly.iloc[-1]
+            levels = calc_pivot_levels(prev_w['High'], prev_w['Low'], prev_w['Close'])
+            result['W1'] = {**levels,
+                            'H': round(prev_w['High'], 2), 'L': round(prev_w['Low'], 2),
+                            'C': round(prev_w['Close'], 2), 'date': prev_w['Date_last'].strftime('%Y-%m-%d')}
+    else:
+        # Fallback: resample H1 if daily CSV not available
+        d1 = df_temp.resample('1D').agg({
+            'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+        }).dropna(subset=['Open'])
+        if len(d1) >= 2:
+            prev_d1 = d1.iloc[-2]
+            levels = calc_pivot_levels(prev_d1['High'], prev_d1['Low'], prev_d1['Close'])
+            result['D1'] = {**levels,
+                            'H': round(prev_d1['High'], 2), 'L': round(prev_d1['Low'], 2),
+                            'C': round(prev_d1['Close'], 2), 'date': str(d1.index[-2].date())}
 
     # ── Confluence Zones ──
     all_levels = []
@@ -674,7 +692,7 @@ print(f"  VIX: {s2['external']['vix_score']:+d}  ({s2['external']['vix_signal']}
 # PIVOT POINTS
 # ══════════════════════════════════════════════════════
 
-pivots, confluence = calc_h1_pivots(df)
+pivots, confluence = calc_h1_pivots(df, df_gold_daily)
 pivot_csv = flatten_pivots_for_csv(pivots, confluence, s2['price'])
 
 print(f"\nMulti-TF Pivot Points (H4/D1/W1)")
