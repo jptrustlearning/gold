@@ -373,14 +373,12 @@ document.addEventListener('DOMContentLoaded',loadData);
 async function loadData(){
   const st=document.getElementById('status');
   try{
-    // Buy CSV is required, others are optional
-    const sRes=await fetch(CSV_URL);
+    const [sRes,sellRes,netRes,pRes]=await Promise.all([fetch(CSV_URL),fetch(SELL_CSV_URL),fetch(NET_CSV_URL),fetch(PRICE_CSV_URL)]);
     if(!sRes.ok)throw new Error('Buy CSV: HTTP '+sRes.status);
-    const sText=await sRes.text();
-    let sellText='',netText='',pText='';
-    try{const r=await fetch(SELL_CSV_URL);if(r.ok)sellText=await r.text();}catch(e){console.warn('Sell CSV unavailable');}
-    try{const r=await fetch(NET_CSV_URL);if(r.ok)netText=await r.text();}catch(e){console.warn('Net CSV unavailable');}
-    try{const r=await fetch(PRICE_CSV_URL);if(r.ok)pText=await r.text();}catch(e){console.warn('Price CSV unavailable');}
+    if(!sellRes.ok)throw new Error('Sell CSV: HTTP '+sellRes.status);
+    if(!netRes.ok)throw new Error('Net CSV: HTTP '+netRes.status);
+    if(!pRes.ok)throw new Error('Price CSV: HTTP '+pRes.status);
+    const sText=await sRes.text(),sellText=await sellRes.text(),netText=await netRes.text(),pText=await pRes.text();
     const rows=parseCSV(sText);
     const sellRows=parseCSV(sellText);
     const netRows=parseCSV(netText);
@@ -389,7 +387,7 @@ async function loadData(){
     DS=sellRows.length?sellRows[0]:null;
     DN=netRows.length?netRows[0]:null;
     PIVOT_ALL=loadMultiTFPivots(D);
-    PIVOT=PIVOT_ALL['H4']||PIVOT_ALL['D1']||null;
+    PIVOT=PIVOT_ALL['D1']||PIVOT_ALL['H4']||null;
     CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
     PRICE_DATA=parsePriceCSV(pText);
     if(PIVOT) PIVOT.price=parseFloat(D.Price)||0;
