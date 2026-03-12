@@ -1,0 +1,58 @@
+name: Gold Intraday Price Update (H1 + H4)
+
+on:
+  schedule:
+    # รันทุกวัน 23:30 UTC = 06:30 เวลาไทย (หลัง daily pipeline 30 นาที)
+    # ตลาด COMEX ปิด ~19:00 UTC — ข้อมูลพร้อมแน่นอน
+    - cron: '30 23 * * *'
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: 'Backfill 730 days (ครั้งแรก หรือต้องการดึงย้อนหลังใหม่)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  update-intraday:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas numpy
+
+      - name: Fetch H1 + resample H4
+        run: |
+          if [ "${{ github.event.inputs.backfill }}" = "true" ]; then
+            python3 update_gold_intraday.py --backfill
+          else
+            python3 update_gold_intraday.py
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+          git add gold_prices_h1.csv gold_prices_h4.csv
+          # Only commit if there are changes
+          git diff --cached --quiet || (
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            H1_ROWS=$(wc -l < gold_prices_h1.csv)
+            H4_ROWS=$(wc -l < gold_prices_h4.csv)
+            git commit -m "🥇 Gold intraday H1+H4 update — ${TIMESTAMP} (H1: ${H1_ROWS} rows, H4: ${H4_ROWS} rows)"
+            git push
+          )
