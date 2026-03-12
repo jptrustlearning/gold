@@ -207,6 +207,21 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
 .footer{text-align:center;padding:24px 0;color:var(--text3);font-size:.78rem;border-top:1px solid var(--border);margin-top:30px}
 .footer strong{color:var(--gold)}
+
+/* ── Z-Score Regime Filter ── */
+.zscore-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.zscore-gauge{text-align:center;padding:20px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;position:relative}
+.zscore-gauge .zg-label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px}
+.zscore-gauge .zg-value{font-family:var(--font-h);font-size:2.4rem;line-height:1}
+.zscore-gauge .zg-sub{font-size:.72rem;color:var(--text3);margin-top:4px}
+.zscore-bar-wrap{position:relative;height:28px;border-radius:6px;overflow:visible;margin:14px 0 6px;background:linear-gradient(90deg,var(--emerald) 0%,var(--emerald) 12.5%,var(--blue) 12.5%,var(--blue) 25%,rgba(0,0,0,.06) 25%,rgba(0,0,0,.06) 75%,var(--gold) 75%,var(--gold) 87.5%,var(--red) 87.5%,var(--red) 100%);opacity:.25;border-radius:14px}
+.zscore-bar-marker{position:absolute;top:-4px;width:4px;height:36px;border-radius:2px;transform:translateX(-50%);z-index:2;box-shadow:0 0 8px rgba(0,0,0,.3)}
+.zscore-bar-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3);font-weight:600;padding:0 2px}
+.zscore-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zscore-detail-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.zscore-detail-card .zd-label{font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.zscore-detail-card .zd-value{font-family:var(--font-h);font-size:1.2rem;margin-top:2px}
+.zscore-zone-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;font-weight:700;font-size:.82rem;letter-spacing:.5px;border:1px solid}
 .hidden{display:none!important}
 @keyframes pulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
 .loading-msg{text-align:center;padding:60px;color:var(--text2);font-size:1.1rem;animation:pulse 1.5s infinite}
@@ -302,6 +317,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Return Performance &amp; Rolling Percentile</div>
       <div class="ret-grid" id="retGrid"></div>
+    </div>
+
+    <!-- ★ Z-SCORE REGIME FILTER ★ -->
+    <div class="section fade-up" id="zscoreSection">
+      <div class="section-title"><span class="dot"></span>Z-Score Regime Filter — ราคาปัจจุบันอยู่ตรงไหนของ Distribution</div>
+      <div id="zscoreContent"></div>
     </div>
 
     <div class="charts-grid">
@@ -489,7 +510,7 @@ const fp=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractio
 function render(){
   renderHero();renderStats();renderNetBias();renderDimCompare();
   renderPivotZone();renderDimensions();renderMacro();
-  renderReturns();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
+  renderReturns();renderZScore();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
   renderScenarioTable();
   renderRadarChart();renderBarChart();
 }
@@ -976,6 +997,108 @@ function renderReturns(){
     return`<div class="ret-card"><div class="period">${p.name}</div><div class="val" style="color:${retColor(v)}">${v>=0?'+':''}${v.toFixed(2)}%</div><div class="pctl">Rolling Pctl</div></div>`;}).join('');
 }
 
+// ── Z-Score Regime Filter ──
+function renderZScore(){
+  const el=document.getElementById('zscoreContent');
+  const z50=D.Z_Score_50d?parseFloat(D.Z_Score_50d):null;
+  const z100=D.Z_Score_100d?parseFloat(D.Z_Score_100d):null;
+  const z200=D.Z_Score_200d?parseFloat(D.Z_Score_200d):null;
+  const zone=D.Z_Zone||'N/A';
+  const signal=D.Z_Signal||'';
+  const regime=D.Z_Regime||'';
+  const zDelta=D.Z_Delta_5d?parseFloat(D.Z_Delta_5d):null;
+
+  if(z50===null){
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Z-Score data not available — run updated scoring script</div>';
+    return;
+  }
+
+  // Zone colors
+  const zoneColors={
+    'Extreme Extended':{color:'var(--red)',bg:'var(--red-dim)',border:'rgba(248,113,113,.3)',icon:'🔴'},
+    'Extended':{color:'var(--gold)',bg:'var(--gold-dim)',border:'rgba(232,185,49,.3)',icon:'🟡'},
+    'Normal':{color:'var(--emerald)',bg:'var(--emerald-dim)',border:'rgba(52,211,153,.3)',icon:'🟢'},
+    'Depressed':{color:'var(--blue)',bg:'var(--blue-dim)',border:'rgba(96,165,250,.3)',icon:'🔵'},
+    'Extreme Depressed':{color:'var(--emerald)',bg:'var(--emerald-dim)',border:'rgba(52,211,153,.3)',icon:'🟢'},
+  };
+  const zc=zoneColors[zone]||{color:'var(--text3)',bg:'rgba(0,0,0,.03)',border:'var(--border2)',icon:'⚪'};
+
+  // Z-Score value color
+  const zColor=v=>{
+    if(v===null)return'var(--text3)';
+    if(v>=2.0)return'var(--red)';
+    if(v>=1.5)return'var(--gold)';
+    if(v<=-2.0)return'var(--emerald)';
+    if(v<=-1.5)return'var(--blue)';
+    return'var(--emerald)';
+  };
+
+  // Map Z-Score to percentage on the bar (-3 to +3 → 0% to 100%)
+  const zToPct=z=>{
+    const clamped=Math.max(-3,Math.min(3,z));
+    return((clamped+3)/6)*100;
+  };
+
+  // Z Delta interpretation
+  let deltaText='',deltaColor='var(--text3)';
+  if(zDelta!==null){
+    if(zDelta>0.1){deltaText='Z rising — extending further';deltaColor='var(--orange)';}
+    else if(zDelta<-0.1){deltaText='Z falling — mean-reverting';deltaColor='var(--blue)';}
+    else{deltaText='Z stable';deltaColor='var(--text3)';}
+  }
+
+  el.innerHTML=`
+    <div class="zscore-wrap">
+      <div class="zscore-gauge">
+        <div class="zg-label">Z-Score (50-Day)</div>
+        <div class="zg-value" style="color:${zColor(z50)}">${z50>=0?'+':''}${z50.toFixed(3)}</div>
+        <div class="zg-sub">ราคาอยู่ ${Math.abs(z50).toFixed(2)}σ ${z50>=0?'เหนือ':'ต่ำกว่า'}ค่าเฉลี่ย 50 วัน</div>
+        <div class="zscore-bar-wrap">
+          <div class="zscore-bar-marker" style="left:${zToPct(z50)}%;background:${zColor(z50)}"></div>
+        </div>
+        <div class="zscore-bar-labels">
+          <span>-3σ</span><span>-1.5σ</span><span>0</span><span>+1.5σ</span><span>+3σ</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:${zc.bg};border:1px solid ${zc.border};border-radius:12px;padding:18px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="zscore-zone-badge" style="color:${zc.color};border-color:${zc.border};background:${zc.bg};justify-content:center">
+            <span style="font-size:1.1rem">${zc.icon}</span> ${zone.toUpperCase()} ZONE
+          </div>
+          <div style="font-size:.78rem;color:var(--text2);margin-top:10px;line-height:1.6">${regime}</div>
+          ${zDelta!==null?`<div style="font-size:.72rem;color:${deltaColor};margin-top:6px;font-weight:600">Δ5d: ${zDelta>=0?'+':''}${zDelta.toFixed(3)} — ${deltaText}</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="zscore-detail-grid">
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 50d</div>
+        <div class="zd-value" style="color:${zColor(z50)}">${z50>=0?'+':''}${z50.toFixed(3)}</div>
+        <div style="font-size:.64rem;color:var(--text3);margin-top:2px">Short-term regime</div>
+      </div>
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 100d</div>
+        <div class="zd-value" style="color:${zColor(z100)}">${z100!==null?(z100>=0?'+':'')+z100.toFixed(3):'N/A'}</div>
+        <div style="font-size:.64rem;color:var(--text3);margin-top:2px">Medium-term regime</div>
+      </div>
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 200d</div>
+        <div class="zd-value" style="color:${zColor(z200)}">${z200!==null?(z200>=0?'+':'')+z200.toFixed(3):'N/A'}</div>
+        <div style="font-size:.64rem;color:var(--text3);margin-top:2px">Long-term regime</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
+      <strong style="color:var(--gold)">วิธีอ่าน Z-Score:</strong>
+      Z-Score บอกว่าราคาปัจจุบันห่างจากค่าเฉลี่ย (Mean) ไปกี่ส่วนเบี่ยงเบนมาตรฐาน (σ) —
+      <span style="color:var(--emerald)">Normal (-1.5σ ถึง +1.5σ)</span> ราคาอยู่ในกรอบปกติ momentum score ใช้ได้ตามปกติ |
+      <span style="color:var(--gold)">Extended (≥+1.5σ)</span> ราคาวิ่งขึ้นไกล pullback risk สูงขึ้น |
+      <span style="color:var(--red)">Extreme Extended (≥+2σ)</span> ราคาแพงผิดปกติ ระวังเปิด Long ใหม่ |
+      <span style="color:var(--blue)">Depressed (≤-1.5σ)</span> ราคาตกไกล bounce potential |
+      <span style="color:var(--emerald)">Extreme Depressed (≤-2σ)</span> oversold สุดโต่ง.
+      <strong>ใช้เป็น context filter ไม่ใช่สัญญาณ Buy/Sell โดยตรง</strong> — ประกอบกับ Momentum Score + Pivot + Net Bias เสมอ
+    </div>`;
+}
+
 // ── Penalty ──
 function renderPenalty(){
   // Buy penalty
@@ -1038,6 +1161,16 @@ function renderInfo(){
     items.push({k:'MN Pivot (PP)',v:fp(PIVOT_ALL['MN'].PP)},{k:'MN R1 / S1',v:fp(PIVOT_ALL['MN'].R1)+' / '+fp(PIVOT_ALL['MN'].S1)});
   }
   items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (D1)',v:D.Pivot_Position||'—'});
+  // Z-Score
+  if(D.Z_Score_50d){
+    const z50=parseFloat(D.Z_Score_50d);
+    items.push(
+      {k:'Z-Score 50d',v:(z50>=0?'+':'')+z50.toFixed(3)},
+      {k:'Z-Score 100d',v:D.Z_Score_100d?(parseFloat(D.Z_Score_100d)>=0?'+':'')+parseFloat(D.Z_Score_100d).toFixed(3):'N/A'},
+      {k:'Z-Score 200d',v:D.Z_Score_200d?(parseFloat(D.Z_Score_200d)>=0?'+':'')+parseFloat(D.Z_Score_200d).toFixed(3):'N/A'},
+      {k:'Z-Score Zone',v:D.Z_Zone||'N/A'}
+    );
+  }
   document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
 }
 
@@ -1137,6 +1270,7 @@ function renderMethodology(){
     {title:'D6: External Macro (0–100)',body:'DXY weak + VIX elevated = bullish gold (safe haven). Raw score ±10 mapped to 0–100. Each dimension weighted equally (1/6).'},
     {title:'Penalty System',body:'Momentum Reversal (bearish): short-term return flips negative while long-term positive → -5 (mild) or -10 (strong). Death Cross (MA50&lt;MA200) → -5. Scaled ×(100/110). Capped ~-13.6.'},
     {title:'Pivot × Score',body:'Multi-TF Classic Pivot Points (D1/W1/MN). Price above PP+R1 with strong Buy = Bullish Breakout. Confluence zones = pivots overlapping within 20 pts.'},
+    {title:'Z-Score Regime Filter',body:'Z = (Price - Mean) / StdDev. ใช้ 50d/100d/200d lookback. Normal (-1.5σ to +1.5σ) = momentum score reliable. Extended (≥+1.5σ) = pullback risk elevated. Depressed (≤-1.5σ) = bounce potential. ไม่ใช่สัญญาณ Buy/Sell โดยตรง — ใช้เป็น context filter.'},
   ];
   const sellCards=[
     {title:'D1s: Return Rank (0–100)',body:'FLIPPED percentile — Low return percentile = price dropping harder than history = strong sell signal. ตรงข้ามกับ Buy: ยิ่งตกแรง ยิ่งได้คะแนนสูง.'},
