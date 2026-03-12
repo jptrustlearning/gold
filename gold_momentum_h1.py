@@ -745,3 +745,16 @@ print(f"CSV saved: {csv_ts}")
 print(f"\n{'='*55}")
 print(f"✅ H1 Momentum Scoring Complete")
 print(f"{'='*55}")
+
+# ══════════════════════════════════════════════════════
+# PRICE TAIL — last 100 H1 bars for dashboard chart (lightweight)
+# ══════════════════════════════════════════════════════
+tail_n = min(100, len(df))
+df_tail = df.iloc[-tail_n:].copy()
+df_tail['Datetime'] = df_tail['Datetime'].dt.strftime('%Y-%m-%d %H:%M')
+df_tail_out = df_tail[['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']].copy()
+df_tail_out.columns = ['วันที่', 'ราคาเปิด', 'ราคาสูงสุด', 'ราคาต่ำสุด', 'ราคาปิด', 'ปริมาณซื้อขาย']
+tail_path = os.path.join(base_dir, 'gold_prices_h1_tail.csv')
+df_tail_out.to_csv(tail_path, index=False, encoding='utf-8-sig')
+print(f"Price tail saved: {tail_path} ({tail_n} rows)")
+

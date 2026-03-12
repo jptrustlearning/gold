@@ -44,6 +44,7 @@ jobs:
           git config user.name "JP Trust Learning"
 
           git add gold_prices_h1.csv gold_prices_h4.csv
+          git add gold_prices_h1_tail.csv 2>/dev/null || true
           git add output_momentum_gold_h1.csv 2>/dev/null || true
           git add output_momentum_gold_h1_*.csv 2>/dev/null || true
           git add output_momentum_gold_h1_sell.csv 2>/dev/null || true
