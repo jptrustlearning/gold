@@ -45,7 +45,7 @@ jobs:
           git config user.email "jptrustlearning@users.noreply.github.com"
           git config user.name "JP Trust Learning"
 
-          git add backtest_daily_buy.csv backtest_daily_sell.csv backtest_daily_net.csv
+          git add backtest/backtest_daily_buy.csv backtest/backtest_daily_sell.csv backtest/backtest_daily_net.csv
 
           DAYS=${{ github.event.inputs.days || '252' }}
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")

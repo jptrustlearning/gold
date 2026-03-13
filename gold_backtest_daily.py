@@ -585,9 +585,13 @@ buy_df = pd.DataFrame(buy_rows)
 sell_df = pd.DataFrame(sell_rows)
 net_df = pd.DataFrame(net_rows)
 
-buy_path = os.path.join(base_dir, 'backtest_daily_buy.csv')
-sell_path = os.path.join(base_dir, 'backtest_daily_sell.csv')
-net_path = os.path.join(base_dir, 'backtest_daily_net.csv')
+# Save to backtest/ folder
+out_dir = os.path.join(base_dir, 'backtest')
+os.makedirs(out_dir, exist_ok=True)
+
+buy_path = os.path.join(out_dir, 'backtest_daily_buy.csv')
+sell_path = os.path.join(out_dir, 'backtest_daily_sell.csv')
+net_path = os.path.join(out_dir, 'backtest_daily_net.csv')
 
 buy_df.to_csv(buy_path, index=False, encoding='utf-8')
 sell_df.to_csv(sell_path, index=False, encoding='utf-8')
