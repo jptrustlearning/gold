@@ -325,6 +325,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
       <div id="zscoreContent"></div>
     </div>
 
+    <!-- ★ EXHAUSTION DETECTION LAYER ★ -->
+    <div class="section fade-up" id="exhaustSection">
+      <div class="section-title"><span class="dot"></span>Exhaustion Detection — สัญญาณเตือนอ่อนล้า / หมดแรง</div>
+      <div id="exhaustContent"></div>
+    </div>
+
     <div class="charts-grid">
       <div class="section fade-up">
         <div class="section-title"><span class="dot"></span>Buy — Dimension Radar</div>
@@ -510,7 +516,7 @@ const fp=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractio
 function render(){
   renderHero();renderStats();renderNetBias();renderDimCompare();
   renderPivotZone();renderDimensions();renderMacro();
-  renderReturns();renderZScore();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
+  renderReturns();renderZScore();renderExhaustion();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
   renderScenarioTable();
   renderRadarChart();renderBarChart();
 }
@@ -960,7 +966,7 @@ function renderDimensions(){
     {key:'D2_VolumeRank',name:'Volume Rank',color:dimColors[1],max:100},
     {key:'D3_RSI',name:'RSI',color:dimColors[2],max:100},
     {key:'D4_MA',name:'MA Trend',color:dimColors[3],max:100},
-    {key:'D5_Volatility',name:'Volatility',color:dimColors[4],max:100},
+    {key:'D5_Volatility',name:'Dir. Volatility',color:dimColors[4],max:100},
     {key:'D6_External',name:'Macro (DXY+VIX)',color:dimColors[5],max:100},
   ];
   document.getElementById('dimGrid').innerHTML=dims.map(d=>{
@@ -1103,6 +1109,100 @@ function renderZScore(){
     </div>`;
 }
 
+// ── Exhaustion Detection ──
+function renderExhaustion(){
+  const scenario=D.Exhaust_Scenario||'None';
+  const action=D.Exhaust_Action||'';
+  const net5d=D.Net_5d_Change!==''?parseFloat(D.Net_5d_Change):null;
+  const max10d=D.Max_10d!==''?parseFloat(D.Max_10d):null;
+  const min10d=D.Min_10d!==''?parseFloat(D.Min_10d):null;
+  const d5shift=D.D5_Shift_5d!==''?parseFloat(D.D5_Shift_5d):null;
+  const volRatio=D.Vol_Ratio?parseFloat(D.Vol_Ratio):null;
+  const z50=D.Z_Score_50d?parseFloat(D.Z_Score_50d):null;
+
+  const isActive=scenario&&scenario!=='None';
+  const scenarioIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡'};
+  const scenarioColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)'};
+  const scenarioBgs={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)'};
+  const scenarioDescs={
+    'Bull Exhaustion':'Z extended + score ยังสูง + momentum เริ่มลด → ขาขึ้นหมดแรง ระวัง pullback',
+    'Bear Exhaustion':'เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง อาจ bounce',
+    'Topping':'Score เคยสูงมากแต่หล่นเร็ว → อาจเป็นยอด แต่ bounce ได้',
+    'Vol Shift':'D5 เปลี่ยนแรงมาก (≥50 pts / 5 วัน) → โครงสร้างตลาดเปลี่ยน'
+  };
+  const actionCls=action==='BUY'?'buy':action==='SELL'?'sell':'hold';
+
+  // Status badge
+  let statusHtml;
+  if(isActive){
+    const icon=scenarioIcons[scenario]||'⚠️';
+    const col=scenarioColors[scenario]||'var(--gold)';
+    const bg=scenarioBgs[scenario]||'var(--gold-dim)';
+    const desc=scenarioDescs[scenario]||'';
+    statusHtml=`
+      <div style="padding:16px 20px;border-radius:12px;background:${bg};border:1px solid ${col}30;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:1.5rem">${icon}</span>
+          <span style="font-weight:700;font-size:1rem;color:${col}">${scenario}</span>
+          <span class="action-badge ${actionCls}" style="font-size:.68rem;padding:3px 12px">${action}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">${desc}</div>
+      </div>`;
+  }else{
+    statusHtml=`
+      <div style="padding:14px 20px;border-radius:12px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);margin-bottom:16px">
+        <span style="font-weight:700;font-size:.82rem;color:var(--emerald)">✅ NO EXHAUSTION SIGNAL</span>
+        <span style="font-size:.78rem;color:var(--text2);margin-left:8px">— ไม่มีสัญญาณอ่อนล้า momentum ยังปกติ</span>
+      </div>`;
+  }
+
+  // Metrics grid
+  const metrics=[
+    {label:'Net 5d Δ',value:net5d!==null?(net5d>=0?'+':'')+net5d.toFixed(2):'N/A',color:net5d!==null?(net5d>=0?'var(--emerald)':'var(--red)'):'var(--text3)'},
+    {label:'Max 10d',value:max10d!==null?max10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'Min 10d',value:min10d!==null?min10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'D5 Shift 5d',value:d5shift!==null?(d5shift>=0?'+':'')+d5shift.toFixed(0)+' pts':'N/A',color:d5shift!==null?(Math.abs(d5shift)>=50?'var(--purple)':'var(--text)'):'var(--text3)'},
+    {label:'Vol Ratio (D/U)',value:volRatio!==null?volRatio.toFixed(3):'N/A',color:volRatio!==null?(volRatio<=1?'var(--emerald)':'var(--red)'):'var(--text3)'},
+    {label:'Z-Score 50d',value:z50!==null?(z50>=0?'+':'')+z50.toFixed(3):'N/A',color:z50!==null?(z50>=2?'var(--red)':z50<=-1.5?'var(--emerald)':'var(--text)'):'var(--text3)'},
+  ];
+
+  const metricsHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">
+    ${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center">
+      <div style="font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div>
+      <div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div>
+    </div>`).join('')}
+  </div>`;
+
+  // Scenario reference table
+  const scenarios=[
+    {id:'SC13',icon:'🔥',name:'Bull Exhaustion',cond:'Z≥2.0 + Net≥70 + 5d Δ<0',condTh:'Z สูง + คะแนนยังดี + แต่เริ่มลด',meaning:'ขาขึ้นอ่อนล้า อาจ pullback',action:'HOLD',cls:'hold'},
+    {id:'SC14',icon:'🏔️',name:'Topping',cond:'Max10d≥80 + 5d Δ<-8',condTh:'เพิ่งสูงมาก + หล่นแรง',meaning:'อาจเป็นยอด แต่ bounce ได้',action:'HOLD',cls:'hold'},
+    {id:'SC15',icon:'🔋',name:'Bear Exhaustion',cond:'Min10d<50 + 5d Δ>+3',condTh:'เคยต่ำ + เริ่มฟื้นตัว',meaning:'ขาลงหมดแรง อาจ bounce',action:'BUY',cls:'buy'},
+    {id:'SC16',icon:'⚡',name:'Vol Shift',cond:'|D5 shift|≥50',condTh:'D5 เปลี่ยนแรง 50+ pts ใน 5 วัน',meaning:'โครงสร้าง volatility เปลี่ยน',action:'HOLD',cls:'hold'},
+  ];
+
+  const tableHtml=`<table class="scenario-table">
+    <thead><tr><th>#</th><th></th><th>Signal</th><th>Condition</th><th>Meaning</th><th>Action</th></tr></thead>
+    <tbody>${scenarios.map(s=>{
+      const isCurrent=isActive&&scenario===s.name;
+      return`<tr class="${isCurrent?'current-scenario':''}">
+        <td class="sc-num">${s.id}${isCurrent?'<span class="sc-current-tag">NOW</span>':''}</td>
+        <td class="sc-icon">${s.icon}</td>
+        <td><div class="sc-signal">${s.name}</div><div class="sc-thai">${s.condTh}</div></td>
+        <td class="sc-cond">${s.cond}</td>
+        <td class="sc-meaning">${s.meaning}</td>
+        <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+
+  document.getElementById('exhaustContent').innerHTML=statusHtml+metricsHtml+tableHtml+`
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
+      <strong style="color:var(--gold)">หมายเหตุ:</strong>
+      Exhaustion Detection ใช้ historical momentum data (Net Score + D5 + Z-Score ย้อนหลัง 5-10 วัน) เพื่อจับสัญญาณว่า momentum กำลังหมดแรง (Bull/Bear Exhaustion) หรือโครงสร้างตลาดเปลี่ยน (Vol Shift).
+      <strong>ไม่ใช่คำแนะนำซื้อขาย</strong> — ใช้เป็น context layer เสริม ประกอบกับ Score + Pivot + Net Bias เสมอ
+    </div>`;
+}
+
 // ── Penalty ──
 function renderPenalty(){
   // Buy penalty
@@ -1146,6 +1246,7 @@ function renderInfo(){
     {k:'Golden Cross',v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ MA50 > MA200':'❌ MA50 < MA200'},
     {k:'RSI (14-day)',v:fi('RSI_Value').toFixed(1)},
     {k:'Volatility (Ann.)',v:fi('Volatility_Pct').toFixed(1)+'%'},
+    {k:'Vol Ratio (D/U)',v:D.Vol_Ratio?parseFloat(D.Vol_Ratio).toFixed(3):'N/A'},
     {k:'WP Return Pctl',v:fi('WP_Return_Pct').toFixed(1)+'%'},
     {k:'WP Volume Pctl',v:fi('WP_Volume_Pct').toFixed(1)+'%'},
     {k:'DXY 1M Change',v:(fi('DXY_1M_Pct')>=0?'+':'')+fi('DXY_1M_Pct').toFixed(2)+'%'},
@@ -1173,6 +1274,16 @@ function renderInfo(){
       {k:'Z-Score 100d',v:D.Z_Score_100d?(parseFloat(D.Z_Score_100d)>=0?'+':'')+parseFloat(D.Z_Score_100d).toFixed(3):'N/A'},
       {k:'Z-Score 200d',v:D.Z_Score_200d?(parseFloat(D.Z_Score_200d)>=0?'+':'')+parseFloat(D.Z_Score_200d).toFixed(3):'N/A'},
       {k:'Z-Score Zone',v:D.Z_Zone||'N/A'}
+    );
+  }
+  // Exhaustion Detection
+  if(D.Exhaust_Scenario){
+    const exSc=D.Exhaust_Scenario||'None';
+    const exAc=D.Exhaust_Action||'—';
+    items.push(
+      {k:'Exhaust Signal',v:exSc!=='None'?exSc+' → '+exAc:'None (ปกติ)'},
+      {k:'Net 5d Change',v:D.Net_5d_Change!==''?(parseFloat(D.Net_5d_Change)>=0?'+':'')+parseFloat(D.Net_5d_Change).toFixed(2):'N/A'},
+      {k:'D5 Shift 5d',v:D.D5_Shift_5d!==''?parseFloat(D.D5_Shift_5d).toFixed(0)+' pts':'N/A'}
     );
   }
   document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
@@ -1270,18 +1381,19 @@ function renderMethodology(){
     {title:'D2: Volume Rank (0–100)',body:'Rolling percentile of cumulative volume per period. High volume = strong institutional interest = bullish confirmation. Same weight structure as D1.'},
     {title:'D3: RSI (0–100)',body:'14-day RSI. Sweet spot 50–70=100 (bullish but not overbought), 40–49=80, 71–80=70, 30–39=60, &gt;80=50 (overbought risk), &lt;30=30.'},
     {title:'D4: MA Trend (0–100)',body:'Price &gt; MA50 (+35), Price &gt; MA200 (+35), Golden Cross MA50&gt;MA200 (+30). Price above MAs = uptrend confirmed. Max 100.'},
-    {title:'D5: Volatility (0–100)',body:'Annualized 21-day volatility. Lower = better (stable uptrend). ≤20%=100, 21–30%=90, 31–40%=70, 41–50%=55, 51–60%=40, 61–80%=25, &gt;80%=10.'},
+    {title:'D5: Dir. Volatility (0–100)',body:'Directional Volatility — vol_ratio = downside_vol / upside_vol (21-day). Upside dominant = bullish. ≤0.6=100, ≤0.8=85, ≤1.0=70 (balanced), ≤1.2=55, ≤1.5=40, ≤2.0=20, &gt;2.0=10.'},
     {title:'D6: External Macro (0–100)',body:'DXY weak + VIX elevated = bullish gold (safe haven). Raw score ±10 mapped to 0–100. Each dimension weighted equally (1/6).'},
     {title:'Penalty System',body:'Momentum Reversal (bearish): short-term return flips negative while long-term positive → -5 (mild) or -10 (strong). Death Cross (MA50&lt;MA200) → -5. Scaled ×(100/110). Capped ~-13.6.'},
     {title:'Pivot × Score',body:'Multi-TF Classic Pivot Points (D1/W1/MN). Price above PP+R1 with strong Buy = Bullish Breakout. Confluence zones = pivots overlapping within 20 pts.'},
     {title:'Z-Score Regime Filter',body:'Z = (Price - Mean) / StdDev. ใช้ 50d/100d/200d lookback. Threshold ไม่สมมาตร — calibrated จากข้อมูลทอง 2020-2026 ที่มี positive drift bias (Z เฉลี่ย +0.5 ถึง +1.4). Normal (-1.5σ to +2.0σ) ~77% | Extended (≥+2.0σ) ~9% | Extreme Ext (≥+2.5σ) ~6% | Depressed (≤-1.5σ) ~3% | Extreme Dep (≤-2.0σ) ~4%. ไม่ใช่สัญญาณ Buy/Sell โดยตรง — ใช้เป็น context filter.'},
+    {title:'Exhaustion Detection',body:'SC13 Bull Exhaustion: Z≥2.0 + Net≥70 + 5dΔ&lt;0 → HOLD. SC14 Topping: Max10d≥80 + 5dΔ&lt;-8 → HOLD. SC15 Bear Exhaustion: Min10d&lt;50 + 5dΔ&gt;+3 → BUY. SC16 Vol Shift: |D5 shift|≥50pts/5d → HOLD. ใช้ momentum history 5-10 วัน จับจุดหมดแรง.'},
   ];
   const sellCards=[
     {title:'D1s: Return Rank (0–100)',body:'FLIPPED percentile — Low return percentile = price dropping harder than history = strong sell signal. ตรงข้ามกับ Buy: ยิ่งตกแรง ยิ่งได้คะแนนสูง.'},
     {title:'D2s: Volume Rank (0–100)',body:'High volume + negative returns = selling pressure. Volume สูงอย่างเดียวไม่พอ ต้องมี price direction ลงด้วย = institutional selling.'},
     {title:'D3s: RSI (0–100)',body:'FLIPPED — RSI&lt;30=100 (oversold = strong bearish momentum), RSI 30–39=80, RSI 40–49=60, RSI 50–70=30 (healthy = weak sell), RSI&gt;80=50.'},
     {title:'D4s: MA Trend (0–100)',body:'FLIPPED — Price &lt; MA50 (+35), Price &lt; MA200 (+35), Death Cross MA50&lt;MA200 (+30). ราคาต่ำกว่า MA = downtrend confirmed. Max 100.'},
-    {title:'D5s: Volatility (0–100)',body:'FLIPPED — High volatility = panic/fear = good sell conditions. ≤20%=10 (too calm), 21–30%=25, 31–40%=55, 41–50%=70, 51–60%=85, &gt;60%=100.'},
+    {title:'D5s: Dir. Volatility (0–100)',body:'FLIPPED — High vol_ratio = downside dominant = strong sell conditions. ≤0.6=10 (upside dominant, weak sell), ≤0.8=25, ≤1.0=40, ≤1.2=55, ≤1.5=70, ≤2.0=85, &gt;2.0=100 (downside dominant, strong sell).'},
     {title:'D6s: External Macro (0–100)',body:'FLIPPED — DXY strong + VIX low = bearish gold (no safe-haven demand). Dollar แข็ง + ตลาดสงบ = ทองไม่มีแรงซื้อ.'},
     {title:'Penalty System (Sell)',body:'Bullish Reversal: short-term bounce while long-term bearish → punishes sell signal. Golden Cross (MA50&gt;MA200) → penalty. ตรงข้ามกับ Buy penalty.'},
     {title:'Pivot × Score',body:'Price below PP+S1 with strong Sell = Bearish Breakdown. ราคาหลุดแนวรับ + Sell momentum แข็ง = ยืนยันขาลง.'},
@@ -1373,7 +1485,7 @@ function renderDimCompare(){
   const el=document.getElementById('dimCompareGrid');
   if(!DN||!DS){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Comparison data not available</div>';return;}
   const dims=['D1','D2','D3','D4','D5','D6'];
-  const names=['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro'];
+  const names=['Return Rank','Volume Rank','RSI','MA Trend','Dir. Volatility','Macro'];
   const colors=dimColors;
   let html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
   dims.forEach((d,i)=>{
@@ -1487,14 +1599,14 @@ function renderRadarChart(){
   const radarOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
     tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+' / 100'}}},
     scales:{r:{min:0,max:100,ticks:{stepSize:25,color:tc('text3'),backdropColor:'transparent',font:{size:10}},grid:{color:tc('gridLine')},angleLines:{color:tc('gridLine')},pointLabels:{color:tc('text2'),font:{size:11,family:'Instrument Sans',weight:'600'}}}}};
-  new Chart(ctx,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Volatility','Macro'],
+  new Chart(ctx,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
     datasets:[{label:'Buy',data:[fi('D1_ReturnRank'),fi('D2_VolumeRank'),fi('D3_RSI'),fi('D4_MA'),fi('D5_Volatility'),fi('D6_External')],
       backgroundColor:tc('radarBuy'),borderColor:tc('radarBuyBorder'),borderWidth:2,pointBackgroundColor:tc('radarBuyBorder'),pointBorderColor:tc('radarBuyBorder'),pointRadius:5,pointHoverRadius:8}]},
     options:radarOpts});
   if(DS){
     const ctx2=document.getElementById('radarSellChart').getContext('2d');
     const sf=k=>DS[k]?parseFloat(DS[k]):0;
-    new Chart(ctx2,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Volatility','Macro'],
+    new Chart(ctx2,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
       datasets:[{label:'Sell',data:[sf('D1_ReturnRank'),sf('D2_VolumeRank'),sf('D3_RSI'),sf('D4_MA'),sf('D5_Volatility'),sf('D6_External')],
         backgroundColor:tc('radarSell'),borderColor:tc('radarSellBorder'),borderWidth:2,pointBackgroundColor:tc('radarSellBorder'),pointBorderColor:tc('radarSellBorder'),pointRadius:5,pointHoverRadius:8}]},
       options:radarOpts});
