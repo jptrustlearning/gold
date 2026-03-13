@@ -151,10 +151,14 @@ def calc_volatility(df, base_idx):
     return np.std(rets) * np.sqrt(252) * 100
 
 def find_closest_idx(ext_df, target_date, max_gap_days=5):
+    """Find closest date ON or BEFORE target_date (no look-ahead bias)."""
     if ext_df is None: return None
-    diffs = (ext_df['Date'] - target_date).abs()
-    if diffs.min().days > max_gap_days: return None
-    return diffs.idxmin()
+    mask = ext_df['Date'] <= target_date
+    if not mask.any(): return None
+    past = ext_df.loc[mask]
+    diff = (target_date - past['Date']).dt.days
+    if diff.min() > max_gap_days: return None
+    return diff.idxmin()
 
 def calc_ext_return(ext_df, end_idx, period_days):
     if ext_df is None or end_idx is None: return None

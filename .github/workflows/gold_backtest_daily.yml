@@ -1,0 +1,56 @@
+name: Gold Daily Backtest (Buy + Sell + Net)
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'จำนวนวันย้อนหลัง (252 = 1 ปี, 60 = 3 เดือน, 3 = ทดสอบ)'
+        required: false
+        default: '252'
+        type: choice
+        options:
+          - '3'
+          - '60'
+          - '126'
+          - '252'
+          - '504'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy openpyxl
+
+      - name: Run Daily Backtest
+        run: |
+          DAYS=${{ github.event.inputs.days || '252' }}
+          echo "Running backtest for ${DAYS} days..."
+          python3 gold_backtest_daily.py --days ${DAYS}
+
+      - name: Commit and push results
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+
+          git add backtest_daily_buy.csv backtest_daily_sell.csv backtest_daily_net.csv
+
+          DAYS=${{ github.event.inputs.days || '252' }}
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+
+          git diff --cached --quiet || (
+            git commit -m "📊 Daily Backtest ${DAYS}d — ${TIMESTAMP}"
+            git push
+          )
