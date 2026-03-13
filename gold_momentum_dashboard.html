@@ -325,12 +325,6 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
       <div id="zscoreContent"></div>
     </div>
 
-    <!-- ★ EXHAUSTION DETECTION LAYER ★ -->
-    <div class="section fade-up" id="exhaustSection">
-      <div class="section-title"><span class="dot"></span>Exhaustion Detection — สัญญาณเตือนอ่อนล้า / หมดแรง</div>
-      <div id="exhaustContent"></div>
-    </div>
-
     <div class="charts-grid">
       <div class="section fade-up">
         <div class="section-title"><span class="dot"></span>Buy — Dimension Radar</div>
@@ -375,9 +369,11 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
       <div id="methSellGrid" class="method-grid" style="display:none"></div>
     </div>
 
-    <!-- ★ PIVOT BIAS REFERENCE TABLE ★ -->
+    <!-- ★ PIVOT BIAS + EXHAUSTION — COMBINED REFERENCE TABLE ★ -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Bias Scenarios Reference</div>
+      <div class="section-title"><span class="dot"></span>Bias Scenarios &amp; Exhaustion Detection Reference</div>
+      <div id="exhaustStatusBadge"></div>
+      <div id="exhaustMetrics"></div>
       <div class="scenario-table-wrap" id="scenarioTable"></div>
     </div>
   </div>
@@ -1109,10 +1105,10 @@ function renderZScore(){
     </div>`;
 }
 
-// ── Exhaustion Detection ──
+// ── Exhaustion Detection (renders into combined Scenarios section) ──
 function renderExhaustion(){
-  const scenario=D.Exhaust_Scenario||'None';
-  const action=D.Exhaust_Action||'';
+  const exScenario=D.Exhaust_Scenario||'None';
+  const exAction=D.Exhaust_Action||'';
   const net5d=D.Net_5d_Change!==''?parseFloat(D.Net_5d_Change):null;
   const max10d=D.Max_10d!==''?parseFloat(D.Max_10d):null;
   const min10d=D.Min_10d!==''?parseFloat(D.Min_10d):null;
@@ -1120,41 +1116,36 @@ function renderExhaustion(){
   const volRatio=D.Vol_Ratio?parseFloat(D.Vol_Ratio):null;
   const z50=D.Z_Score_50d?parseFloat(D.Z_Score_50d):null;
 
-  const isActive=scenario&&scenario!=='None';
-  const scenarioIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡'};
-  const scenarioColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)'};
-  const scenarioBgs={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)'};
-  const scenarioDescs={
+  const isActive=exScenario&&exScenario!=='None';
+  const eIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡'};
+  const eColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)'};
+  const eBgs={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)'};
+  const eDescs={
     'Bull Exhaustion':'Z extended + score ยังสูง + momentum เริ่มลด → ขาขึ้นหมดแรง ระวัง pullback',
     'Bear Exhaustion':'เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง อาจ bounce',
     'Topping':'Score เคยสูงมากแต่หล่นเร็ว → อาจเป็นยอด แต่ bounce ได้',
     'Vol Shift':'D5 เปลี่ยนแรงมาก (≥50 pts / 5 วัน) → โครงสร้างตลาดเปลี่ยน'
   };
-  const actionCls=action==='BUY'?'buy':action==='SELL'?'sell':'hold';
+  const actionCls=exAction==='BUY'?'buy':exAction==='SELL'?'sell':'hold';
 
-  // Status badge
-  let statusHtml;
+  let badgeHtml;
   if(isActive){
-    const icon=scenarioIcons[scenario]||'⚠️';
-    const col=scenarioColors[scenario]||'var(--gold)';
-    const bg=scenarioBgs[scenario]||'var(--gold-dim)';
-    const desc=scenarioDescs[scenario]||'';
-    statusHtml=`
-      <div style="padding:16px 20px;border-radius:12px;background:${bg};border:1px solid ${col}30;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <span style="font-size:1.5rem">${icon}</span>
-          <span style="font-weight:700;font-size:1rem;color:${col}">${scenario}</span>
-          <span class="action-badge ${actionCls}" style="font-size:.68rem;padding:3px 12px">${action}</span>
-        </div>
-        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">${desc}</div>
-      </div>`;
+    const ic=eIcons[exScenario]||'⚠️',col=eColors[exScenario]||'var(--gold)',bg=eBgs[exScenario]||'var(--gold-dim)',desc=eDescs[exScenario]||'';
+    badgeHtml=`<div style="padding:14px 18px;border-radius:12px;background:${bg};border:1px solid ${col}30;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:1.3rem">${ic}</span>
+        <span style="font-weight:700;font-size:.92rem;color:${col}">EXHAUSTION: ${exScenario}</span>
+        <span class="action-badge ${actionCls}" style="font-size:.66rem;padding:3px 10px">${exAction}</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text2);line-height:1.5">${desc}</div>
+    </div>`;
   }else{
-    statusHtml=`
-      <div style="padding:14px 20px;border-radius:12px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);margin-bottom:16px">
-        <span style="font-weight:700;font-size:.82rem;color:var(--emerald)">✅ NO EXHAUSTION SIGNAL</span>
-        <span style="font-size:.78rem;color:var(--text2);margin-left:8px">— ไม่มีสัญญาณอ่อนล้า momentum ยังปกติ</span>
-      </div>`;
+    badgeHtml=`<div style="padding:10px 18px;border-radius:10px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px">
+      <span style="font-weight:700;font-size:.78rem;color:var(--emerald)">✅ No Exhaustion Signal</span>
+      <span style="font-size:.72rem;color:var(--text2)">— momentum ยังปกติ</span>
+    </div>`;
   }
+  document.getElementById('exhaustStatusBadge').innerHTML=badgeHtml;
 
   // Metrics grid
   const metrics=[
@@ -1165,42 +1156,12 @@ function renderExhaustion(){
     {label:'Vol Ratio (D/U)',value:volRatio!==null?volRatio.toFixed(3):'N/A',color:volRatio!==null?(volRatio<=1?'var(--emerald)':'var(--red)'):'var(--text3)'},
     {label:'Z-Score 50d',value:z50!==null?(z50>=0?'+':'')+z50.toFixed(3):'N/A',color:z50!==null?(z50>=2?'var(--red)':z50<=-1.5?'var(--emerald)':'var(--text)'):'var(--text3)'},
   ];
-
-  const metricsHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">
+  document.getElementById('exhaustMetrics').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">
     ${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center">
       <div style="font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div>
       <div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div>
     </div>`).join('')}
   </div>`;
-
-  // Scenario reference table
-  const scenarios=[
-    {id:'SC13',icon:'🔥',name:'Bull Exhaustion',cond:'Z≥2.0 + Net≥70 + 5d Δ<0',condTh:'Z สูง + คะแนนยังดี + แต่เริ่มลด',meaning:'ขาขึ้นอ่อนล้า อาจ pullback',action:'HOLD',cls:'hold'},
-    {id:'SC14',icon:'🏔️',name:'Topping',cond:'Max10d≥80 + 5d Δ<-8',condTh:'เพิ่งสูงมาก + หล่นแรง',meaning:'อาจเป็นยอด แต่ bounce ได้',action:'HOLD',cls:'hold'},
-    {id:'SC15',icon:'🔋',name:'Bear Exhaustion',cond:'Min10d<50 + 5d Δ>+3',condTh:'เคยต่ำ + เริ่มฟื้นตัว',meaning:'ขาลงหมดแรง อาจ bounce',action:'BUY',cls:'buy'},
-    {id:'SC16',icon:'⚡',name:'Vol Shift',cond:'|D5 shift|≥50',condTh:'D5 เปลี่ยนแรง 50+ pts ใน 5 วัน',meaning:'โครงสร้าง volatility เปลี่ยน',action:'HOLD',cls:'hold'},
-  ];
-
-  const tableHtml=`<table class="scenario-table">
-    <thead><tr><th>#</th><th></th><th>Signal</th><th>Condition</th><th>Meaning</th><th>Action</th></tr></thead>
-    <tbody>${scenarios.map(s=>{
-      const isCurrent=isActive&&scenario===s.name;
-      return`<tr class="${isCurrent?'current-scenario':''}">
-        <td class="sc-num">${s.id}${isCurrent?'<span class="sc-current-tag">NOW</span>':''}</td>
-        <td class="sc-icon">${s.icon}</td>
-        <td><div class="sc-signal">${s.name}</div><div class="sc-thai">${s.condTh}</div></td>
-        <td class="sc-cond">${s.cond}</td>
-        <td class="sc-meaning">${s.meaning}</td>
-        <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td>
-      </tr>`;
-    }).join('')}</tbody></table>`;
-
-  document.getElementById('exhaustContent').innerHTML=statusHtml+metricsHtml+tableHtml+`
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
-      <strong style="color:var(--gold)">หมายเหตุ:</strong>
-      Exhaustion Detection ใช้ historical momentum data (Net Score + D5 + Z-Score ย้อนหลัง 5-10 วัน) เพื่อจับสัญญาณว่า momentum กำลังหมดแรง (Bull/Bear Exhaustion) หรือโครงสร้างตลาดเปลี่ยน (Vol Shift).
-      <strong>ไม่ใช่คำแนะนำซื้อขาย</strong> — ใช้เป็น context layer เสริม ประกอบกับ Score + Pivot + Net Bias เสมอ
-    </div>`;
 }
 
 // ── Penalty ──
@@ -1516,6 +1477,12 @@ function renderDimCompare(){
 // ── Scenario Reference Table (NEW: Buy+Sell based) ──
 function renderScenarioTable(){
   const currentSignal=DN?DN.Scenario_Signal:'';
+  const exhaustSignal=D.Exhaust_Scenario||'None';
+  const exhaustActive=exhaustSignal&&exhaustSignal!=='None';
+
+  // Map exhaustion scenario name → SC number for highlighting
+  const exhaustMap={'Bull Exhaustion':'E1','Topping':'E2','Bear Exhaustion':'E3','Vol Shift':'E4'};
+
   const scenarios=[
     {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',
      cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ &gt; 0',zone:'BULLISH',combo:'Full Bullish Confirmed',
@@ -1561,6 +1528,22 @@ function renderScenarioTable(){
      meaning:'Sell แข็งกว่า Buy แต่ยังไม่ถึง Bearish Zone → ระวัง ถ้า Sell เพิ่มจะเข้า Bearish Zone',action:'HOLD',actionCls:'hold'},
   ];
 
+  // Exhaustion scenarios (from buy CSV)
+  const exhaustScenarios=[
+    {id:'E1',icon:'🔥',signal:'Bull Exhaustion',thai:'ขาขึ้นหมดแรง — Z extended + momentum fading',
+     cond:'Z≥2.0 + Net≥70 + 5dΔ&lt;0',zone:'EXHAUST',combo:'—',
+     meaning:'Z-Score สูง + คะแนนยังดี แต่ momentum เริ่มลด → ขาขึ้นอ่อนล้า ระวัง pullback',action:'HOLD',actionCls:'hold'},
+    {id:'E2',icon:'🏔️',signal:'Topping',thai:'อาจถึงยอด — score หล่นเร็ว',
+     cond:'Max10d≥80 + 5dΔ&lt;-8',zone:'EXHAUST',combo:'—',
+     meaning:'Score เคยสูงมากเมื่อเร็วๆ นี้ แต่หล่นแรง → อาจเป็นยอด แต่ bounce ได้',action:'HOLD',actionCls:'hold'},
+    {id:'E3',icon:'🔋',signal:'Bear Exhaustion',thai:'ขาลงหมดแรง — เริ่มฟื้นตัว',
+     cond:'Min10d&lt;50 + 5dΔ&gt;+3',zone:'EXHAUST',combo:'—',
+     meaning:'Score เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง อาจ bounce (contrarian buy)',action:'BUY',actionCls:'buy'},
+    {id:'E4',icon:'⚡',signal:'Vol Regime Shift',thai:'โครงสร้าง volatility เปลี่ยน',
+     cond:'|D5 shift|≥50pts / 5d',zone:'EXHAUST',combo:'—',
+     meaning:'D5 Directional Volatility เปลี่ยนแรงมากใน 5 วัน → โครงสร้างตลาดเปลี่ยน',action:'HOLD',actionCls:'hold'},
+  ];
+
   const comboColor=c=>c.includes('Full Bullish')?'var(--emerald)':c.includes('Bullish Dominant')?'#8BD4B0':c.includes('Lean Bullish')?'#8BD4B0':c.includes('Full Bearish')?'var(--red)':c.includes('Bearish Dominant')?'#F87171':c.includes('Lean Bearish')?'#F87171':c.includes('Tug')?'var(--gold)':c.includes('Dead')?'var(--text3)':'var(--text3)';
 
   let html=`<table class="scenario-table">
@@ -1568,9 +1551,9 @@ function renderScenarioTable(){
       <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Combined Signal</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
     </tr></thead><tbody>`;
 
+  // Bias scenarios SC1-SC14
   scenarios.forEach(s=>{
     const isCurrent=s.signal===currentSignal;
-    const zc=s.zone==='BULLISH'?'var(--emerald)':s.zone==='BEARISH'?'var(--red)':s.zone==='CONFLICT'?'var(--orange)':s.zone.includes('LEAN')?'var(--gold)':'var(--text3)';
     const cc=comboColor(s.combo);
     html+=`<tr class="${isCurrent?'current-scenario':''}">
       <td class="sc-num">${s.n}</td>
@@ -1583,11 +1566,31 @@ function renderScenarioTable(){
     </tr>`;
   });
 
+  // Separator row
+  html+=`<tr><td colspan="7" style="padding:12px 10px;text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase;background:var(--orange-dim);border-top:2px solid rgba(251,146,60,.3)">
+    ⚡ Exhaustion Detection Layer (จาก momentum history 5-10 วัน)
+  </td></tr>`;
+
+  // Exhaustion scenarios E1-E4
+  exhaustScenarios.forEach(s=>{
+    const isCurrent=exhaustActive&&exhaustMap[exhaustSignal]===s.id;
+    html+=`<tr class="${isCurrent?'current-scenario':''}">
+      <td class="sc-num">${s.id}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</td>
+      <td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}</div><div class="sc-thai">${s.thai}</div></td>
+      <td style="text-align:center"><span style="color:var(--orange);font-size:.68rem;font-weight:700">${s.combo}</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td>
+      <td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
+    </tr>`;
+  });
+
   html+=`</tbody></table>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
       <strong style="color:var(--gold)">หมายเหตุ:</strong>
-      Scenario ใช้ Buy Score + Sell Score + Net Bias + Pivot Position ร่วมกัน
-      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่แค่ Buy อ่อน — ครอบคลุมกว่าระบบเดิมที่ใช้แค่ Buy Score ตัวเดียว
+      SC1-SC14 ใช้ Buy Score + Sell Score + Net Bias + Pivot Position ร่วมกัน.
+      E1-E4 ใช้ momentum history (Net 5d, D5 shift, Z-Score) จับสัญญาณหมดแรง.
+      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่แค่ Buy อ่อน.
       ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ
     </div>`;
 
