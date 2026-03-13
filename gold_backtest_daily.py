@@ -411,10 +411,9 @@ def net_bias_tier(nb):
     return "Strong Bearish ↓↓"
 
 def calc_pivot_pp(df, idx):
-    """Simple D1 pivot from previous day for scenario logic."""
-    if idx < 1: return {}
-    prev = df.iloc[idx - 1]
-    h, l, c = prev['High'], prev['Low'], prev['Close']
+    """D1 pivot from current day's H/L/C (matches pipeline calc_multi_tf_pivots)."""
+    row = df.iloc[idx]
+    h, l, c = row['High'], row['Low'], row['Close']
     pp = (h + l + c) / 3
     r1 = 2 * pp - l; r2 = pp + (h - l)
     s1 = 2 * pp - h; s2 = pp - (h - l)
