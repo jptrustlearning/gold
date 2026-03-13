@@ -50,6 +50,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 git add dxy_prices.csv us10y_prices.csv brent_prices.csv wti_prices.csv vix_prices.csv 2>/dev/null || true
 git add gold_prices.csv 2>/dev/null || true
 git add output_momentum_gold.csv 2>/dev/null || true
+git add score_history.csv 2>/dev/null || true
 
 # Find timestamped CSV
 TS_CSV=$(ls -t output_momentum_gold_*.csv 2>/dev/null | head -1)

@@ -830,6 +830,50 @@ print(f"\nCSV saved: {csv_fixed}")
 print(f"CSV saved: {csv_ts}")
 
 # ══════════════════════════════════════════════════════
+# SCORE HISTORY — append daily (for exhaustion/scenario analysis)
+# ══════════════════════════════════════════════════════
+
+history_row = {
+    'Date': s2['date'].strftime('%Y-%m-%d'),
+    'Price': round(s2['price'], 2),
+    'Net_Score': round(s2['net'], 2),
+    'Gross_Score': round(s2['gross'], 2),
+    'D1_Return': round(s2['d1'], 2),
+    'D2_Volume': round(s2['d2'], 2),
+    'D3_RSI': round(s2['d3'], 2),
+    'D4_MA': round(s2['d4'], 2),
+    'D5_DirVol': round(s2['d5'], 2),
+    'D6_External': round(s2['d6'], 2),
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
+    'RSI': round(s2['rsi'], 2),
+    'Volatility_Pct': round(s2['volatility'], 2),
+    'Penalty_Scaled': round(s2['penalty_scaled'], 2),
+    'Ret_1W': round(s2['ret_pctls']['1W']['return'], 2),
+    'Ret_1M': round(s2['ret_pctls']['1M']['return'], 2),
+    'Ret_3M': round(s2['ret_pctls']['3M']['return'], 2),
+    'Golden_Cross': str(s2['golden_cross']),
+    'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
+    'Z_Zone': zscore['zone'],
+    'Z_Delta_5d': round(zscore['z_delta_5d'], 3) if zscore.get('z_delta_5d') is not None else '',
+    'Warning_Flags': s2['penalties']['flags'] if s2['penalties']['flags'] else 'None',
+    'Tier': momentum_tier,
+    'As_Of_Running': AS_OF,
+}
+
+history_path = os.path.join(base_dir, 'score_history.csv')
+history_df = pd.DataFrame([history_row])
+
+if os.path.exists(history_path):
+    existing = pd.read_csv(history_path, encoding='utf-8')
+    # ไม่ซ้ำวันเดียวกัน — ถ้ารันซ้ำวันเดิม overwrite แถวนั้น
+    existing = existing[existing['Date'] != history_row['Date']]
+    history_df = pd.concat([existing, history_df], ignore_index=True)
+    history_df = history_df.sort_values('Date').reset_index(drop=True)
+
+history_df.to_csv(history_path, index=False, encoding='utf-8')
+print(f"Score history: {history_path} ({len(history_df)} rows)")
+
+# ══════════════════════════════════════════════════════
 # EXCEL OUTPUT
 # ══════════════════════════════════════════════════════
 
