@@ -1105,63 +1105,44 @@ function renderZScore(){
     </div>`;
 }
 
-// ── Exhaustion Detection (renders into combined Scenarios section) ──
+// ── Exhaustion Detection (Buy + Sell badges + metrics → combined section) ──
 function renderExhaustion(){
-  const exScenario=D.Exhaust_Scenario||'None';
-  const exAction=D.Exhaust_Action||'';
+  const exBuy=D.Exhaust_Scenario||'None',exBuyAct=D.Exhaust_Action||'';
   const net5d=D.Net_5d_Change!==''?parseFloat(D.Net_5d_Change):null;
   const max10d=D.Max_10d!==''?parseFloat(D.Max_10d):null;
   const min10d=D.Min_10d!==''?parseFloat(D.Min_10d):null;
   const d5shift=D.D5_Shift_5d!==''?parseFloat(D.D5_Shift_5d):null;
   const volRatio=D.Vol_Ratio?parseFloat(D.Vol_Ratio):null;
-  const z50=D.Z_Score_50d?parseFloat(D.Z_Score_50d):null;
+  const exSell=DS?DS.Exhaust_Scenario||'None':'None',exSellAct=DS?DS.Exhaust_Action||'':'';
+  const sNet5d=DS&&DS.Net_5d_Change!==''?parseFloat(DS.Net_5d_Change):null;
+  const sMax10d=DS&&DS.Max_10d!==''?parseFloat(DS.Max_10d):null;
 
-  const isActive=exScenario&&exScenario!=='None';
-  const eIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡'};
-  const eColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)'};
-  const eBgs={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)'};
-  const eDescs={
-    'Bull Exhaustion':'Z extended + score ยังสูง + momentum เริ่มลด → ขาขึ้นหมดแรง ระวัง pullback',
-    'Bear Exhaustion':'เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง อาจ bounce',
-    'Topping':'Score เคยสูงมากแต่หล่นเร็ว → อาจเป็นยอด แต่ bounce ได้',
-    'Vol Shift':'D5 เปลี่ยนแรงมาก (≥50 pts / 5 วัน) → โครงสร้างตลาดเปลี่ยน'
-  };
-  const actionCls=exAction==='BUY'?'buy':exAction==='SELL'?'sell':'hold';
+  const eIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡','Sell Exhaustion':'🔥','Sell Recovery':'🔋','Sell Topping':'🏔️'};
+  const eColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)','Sell Exhaustion':'var(--emerald)','Sell Recovery':'var(--red)','Sell Topping':'var(--gold)'};
+  const eBgs={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)','Sell Exhaustion':'var(--emerald-dim)','Sell Recovery':'var(--red-dim)','Sell Topping':'var(--gold-dim)'};
+  const eDescs={'Bull Exhaustion':'Z extended + Buy score สูง + เริ่มลด → ขาขึ้นหมดแรง','Bear Exhaustion':'Buy score เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง','Topping':'Buy score หล่นจากพีค → อาจถึงยอด','Vol Shift':'D5 เปลี่ยนแรง ≥50pts → โครงสร้างเปลี่ยน','Sell Exhaustion':'Sell score สูง + เริ่มลด → selling pressure หมดแรง','Sell Recovery':'Sell score เคยต่ำ + เริ่มเพิ่ม → sell pressure กำลังมา','Sell Topping':'Sell score หล่นจากพีค → panic selling อาจจบ'};
 
-  let badgeHtml;
-  if(isActive){
-    const ic=eIcons[exScenario]||'⚠️',col=eColors[exScenario]||'var(--gold)',bg=eBgs[exScenario]||'var(--gold-dim)',desc=eDescs[exScenario]||'';
-    badgeHtml=`<div style="padding:14px 18px;border-radius:12px;background:${bg};border:1px solid ${col}30;margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="font-size:1.3rem">${ic}</span>
-        <span style="font-weight:700;font-size:.92rem;color:${col}">EXHAUSTION: ${exScenario}</span>
-        <span class="action-badge ${actionCls}" style="font-size:.66rem;padding:3px 10px">${exAction}</span>
-      </div>
-      <div style="font-size:.78rem;color:var(--text2);line-height:1.5">${desc}</div>
-    </div>`;
-  }else{
-    badgeHtml=`<div style="padding:10px 18px;border-radius:10px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px">
-      <span style="font-weight:700;font-size:.78rem;color:var(--emerald)">✅ No Exhaustion Signal</span>
-      <span style="font-size:.72rem;color:var(--text2)">— momentum ยังปกติ</span>
-    </div>`;
+  function badge(sc,act,side){
+    const on=sc&&sc!=='None',ic=eIcons[sc]||'⚠️',col=eColors[sc]||'var(--gold)',bg=eBgs[sc]||'var(--gold-dim)',desc=eDescs[sc]||'',acl=act==='BUY'?'buy':act==='SELL'?'sell':'hold';
+    if(on) return`<div style="padding:12px 16px;border-radius:10px;background:${bg};border:1px solid ${col}30;flex:1;min-width:280px">
+      <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">${side} EXHAUSTION</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:1.2rem">${ic}</span><span style="font-weight:700;font-size:.88rem;color:${col}">${sc}</span><span class="action-badge ${acl}" style="font-size:.62rem;padding:2px 10px">${act}</span></div>
+      <div style="font-size:.75rem;color:var(--text2);line-height:1.5">${desc}</div></div>`;
+    return`<div style="padding:12px 16px;border-radius:10px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.15);flex:1;min-width:280px">
+      <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <span style="font-weight:700;font-size:.78rem;color:var(--emerald)">✅ No Signal</span></div>`;
   }
-  document.getElementById('exhaustStatusBadge').innerHTML=badgeHtml;
+  document.getElementById('exhaustStatusBadge').innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${badge(exBuy,exBuyAct,'BUY')}${badge(exSell,exSellAct,'SELL')}</div>`;
 
-  // Metrics grid
   const metrics=[
-    {label:'Net 5d Δ',value:net5d!==null?(net5d>=0?'+':'')+net5d.toFixed(2):'N/A',color:net5d!==null?(net5d>=0?'var(--emerald)':'var(--red)'):'var(--text3)'},
-    {label:'Max 10d',value:max10d!==null?max10d.toFixed(2):'N/A',color:'var(--text)'},
-    {label:'Min 10d',value:min10d!==null?min10d.toFixed(2):'N/A',color:'var(--text)'},
-    {label:'D5 Shift 5d',value:d5shift!==null?(d5shift>=0?'+':'')+d5shift.toFixed(0)+' pts':'N/A',color:d5shift!==null?(Math.abs(d5shift)>=50?'var(--purple)':'var(--text)'):'var(--text3)'},
+    {label:'Buy Net 5d Δ',value:net5d!==null?(net5d>=0?'+':'')+net5d.toFixed(2):'N/A',color:net5d!==null?(net5d>=0?'var(--emerald)':'var(--red)'):'var(--text3)'},
+    {label:'Sell Net 5d Δ',value:sNet5d!==null?(sNet5d>=0?'+':'')+sNet5d.toFixed(2):'N/A',color:sNet5d!==null?(sNet5d>=0?'var(--red)':'var(--emerald)'):'var(--text3)'},
+    {label:'Buy Max 10d',value:max10d!==null?max10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'Sell Max 10d',value:sMax10d!==null?sMax10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'Buy D5 Shift',value:d5shift!==null?(d5shift>=0?'+':'')+d5shift.toFixed(0)+' pts':'N/A',color:d5shift!==null?(Math.abs(d5shift)>=50?'var(--purple)':'var(--text)'):'var(--text3)'},
     {label:'Vol Ratio (D/U)',value:volRatio!==null?volRatio.toFixed(3):'N/A',color:volRatio!==null?(volRatio<=1?'var(--emerald)':'var(--red)'):'var(--text3)'},
-    {label:'Z-Score 50d',value:z50!==null?(z50>=0?'+':'')+z50.toFixed(3):'N/A',color:z50!==null?(z50>=2?'var(--red)':z50<=-1.5?'var(--emerald)':'var(--text)'):'var(--text3)'},
   ];
-  document.getElementById('exhaustMetrics').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">
-    ${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center">
-      <div style="font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div>
-      <div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div>
-    </div>`).join('')}
-  </div>`;
+  document.getElementById('exhaustMetrics').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div><div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div></div>`).join('')}</div>`;
 }
 
 // ── Penalty ──
@@ -1477,123 +1458,85 @@ function renderDimCompare(){
 // ── Scenario Reference Table (NEW: Buy+Sell based) ──
 function renderScenarioTable(){
   const currentSignal=DN?DN.Scenario_Signal:'';
-  const exhaustSignal=D.Exhaust_Scenario||'None';
-  const exhaustActive=exhaustSignal&&exhaustSignal!=='None';
-
-  // Map exhaustion scenario name → SC number for highlighting
-  const exhaustMap={'Bull Exhaustion':'E1','Topping':'E2','Bear Exhaustion':'E3','Vol Shift':'E4'};
+  const exBuySignal=D.Exhaust_Scenario||'None';const exBuyOn=exBuySignal&&exBuySignal!=='None';
+  const exSellSignal=DS?DS.Exhaust_Scenario||'None':'None';const exSellOn=exSellSignal&&exSellSignal!=='None';
+  const eBuyMap={'Bull Exhaustion':'E1','Topping':'E2','Bear Exhaustion':'E3','Vol Shift':'E4'};
+  const eSellMap={'Sell Exhaustion':'SE1','Sell Topping':'SE2','Sell Recovery':'SE3','Vol Shift':'SE4'};
 
   const scenarios=[
-    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',
-     cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ &gt; 0',zone:'BULLISH',combo:'Full Bullish Confirmed',
-     meaning:'ราคาทะลุ R1 + Buy momentum แข็ง + Sell ไม่มีแรง + ยังเร่งตัว → Breakout ยืนยัน ดู R2/R3 เป็นเป้าถัดไป',action:'BUY',actionCls:'buy'},
-    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',
-     cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ ≤ 0',zone:'BULLISH',combo:'Full Bullish Confirmed',
-     meaning:'ทะลุ R1 + Buy ยังแข็ง + Sell อ่อน แต่ delta เริ่มชะลอ → พิจารณา take-profit บางส่วน',action:'HOLD',actionCls:'hold'},
-    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',
-     cond:'PP ≤ Price &lt; R1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาเหนือ PP กำลังวิ่งหา R1 + Buy แข็ง Sell อ่อน → สะสมแรงเพื่อ breakout',action:'BUY',actionCls:'buy'},
-    {n:4,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',
-     cond:'S1 ≤ Price &lt; PP &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาย่อใต้ PP แต่ Buy แข็ง Sell อ่อนมาก → มีโอกาสเด้งกลับ',action:'BUY',actionCls:'buy'},
-    {n:5,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',
-     cond:'Price &lt; S1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาหลุด S1 แต่ Buy ยังแข็ง + Sell ไม่มีแรง → Divergence อาจ recover',action:'BUY',actionCls:'buy'},
-    {n:6,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ — ยืนยันทั้ง Buy+Sell',
-     cond:'Price &lt; S1 &amp; Sell ≥ 75 &amp; Buy &lt; 45 &amp; Net ≤ -20 &amp; SellΔ &gt; 0',zone:'BEARISH',combo:'Full Bearish Confirmed',
-     meaning:'ราคาหลุด S1 + Sell แข็ง Buy หมดแรง + Sell ยังเร่ง → เสี่ยงลงต่อถึง S2/S3',action:'SELL',actionCls:'sell'},
-    {n:7,icon:'🔻',signal:'Bearish Continuation',thai:'ขาลงต่อเนื่อง',
-     cond:'Price &lt; S1 &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาใต้ S1 + Sell แข็ง Buy อ่อน → ขาลงยังไม่จบ',action:'SELL',actionCls:'sell'},
-    {n:8,icon:'📊',signal:'Bearish Distribution',thai:'กระจายของขาลง',
-     cond:'S1 ≤ Price &lt; PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาระหว่าง S1-PP + Sell แข็ง Buy อ่อน → กำลังกระจายก่อนลงต่อ',action:'SELL',actionCls:'sell'},
-    {n:9,icon:'⚠️',signal:'Resistance Rejection',thai:'โดนแนวต้านตีกลับ',
-     cond:'Price ≥ PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาเหนือ PP แต่ Sell แข็งกว่า Buy มาก → เสี่ยงโดนตีกลับ',action:'SELL',actionCls:'sell'},
-    {n:10,icon:'🌪️',signal:'Volatile Breakout',thai:'ทะลุแต่ผันผวนสูง',
-     cond:'Price ≥ R1 &amp; Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',zone:'CONFLICT',combo:'Tug of War',
-     meaning:'ราคาเหนือ R1 แต่ทั้ง Buy+Sell มีแรง → ผันผวนสูง อาจทะลุหรือถูก reject รอยืนยัน',action:'HOLD',actionCls:'hold'},
-    {n:11,icon:'⚔️',signal:'Tug of War',thai:'ชักเย่อ — ทั้งสองฝั่งมีแรง',
-     cond:'Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',zone:'CONFLICT',combo:'Tug of War',
-     meaning:'ทั้ง Buy+Sell momentum สูงพอกัน → ตลาดกำลังตัดสินใจ รอฝั่งใดฝั่งหนึ่งชนะก่อน',action:'HOLD',actionCls:'hold'},
-    {n:12,icon:'💤',signal:'Dead Zone',thai:'ไม่มีทิศทาง — รอสัญญาณ',
-     cond:'Buy &lt; 55 &amp; Sell &lt; 55',zone:'NEUTRAL',combo:'Dead Zone',
-     meaning:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',action:'HOLD',actionCls:'hold'},
-    {n:13,icon:'📊',signal:'Cautious Bullish',thai:'เอียง bullish แต่ยังไม่ชัด',
-     cond:'Buy ≥ 55 &amp; Sell &lt; 55 &amp; Net &gt; 0 &amp; (Buy &lt; 60 หรือ Net &lt; +20)',zone:'LEAN BULLISH',combo:'Lean Bullish',
-     meaning:'Buy แข็งกว่า Sell แต่ยังไม่ถึง Bullish Zone → ถือรอ ถ้า Buy เพิ่มจะเข้า Bullish Zone',action:'HOLD',actionCls:'hold'},
-    {n:14,icon:'📉',signal:'Cautious Bearish',thai:'เอียง bearish แต่ยังไม่ชัด',
-     cond:'Sell ≥ 55 &amp; Buy &lt; 55 &amp; Net &lt; 0 &amp; (Sell &lt; 60 หรือ Net &gt; -20)',zone:'LEAN BEARISH',combo:'Lean Bearish',
-     meaning:'Sell แข็งกว่า Buy แต่ยังไม่ถึง Bearish Zone → ระวัง ถ้า Sell เพิ่มจะเข้า Bearish Zone',action:'HOLD',actionCls:'hold'},
+    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ &gt; 0',combo:'Full Bullish Confirmed',meaning:'ราคาทะลุ R1 + Buy momentum แข็ง + Sell ไม่มีแรง + ยังเร่งตัว → Breakout ยืนยัน',action:'BUY',actionCls:'buy'},
+    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ ≤ 0',combo:'Full Bullish Confirmed',meaning:'ทะลุ R1 + Buy ยังแข็ง + Sell อ่อน แต่ delta เริ่มชะลอ → take-profit บางส่วน',action:'HOLD',actionCls:'hold'},
+    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',cond:'PP ≤ Price &lt; R1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาเหนือ PP กำลังวิ่งหา R1 + Buy แข็ง Sell อ่อน → สะสมแรงเพื่อ breakout',action:'BUY',actionCls:'buy'},
+    {n:4,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',cond:'S1 ≤ Price &lt; PP &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาย่อใต้ PP แต่ Buy แข็ง Sell อ่อนมาก → มีโอกาสเด้งกลับ',action:'BUY',actionCls:'buy'},
+    {n:5,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',cond:'Price &lt; S1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาหลุด S1 แต่ Buy ยังแข็ง + Sell ไม่มีแรง → Divergence อาจ recover',action:'BUY',actionCls:'buy'},
+    {n:6,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ — ยืนยันทั้ง Buy+Sell',cond:'Price &lt; S1 &amp; Sell ≥ 75 &amp; Buy &lt; 45 &amp; Net ≤ -20 &amp; SellΔ &gt; 0',combo:'Full Bearish Confirmed',meaning:'ราคาหลุด S1 + Sell แข็ง Buy หมดแรง + Sell ยังเร่ง → เสี่ยงลงต่อถึง S2/S3',action:'SELL',actionCls:'sell'},
+    {n:7,icon:'🔻',signal:'Bearish Continuation',thai:'ขาลงต่อเนื่อง',cond:'Price &lt; S1 &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาใต้ S1 + Sell แข็ง Buy อ่อน → ขาลงยังไม่จบ',action:'SELL',actionCls:'sell'},
+    {n:8,icon:'📊',signal:'Bearish Distribution',thai:'กระจายของขาลง',cond:'S1 ≤ Price &lt; PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาระหว่าง S1-PP + Sell แข็ง Buy อ่อน → กำลังกระจายก่อนลงต่อ',action:'SELL',actionCls:'sell'},
+    {n:9,icon:'⚠️',signal:'Resistance Rejection',thai:'โดนแนวต้านตีกลับ',cond:'Price ≥ PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาเหนือ PP แต่ Sell แข็งกว่า Buy มาก → เสี่ยงโดนตีกลับ',action:'SELL',actionCls:'sell'},
+    {n:10,icon:'🌪️',signal:'Volatile Breakout',thai:'ทะลุแต่ผันผวนสูง',cond:'Price ≥ R1 &amp; Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',combo:'Tug of War',meaning:'ราคาเหนือ R1 แต่ทั้ง Buy+Sell มีแรง → ผันผวนสูง รอยืนยัน',action:'HOLD',actionCls:'hold'},
+    {n:11,icon:'⚔️',signal:'Tug of War',thai:'ชักเย่อ — ทั้งสองฝั่งมีแรง',cond:'Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',combo:'Tug of War',meaning:'ทั้ง Buy+Sell momentum สูงพอกัน → รอฝั่งใดชนะก่อน',action:'HOLD',actionCls:'hold'},
+    {n:12,icon:'💤',signal:'Dead Zone',thai:'ไม่มีทิศทาง — รอสัญญาณ',cond:'Buy &lt; 55 &amp; Sell &lt; 55',combo:'Dead Zone',meaning:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',action:'HOLD',actionCls:'hold'},
+    {n:13,icon:'📊',signal:'Cautious Bullish',thai:'เอียง bullish แต่ยังไม่ชัด',cond:'Buy ≥ 55 &amp; Sell &lt; 55 &amp; Net &gt; 0 &amp; (Buy &lt; 60 หรือ Net &lt; +20)',combo:'Lean Bullish',meaning:'Buy แข็งกว่า Sell แต่ยังไม่ถึง Bullish Zone → ถือรอ',action:'HOLD',actionCls:'hold'},
+    {n:14,icon:'📉',signal:'Cautious Bearish',thai:'เอียง bearish แต่ยังไม่ชัด',cond:'Sell ≥ 55 &amp; Buy &lt; 55 &amp; Net &lt; 0 &amp; (Sell &lt; 60 หรือ Net &gt; -20)',combo:'Lean Bearish',meaning:'Sell แข็งกว่า Buy แต่ยังไม่ถึง Bearish Zone → ระวัง',action:'HOLD',actionCls:'hold'},
+  ];
+  const buyExhaust=[
+    {id:'E1',icon:'🔥',signal:'Bull Exhaustion',thai:'Buy momentum หมดแรง',cond:'Z≥2.0 + BuyNet≥70 + 5dΔ&lt;0',meaning:'Z สูง + Buy score ดี แต่เริ่มลด → ขาขึ้นอ่อนล้า',action:'HOLD',cls:'hold'},
+    {id:'E2',icon:'🏔️',signal:'Topping',thai:'Buy score หล่นจากพีค',cond:'BuyMax10d≥80 + 5dΔ&lt;-8',meaning:'Buy score เพิ่งพีค + หล่นแรง → อาจถึงยอด',action:'HOLD',cls:'hold'},
+    {id:'E3',icon:'🔋',signal:'Bear Exhaustion',thai:'ขาลงหมดแรง — Buy เริ่มฟื้น',cond:'BuyMin10d&lt;50 + 5dΔ&gt;+3',meaning:'Buy score เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง',action:'BUY',cls:'buy'},
+    {id:'E4',icon:'⚡',signal:'Buy Vol Shift',thai:'D5 เปลี่ยนแรง',cond:'|D5 shift|≥50pts / 5d',meaning:'D5 Directional Volatility เปลี่ยนแรง → โครงสร้างเปลี่ยน',action:'HOLD',cls:'hold'},
+  ];
+  const sellExhaust=[
+    {id:'SE1',icon:'🔥',signal:'Sell Exhaustion',thai:'Sell momentum หมดแรง',cond:'SellNet≥70 + 5dΔ&lt;0',meaning:'Sell score สูง + เริ่มลด → selling pressure หมดแรง',action:'HOLD',cls:'hold'},
+    {id:'SE2',icon:'🏔️',signal:'Sell Topping',thai:'Sell score หล่นจากพีค',cond:'SellMax10d≥80 + 5dΔ&lt;-8',meaning:'Sell score เพิ่งพีค + หล่นแรง → panic selling อาจจบ',action:'HOLD',cls:'hold'},
+    {id:'SE3',icon:'🔋',signal:'Sell Recovery',thai:'Sell pressure กำลังก่อตัว',cond:'SellMin10d&lt;50 + 5dΔ&gt;+3',meaning:'Sell score เคยต่ำ + เริ่มเพิ่ม → sell pressure กำลังมา',action:'SELL',cls:'sell'},
+    {id:'SE4',icon:'⚡',signal:'Sell Vol Shift',thai:'D5s เปลี่ยนแรง',cond:'|D5s shift|≥50pts / 5d',meaning:'D5s Volatility เปลี่ยนแรง → โครงสร้างเปลี่ยน',action:'HOLD',cls:'hold'},
   ];
 
-  // Exhaustion scenarios (from buy CSV)
-  const exhaustScenarios=[
-    {id:'E1',icon:'🔥',signal:'Bull Exhaustion',thai:'ขาขึ้นหมดแรง — Z extended + momentum fading',
-     cond:'Z≥2.0 + Net≥70 + 5dΔ&lt;0',zone:'EXHAUST',combo:'—',
-     meaning:'Z-Score สูง + คะแนนยังดี แต่ momentum เริ่มลด → ขาขึ้นอ่อนล้า ระวัง pullback',action:'HOLD',actionCls:'hold'},
-    {id:'E2',icon:'🏔️',signal:'Topping',thai:'อาจถึงยอด — score หล่นเร็ว',
-     cond:'Max10d≥80 + 5dΔ&lt;-8',zone:'EXHAUST',combo:'—',
-     meaning:'Score เคยสูงมากเมื่อเร็วๆ นี้ แต่หล่นแรง → อาจเป็นยอด แต่ bounce ได้',action:'HOLD',actionCls:'hold'},
-    {id:'E3',icon:'🔋',signal:'Bear Exhaustion',thai:'ขาลงหมดแรง — เริ่มฟื้นตัว',
-     cond:'Min10d&lt;50 + 5dΔ&gt;+3',zone:'EXHAUST',combo:'—',
-     meaning:'Score เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง อาจ bounce (contrarian buy)',action:'BUY',actionCls:'buy'},
-    {id:'E4',icon:'⚡',signal:'Vol Regime Shift',thai:'โครงสร้าง volatility เปลี่ยน',
-     cond:'|D5 shift|≥50pts / 5d',zone:'EXHAUST',combo:'—',
-     meaning:'D5 Directional Volatility เปลี่ยนแรงมากใน 5 วัน → โครงสร้างตลาดเปลี่ยน',action:'HOLD',actionCls:'hold'},
-  ];
+  const comboColor=c=>c.includes('Full Bullish')?'var(--emerald)':c.includes('Bullish')?'#8BD4B0':c.includes('Full Bearish')?'var(--red)':c.includes('Bearish')?'#F87171':c.includes('Tug')?'var(--gold)':'var(--text3)';
 
-  const comboColor=c=>c.includes('Full Bullish')?'var(--emerald)':c.includes('Bullish Dominant')?'#8BD4B0':c.includes('Lean Bullish')?'#8BD4B0':c.includes('Full Bearish')?'var(--red)':c.includes('Bearish Dominant')?'#F87171':c.includes('Lean Bearish')?'#F87171':c.includes('Tug')?'var(--gold)':c.includes('Dead')?'var(--text3)':'var(--text3)';
+  let html=`<table class="scenario-table"><thead><tr>
+    <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Combined Signal</th><th>เงื่อนไข</th><th>ความหมาย</th><th>Bias</th>
+  </tr></thead><tbody>`;
 
-  let html=`<table class="scenario-table">
-    <thead><tr>
-      <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Combined Signal</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
-    </tr></thead><tbody>`;
-
-  // Bias scenarios SC1-SC14
   scenarios.forEach(s=>{
-    const isCurrent=s.signal===currentSignal;
-    const cc=comboColor(s.combo);
-    html+=`<tr class="${isCurrent?'current-scenario':''}">
-      <td class="sc-num">${s.n}</td>
-      <td class="sc-icon">${s.icon}</td>
-      <td><div class="sc-signal">${s.signal}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
+    const cur=s.signal===currentSignal;const cc=comboColor(s.combo);
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.n}</td><td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
       <td style="text-align:center"><span style="color:${cc};font-size:.68rem;font-weight:700">${s.combo}</span></td>
-      <td><div class="sc-cond">${s.cond}</div></td>
-      <td class="sc-meaning">${s.meaning}</td>
-      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
-    </tr>`;
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td></tr>`;
   });
 
-  // Separator row
-  html+=`<tr><td colspan="7" style="padding:12px 10px;text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase;background:var(--orange-dim);border-top:2px solid rgba(251,146,60,.3)">
-    ⚡ Exhaustion Detection Layer (จาก momentum history 5-10 วัน)
-  </td></tr>`;
-
-  // Exhaustion scenarios E1-E4
-  exhaustScenarios.forEach(s=>{
-    const isCurrent=exhaustActive&&exhaustMap[exhaustSignal]===s.id;
-    html+=`<tr class="${isCurrent?'current-scenario':''}">
-      <td class="sc-num">${s.id}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</td>
-      <td class="sc-icon">${s.icon}</td>
+  // Buy Exhaustion separator + rows
+  html+=`<tr><td colspan="7" style="padding:10px;text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase;background:var(--orange-dim);border-top:2px solid rgba(251,146,60,.3)">🔥 Buy Exhaustion Layer (จาก Buy history 5-10 วัน)</td></tr>`;
+  buyExhaust.forEach(s=>{
+    const cur=exBuyOn&&eBuyMap[exBuySignal]===s.id;
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.id}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</td><td class="sc-icon">${s.icon}</td>
       <td><div class="sc-signal">${s.signal}</div><div class="sc-thai">${s.thai}</div></td>
-      <td style="text-align:center"><span style="color:var(--orange);font-size:.68rem;font-weight:700">${s.combo}</span></td>
-      <td><div class="sc-cond">${s.cond}</div></td>
-      <td class="sc-meaning">${s.meaning}</td>
-      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
-    </tr>`;
+      <td style="text-align:center"><span style="color:var(--orange);font-size:.68rem;font-weight:700">—</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td></tr>`;
+  });
+
+  // Sell Exhaustion separator + rows
+  html+=`<tr><td colspan="7" style="padding:10px;text-align:center;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--red);text-transform:uppercase;background:var(--red-dim);border-top:2px solid rgba(248,113,113,.3)">🔥 Sell Exhaustion Layer (จาก Sell history 5-10 วัน)</td></tr>`;
+  sellExhaust.forEach(s=>{
+    const cur=exSellOn&&eSellMap[exSellSignal]===s.id;
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.id}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</td><td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}</div><div class="sc-thai">${s.thai}</div></td>
+      <td style="text-align:center"><span style="color:var(--red);font-size:.68rem;font-weight:700">—</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td></tr>`;
   });
 
   html+=`</tbody></table>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
       <strong style="color:var(--gold)">หมายเหตุ:</strong>
-      SC1-SC14 ใช้ Buy Score + Sell Score + Net Bias + Pivot Position ร่วมกัน.
-      E1-E4 ใช้ momentum history (Net 5d, D5 shift, Z-Score) จับสัญญาณหมดแรง.
-      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่แค่ Buy อ่อน.
-      ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ
+      SC1-SC14 ใช้ Buy+Sell Score + Net Bias + Pivot Position.
+      E1-E4 ใช้ Buy momentum history จับสัญญาณขาขึ้นหมดแรง.
+      SE1-SE4 ใช้ Sell momentum history จับสัญญาณขาลงหมดแรง.
+      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่คำแนะนำการลงทุน
     </div>`;
-
   document.getElementById('scenarioTable').innerHTML=html;
 }
 // ── Charts ──

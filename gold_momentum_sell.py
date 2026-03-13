@@ -591,5 +591,140 @@ csv_df.to_csv(csv_ts, index=False, encoding='utf-8')
 print(f"\nCSV saved: {csv_fixed}")
 print(f"CSV saved: {csv_ts}")
 
+# ══════════════════════════════════════════════════════
+# SELL SCORE HISTORY — append daily (for exhaustion detection)
+# ══════════════════════════════════════════════════════
+
+history_row = {
+    'Date': s2['date'].strftime('%Y-%m-%d'),
+    'Price': round(s2['price'], 2),
+    'Net_Score': round(s2['net'], 2),
+    'Gross_Score': round(s2['gross'], 2),
+    'D1_Return': round(s2['d1'], 2),
+    'D2_Volume': round(s2['d2'], 2),
+    'D3_RSI': round(s2['d3'], 2),
+    'D4_MA': round(s2['d4'], 2),
+    'D5_Volatility': round(s2['d5'], 2),
+    'D6_External': round(s2['d6'], 2),
+    'RSI': round(s2['rsi'], 2),
+    'Volatility_Pct': round(s2['volatility'], 2),
+    'Penalty_Scaled': round(s2['penalty_scaled'], 2),
+    'Warning_Flags': s2['penalties']['flags'] if s2['penalties']['flags'] else 'None',
+    'Tier': sell_tier,
+    'As_Of_Running': AS_OF,
+}
+
+history_path = os.path.join(base_dir, 'score_history_sell.csv')
+history_df = pd.DataFrame([history_row])
+
+if os.path.exists(history_path):
+    existing = pd.read_csv(history_path, encoding='utf-8')
+    existing = existing[existing['Date'] != history_row['Date']]
+    history_df = pd.concat([existing, history_df], ignore_index=True)
+    history_df = history_df.sort_values('Date').reset_index(drop=True)
+
+history_df.to_csv(history_path, index=False, encoding='utf-8')
+print(f"Sell score history: {history_path} ({len(history_df)} rows)")
+
+# ══════════════════════════════════════════════════════
+# SELL EXHAUSTION DETECTION (mirror of buy-side logic)
+# ══════════════════════════════════════════════════════
+
+exhaust_result = {
+    'scenario': 'None',
+    'label': '',
+    'action_override': '',
+    'net_5d_change': '',
+    'max_10d': '',
+    'min_10d': '',
+    'd5_shift_5d': '',
+}
+
+if len(history_df) >= 6:
+    h = history_df.copy()
+    h['Net_Score'] = pd.to_numeric(h['Net_Score'], errors='coerce')
+    h['D5_Volatility'] = pd.to_numeric(h['D5_Volatility'], errors='coerce')
+
+    current = h.iloc[-1]
+    net_now = current['Net_Score']
+    d5_now = current['D5_Volatility']
+
+    # Net score 5d ago
+    net_5d_ago = h.iloc[-6]['Net_Score'] if len(h) >= 6 else net_now
+    net_5d_change = net_now - net_5d_ago
+
+    # Max/Min Net in last 10 days
+    last10 = h['Net_Score'].tail(min(10, len(h)))
+    max_10d = last10.max()
+    min_10d = last10.min()
+
+    # D5 shift in 5 days
+    d5_5d_ago = h.iloc[-6]['D5_Volatility'] if len(h) >= 6 else d5_now
+    d5_shift = d5_now - d5_5d_ago
+
+    exhaust_result['net_5d_change'] = round(net_5d_change, 2)
+    exhaust_result['max_10d'] = round(max_10d, 2)
+    exhaust_result['min_10d'] = round(min_10d, 2)
+    exhaust_result['d5_shift_5d'] = round(d5_shift, 2)
+
+    # ── SE1: Sell Exhaustion (mirror of Bull Exhaustion) ──
+    # Sell score high + starting to fade → selling pressure exhausted
+    se1 = net_now >= 70 and net_5d_change < 0
+
+    # ── SE2: Sell Topping (mirror of Topping) ──
+    # Sell score was very high recently but dropped hard → panic selling may be over
+    se2 = max_10d >= 80 and net_5d_change < -8 and not se1
+
+    # ── SE3: Sell Recovery (mirror of Bear Exhaustion) ──
+    # Sell score was low (no selling) + now rising → sell pressure building
+    se3 = min_10d < 50 and net_5d_change > 3
+
+    # ── SE4: D5s Volatility Regime Shift ──
+    se4 = abs(d5_shift) >= 50 and not se1 and not se2 and not se3
+
+    if se1:
+        exhaust_result['scenario'] = 'Sell Exhaustion'
+        exhaust_result['label'] = '🔥 Sell Exhaustion: Sell momentum fading → selling pressure หมดแรง'
+        exhaust_result['action_override'] = 'HOLD'
+    elif se3:
+        exhaust_result['scenario'] = 'Sell Recovery'
+        exhaust_result['label'] = '🔋 Sell Recovery: Sell score rising from low → sell pressure building → SELL'
+        exhaust_result['action_override'] = 'SELL'
+    elif se2:
+        exhaust_result['scenario'] = 'Sell Topping'
+        exhaust_result['label'] = '🏔️ Sell Topping: Sell score collapsed from peak → panic may be over'
+        exhaust_result['action_override'] = 'HOLD'
+    elif se4:
+        exhaust_result['scenario'] = 'Vol Shift'
+        exhaust_result['label'] = '⚡ Vol Regime Shift: D5s changed ' + str(round(d5_shift)) + 'pts → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+
+    print(f"\n── Sell Exhaustion Detection ──")
+    print(f"  Net 5d Δ:    {net_5d_change:+.2f}")
+    print(f"  Max 10d:     {max_10d:.2f}  |  Min 10d: {min_10d:.2f}")
+    print(f"  D5s shift 5d: {d5_shift:+.0f}  (was {d5_5d_ago:.0f} → now {d5_now:.0f})")
+    if exhaust_result['scenario'] != 'None':
+        print(f"  >>> {exhaust_result['label']}")
+    else:
+        print(f"  >>> No sell exhaustion signal")
+
+# Add exhaustion columns to sell CSV
+csv_row['Exhaust_Scenario'] = exhaust_result['scenario']
+csv_row['Exhaust_Action'] = exhaust_result['action_override']
+csv_row['Net_5d_Change'] = exhaust_result['net_5d_change']
+csv_row['Max_10d'] = exhaust_result['max_10d']
+csv_row['Min_10d'] = exhaust_result['min_10d']
+csv_row['D5_Shift_5d'] = exhaust_result['d5_shift_5d']
+
+# Update exhaustion in history
+if len(history_df) >= 1:
+    history_df.loc[history_df['Date'] == history_row['Date'], 'Exhaust_Scenario'] = exhaust_result['scenario']
+    history_df.to_csv(history_path, index=False, encoding='utf-8')
+
+# Re-save CSVs with exhaustion columns
+csv_df = pd.DataFrame([csv_row])
+csv_df.to_csv(csv_fixed, index=False, encoding='utf-8')
+csv_df.to_csv(csv_ts, index=False, encoding='utf-8')
+
 print(f"\n✅ SELL score outputs generated successfully!")
 print(f"   CSV: output_momentum_gold_sell.csv + output_momentum_gold_sell_{TS_FILE}.csv")
