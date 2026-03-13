@@ -874,6 +874,114 @@ history_df.to_csv(history_path, index=False, encoding='utf-8')
 print(f"Score history: {history_path} ({len(history_df)} rows)")
 
 # ══════════════════════════════════════════════════════
+# EXHAUSTION DETECTION (from score_history backtest)
+# ══════════════════════════════════════════════════════
+
+exhaust_result = {
+    'scenario': 'None',
+    'label': '',
+    'action_override': '',
+    'net_5d_change': '',
+    'max_10d': '',
+    'min_10d': '',
+    'd5_shift_5d': '',
+}
+
+if len(history_df) >= 6:
+    h = history_df.copy()
+    h['Net_Score'] = pd.to_numeric(h['Net_Score'], errors='coerce')
+    h['D5_DirVol'] = pd.to_numeric(h['D5_DirVol'], errors='coerce')
+    h['Z_Score_50d'] = pd.to_numeric(h['Z_Score_50d'], errors='coerce')
+
+    current = h.iloc[-1]
+    net_now = current['Net_Score']
+    d5_now = current['D5_DirVol']
+    z_now = current['Z_Score_50d'] if pd.notna(current['Z_Score_50d']) else 0
+
+    # Net score 5d ago
+    net_5d_ago = h.iloc[-6]['Net_Score'] if len(h) >= 6 else net_now
+    net_5d_change = net_now - net_5d_ago
+
+    # Max/Min Net in last 10 days
+    last10 = h['Net_Score'].tail(min(10, len(h)))
+    max_10d = last10.max()
+    min_10d = last10.min()
+
+    # D5 shift in 5 days
+    d5_5d_ago = h.iloc[-6]['D5_DirVol'] if len(h) >= 6 else d5_now
+    d5_shift = d5_now - d5_5d_ago
+
+    exhaust_result['net_5d_change'] = round(net_5d_change, 2)
+    exhaust_result['max_10d'] = round(max_10d, 2)
+    exhaust_result['min_10d'] = round(min_10d, 2)
+    exhaust_result['d5_shift_5d'] = round(d5_shift, 2)
+
+    # ── sc13: Bull Exhaustion ──
+    # Z extended + score still high + momentum fading
+    # Backtest: Fwd5d = -0.29% (ONLY pattern worse than baseline)
+    sc13 = z_now >= 2.0 and net_now >= 70 and net_5d_change < 0
+
+    # ── sc14: Topping Alert ──
+    # Was very strong recently but dropped hard
+    # Backtest: Fwd5d = +1.83% (bounce likely, don't panic)
+    sc14 = max_10d >= 80 and net_5d_change < -8 and not sc13
+
+    # ── sc15: Bear Exhaustion / Bottoming ──
+    # Was low recently + starting to recover
+    # Backtest: Fwd10d = +4-7% (contrarian buy)
+    sc15 = min_10d < 50 and net_5d_change > 3
+
+    # ── sc16: D5 Volatility Regime Shift ──
+    # D5 changed ≥50pts in 5 days → market structure change
+    # Backtest: Fwd10d = +4.06%
+    sc16 = abs(d5_shift) >= 50 and not sc13 and not sc14 and not sc15
+
+    if sc13:
+        exhaust_result['scenario'] = 'Bull Exhaustion'
+        exhaust_result['label'] = '🔥 Bull Exhaustion: Z extended + momentum fading → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+    elif sc15:
+        exhaust_result['scenario'] = 'Bear Exhaustion'
+        exhaust_result['label'] = '🔋 Bear Exhaustion: Selling exhausted, bounce likely → BUY'
+        exhaust_result['action_override'] = 'BUY'
+    elif sc14:
+        exhaust_result['scenario'] = 'Topping'
+        exhaust_result['label'] = '🏔️ Topping: Score collapsed from recent high → HOLD (bounce likely)'
+        exhaust_result['action_override'] = 'HOLD'
+    elif sc16:
+        exhaust_result['scenario'] = 'Vol Shift'
+        exhaust_result['label'] = '⚡ Vol Regime Shift: D5 changed ' + str(round(d5_shift)) + 'pts → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+
+    print(f"\n── Exhaustion Detection ──")
+    print(f"  Net 5d Δ:    {net_5d_change:+.2f}")
+    print(f"  Max 10d:     {max_10d:.2f}  |  Min 10d: {min_10d:.2f}")
+    print(f"  D5 shift 5d: {d5_shift:+.0f}  (was {d5_5d_ago:.0f} → now {d5_now:.0f})")
+    print(f"  Z-Score:     {z_now:.3f}")
+    if exhaust_result['scenario'] != 'None':
+        print(f"  >>> {exhaust_result['label']}")
+    else:
+        print(f"  >>> No exhaustion signal")
+
+# Add exhaustion columns to main CSV
+csv_row['Exhaust_Scenario'] = exhaust_result['scenario']
+csv_row['Exhaust_Action'] = exhaust_result['action_override']
+csv_row['Net_5d_Change'] = exhaust_result['net_5d_change']
+csv_row['Max_10d'] = exhaust_result['max_10d']
+csv_row['Min_10d'] = exhaust_result['min_10d']
+csv_row['D5_Shift_5d'] = exhaust_result['d5_shift_5d']
+
+# Re-save CSVs with exhaustion columns
+csv_df = pd.DataFrame([csv_row])
+csv_df.to_csv(csv_fixed, index=False, encoding='utf-8')
+csv_df.to_csv(csv_ts, index=False, encoding='utf-8')
+print(f"\nCSV updated with exhaustion: {csv_fixed}")
+
+# Also update the history row with exhaustion info
+history_df.loc[history_df['Date'] == history_row['Date'], 'Exhaust_Scenario'] = exhaust_result['scenario']
+history_df.to_csv(history_path, index=False, encoding='utf-8')
+
+# ══════════════════════════════════════════════════════
 # EXCEL OUTPUT
 # ══════════════════════════════════════════════════════
 
