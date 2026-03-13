@@ -1,0 +1,4 @@
+Date,Price,Net_Score_Avg,Gross_Score_Avg,Net_Score_BD1,Net_Score_BD2,Score_Delta,Tier,D1_ReturnRank,D2_VolumeRank,D3_RSI,D4_MA,D5_Volatility,D6_External,D6_Raw,Penalty_Scaled,WP_Return_Pct,WP_Volume_Pct,RSI_Value,MA50,MA200,Death_Cross,Volatility_Pct,Penalty_Total,Warning_Flags
+2026-03-10,5224.6,19.59,24.14,20.1,19.08,-1.02,No Sell Signal,14.78,26.96,20,0,40,40.0,-2,-4.55,85.22,79.12,60.29,4870.43,3999.97,False,30.49,-5,Golden Cross
+2026-03-11,5160.0,21.34,25.88,18.99,23.69,4.7,No Sell Signal,23.84,25.56,40,0,40,40.0,-2,-4.55,76.16,83.33,57.6,4883.05,4008.95,False,30.65,-5,Golden Cross
+2026-03-12,5102.2,24.11,28.65,24.29,23.93,-0.36,No Sell Signal,25.74,25.09,40,0,40,40.0,-2,-4.55,74.26,84.72,50.92,4898.59,4017.97,False,30.65,-5,Golden Cross

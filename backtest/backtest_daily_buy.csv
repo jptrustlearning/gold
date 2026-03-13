@@ -1,0 +1,4 @@
+Date,Price,Net_Score_Avg,Gross_Score_Avg,Net_Score_BD1,Net_Score_BD2,Score_Delta,Tier,D1_ReturnRank,D2_VolumeRank,D3_RSI,D4_MA,D5_Volatility,D6_External,D6_Raw,Penalty_Scaled,WP_Return_Pct,WP_Volume_Pct,RSI_Value,MA50,MA200,Golden_Cross,Volatility_Pct,Penalty_Total,Warning_Flags
+2026-03-10,5224.6,86.37,86.37,85.34,87.39,2.05,Very Strong ↑↑,85.22,79.12,100,100,70,90.0,8,0.0,85.22,79.12,60.29,4870.43,3999.97,True,30.49,0,None
+2026-03-11,5160.0,88.57,88.57,90.56,86.58,-3.98,Very Strong ↑↑,76.16,83.33,100,100,70,90.0,8,0.0,76.16,83.33,57.6,4883.05,4008.95,True,30.65,0,None
+2026-03-12,5102.2,85.88,85.88,85.27,86.5,1.23,Very Strong ↑↑,74.26,84.72,100,100,70,90.0,8,0.0,74.26,84.72,50.92,4898.59,4017.97,True,30.65,0,None

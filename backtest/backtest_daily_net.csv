@@ -1,0 +1,4 @@
+Date,Price,Buy_Score,Sell_Score,Net_Bias,Bias_Tier,Combined_Signal,Buy_Tier,Sell_Tier,Buy_Delta,Sell_Delta,Scenario_Num,Scenario_Signal,Scenario_Action,Scenario_Zone,Buy_D1,Sell_D1,Buy_D2,Sell_D2,Buy_D3,Sell_D3,Buy_D4,Sell_D4,Buy_D5,Sell_D5,Buy_D6,Sell_D6,Pivot_PP,Pivot_R1,Pivot_S1
+2026-03-10,5224.6,86.37,19.59,66.78,Strong Bullish ↑↑,Bullish Dominant,Very Strong ↑↑,No Sell Signal,2.05,-1.02,3,Bullish Accumulation,BUY,BULLISH,85.22,14.78,79.12,26.96,100,20,100,0,70,40,90.0,40.0,5215.6,5239.9,5200.3
+2026-03-11,5160.0,88.57,21.34,67.23,Strong Bullish ↑↑,Bullish Dominant,Very Strong ↑↑,No Sell Signal,-3.98,4.7,3,Bullish Accumulation,BUY,BULLISH,76.16,23.84,83.33,25.56,100,40,100,0,70,40,90.0,40.0,5159.93,5189.87,5130.07
+2026-03-12,5102.2,85.88,24.11,61.78,Strong Bullish ↑↑,Bullish Dominant,Very Strong ↑↑,No Sell Signal,1.23,-0.36,3,Bullish Accumulation,BUY,BULLISH,74.26,25.74,84.72,25.09,100,40,100,0,70,40,90.0,40.0,5093.3,5112.0,5083.5
