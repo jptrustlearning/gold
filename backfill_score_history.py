@@ -204,42 +204,78 @@ def calc_penalties(df, base_idx):
         'ret_1y': ret_1y, 'ret_6m': ret_6m, 'ret_1m': ret_1m, 'ret_1w': ret_1w
     }
 
-def calc_d6_external(df, idx, df_dxy, df_vix):
-    dxy_score, vix_score = 0, 0
-    dxy_1m, vix_level = None, None
-    dxy_signal, vix_signal = '⚪ N/A', '⚪ N/A'
-    gold_close = df['Close'].values[idx]
-    gold_date = df.iloc[idx]['Date']
-    gold_1m = compute_return(df['Close'].values, idx, 21) or 0
+def find_closest_idx(ext_df, target_date, max_gap_days=5):
+    if ext_df is None:
+        return None
+    diffs = (ext_df['Date'] - target_date).abs()
+    min_diff = diffs.min()
+    if min_diff.days > max_gap_days:
+        return None
+    return diffs.idxmin()
+
+def calc_external_return(ext_df, end_idx, period_days):
+    if ext_df is None or end_idx is None:
+        return None
+    start_idx = end_idx - period_days
+    if start_idx < 0:
+        return None
+    return (ext_df['Close'].values[end_idx] - ext_df['Close'].values[start_idx]) / ext_df['Close'].values[start_idx] * 100
+
+def calc_d6_external(df_gold, gold_idx, df_dxy, df_vix):
+    gold_date = df_gold.iloc[gold_idx]['Date']
+    gold_closes = df_gold['Close'].values
+    gold_1m = compute_return(gold_closes, gold_idx, 21)
+    if gold_1m is None:
+        gold_1m = 0
     gold_up = gold_1m >= 0
-    if df_dxy is not None and len(df_dxy) > 21:
-        dxy_mask = df_dxy['Date'] <= gold_date
-        dxy_sub = df_dxy[dxy_mask]
-        if len(dxy_sub) > 21:
-            dxy_1m = (dxy_sub['Close'].values[-1] - dxy_sub['Close'].values[-22]) / dxy_sub['Close'].values[-22] * 100
-            if gold_up:
-                if dxy_1m <= -2: dxy_score, dxy_signal = 3, "🟢 Weak Dollar + Gold Up"
-                elif dxy_1m <= 0: dxy_score, dxy_signal = 2, "🟢 Mild Dollar Weak + Gold Up"
-                elif dxy_1m <= 2: dxy_score, dxy_signal = 0, "⚪ Dollar Mild + Gold Up"
-                else: dxy_score, dxy_signal = -1, "🟡 Dollar Strong but Gold Up"
-            else:
-                if dxy_1m > 2: dxy_score, dxy_signal = -3, "🔴 Strong Dollar + Gold Down"
-                elif dxy_1m > 0: dxy_score, dxy_signal = -2, "🟠 Dollar Up + Gold Down"
-                elif dxy_1m > -2: dxy_score, dxy_signal = 0, "⚪ Dollar Mild + Gold Down"
-                else: dxy_score, dxy_signal = 1, "🟡 Dollar Weak but Gold Down"
+    dxy_score = 0
+    dxy_1m = None
+    dxy_signal = "N/A"
+    if df_dxy is not None:
+        dxy_idx = find_closest_idx(df_dxy, gold_date)
+        if dxy_idx is not None:
+            dxy_1m = calc_external_return(df_dxy, dxy_idx, 21)
+            if dxy_1m is not None:
+                dxy_up = dxy_1m > 0
+                if gold_up and dxy_up:
+                    dxy_score = +5
+                    dxy_signal = "🟢 Bullish Divergence"
+                elif gold_up and not dxy_up:
+                    dxy_score = +2
+                    dxy_signal = "🔵 Normal"
+                elif not gold_up and not dxy_up:
+                    dxy_score = 0
+                    dxy_signal = "⚪ Neutral"
+                else:
+                    dxy_score = -5
+                    dxy_signal = "🔴 Headwind"
+    vix_score = 0
+    vix_level = None
+    vix_signal = "N/A"
     if df_vix is not None:
-        vix_mask = df_vix['Date'] <= gold_date
-        vix_sub = df_vix[vix_mask]
-        if len(vix_sub) > 0:
-            vix_level = vix_sub['Close'].values[-1]
+        vix_idx = find_closest_idx(df_vix, gold_date)
+        if vix_idx is not None:
+            vix_level = df_vix['Close'].values[vix_idx]
             if gold_up:
-                if vix_level >= 30: vix_score, vix_signal = 2, "🟢 Fear + Gold Up (safe haven)"
-                elif vix_level >= 20: vix_score, vix_signal = 1, "🟢 Elevated VIX + Gold Up"
-                else: vix_score, vix_signal = 0, "⚪ Calm (VIX<20 + Gold Up)"
+                if vix_level > 30:
+                    vix_score = +5
+                    vix_signal = "🟢 Safe-Haven"
+                elif vix_level >= 20:
+                    vix_score = +3
+                    vix_signal = "🔵 Elevated Fear"
+                else:
+                    vix_score = +1
+                    vix_signal = "⚪ Calm Rally"
             else:
-                if vix_level > 30: vix_score, vix_signal = -3, "🔴 Panic Selling"
-                elif vix_level >= 20: vix_score, vix_signal = -2, "🟠 Fear Not Helping"
-                else: vix_score, vix_signal = 0, "⚪ Calm Drift"
+                if vix_level > 30:
+                    vix_score = -3
+                    vix_signal = "🔴 Panic Selling"
+                elif vix_level >= 20:
+                    vix_score = -2
+                    vix_signal = "🟠 Fear Not Helping"
+                else:
+                    vix_score = 0
+                    vix_signal = "⚪ Calm Drift"
     total_d6 = max(min(dxy_score + vix_score, 10), -10)
     d6_scaled = (total_d6 + 10) / 20 * 100
     return {
