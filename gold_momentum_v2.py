@@ -167,22 +167,41 @@ def d4_score(price, ma50, ma200):
     return min(pts, 100)
 
 def calc_volatility(df, base_idx):
+    """Directional Volatility — แยก upside/downside vol แล้วคำนวณ ratio"""
     start = base_idx - 20
     if start < 0: start = 0
     closes = df['Close'].values[start:base_idx+1]
     if len(closes) < 2:
-        return 0
+        return {'abs_vol': 0, 'up_vol': 0, 'down_vol': 0, 'vol_ratio': 1.0}
     rets = np.diff(closes) / closes[:-1]
-    return np.std(rets) * np.sqrt(252) * 100
+    abs_vol = np.std(rets) * np.sqrt(252) * 100
 
-def d5_score(vol):
-    if vol <= 20: return 100
-    if vol <= 30: return 90
-    if vol <= 40: return 70
-    if vol <= 50: return 55
-    if vol <= 60: return 40
-    if vol <= 80: return 25
-    return 10
+    up_rets = rets[rets > 0]
+    down_rets = rets[rets < 0]
+
+    up_vol = np.std(up_rets) * np.sqrt(252) * 100 if len(up_rets) >= 2 else 0
+    down_vol = np.std(down_rets) * np.sqrt(252) * 100 if len(down_rets) >= 2 else 0
+
+    # vol_ratio = down_vol / up_vol — สูง = downside dominant
+    if up_vol > 0:
+        vol_ratio = down_vol / up_vol
+    elif down_vol > 0:
+        vol_ratio = 999  # ไม่มี up days เลย → extreme downside
+    else:
+        vol_ratio = 1.0  # ไม่มีทั้งสองฝั่ง → neutral
+
+    return {'abs_vol': abs_vol, 'up_vol': up_vol, 'down_vol': down_vol, 'vol_ratio': vol_ratio}
+
+def d5_score(vol_data):
+    """D5 Directional Volatility Score (0-100) — ใช้ vol_ratio"""
+    ratio = vol_data['vol_ratio'] if isinstance(vol_data, dict) else 1.0
+    if ratio <= 0.6:  return 100   # upside dominant มาก
+    if ratio <= 0.8:  return 85
+    if ratio <= 1.0:  return 70    # balanced
+    if ratio <= 1.2:  return 55
+    if ratio <= 1.5:  return 40    # downside เริ่มครอบงำ
+    if ratio <= 2.0:  return 20
+    return 10                       # downside dominant
 
 def calc_penalties(df, base_idx):
     closes = df['Close'].values
@@ -365,8 +384,9 @@ def full_score(df, idx, df_dxy, df_vix):
     ma200 = calc_ma(df, idx, 200)
     d4 = d4_score(price, ma50, ma200)
     
-    vol = calc_volatility(df, idx)
-    d5 = d5_score(vol)
+    vol_data = calc_volatility(df, idx)
+    d5 = d5_score(vol_data)
+    vol = vol_data['abs_vol']  # backward compat — absolute vol for display
     
     gross = d1 + d2 + d3 + d4 + d5
     penalties = calc_penalties(df, idx)
@@ -395,6 +415,8 @@ def full_score(df, idx, df_dxy, df_vix):
         'd6_raw': ext['d6_total'],  # raw ±10 for display
         'rsi': rsi, 'ma50': ma50, 'ma200': ma200,
         'golden_cross': golden_cross, 'volatility': vol,
+        'vol_ratio': vol_data['vol_ratio'],
+        'up_vol': vol_data['up_vol'], 'down_vol': vol_data['down_vol'],
         'gross': gross_avg_dims, 'penalties': penalties,
         'penalty_scaled': penalty_scaled,
         'net': net,
@@ -429,7 +451,7 @@ print(f"BD1 ({s1['date'].strftime('%Y-%m-%d')}): Net={s1['net']:.2f}  D6={s1['d6
 print(f"BD2 ({s2['date'].strftime('%Y-%m-%d')}): Net={s2['net']:.2f}  D6={s2['d6']:.1f}/100 (raw {s2['d6_raw']:+d})")
 print(f"Delta: {delta:+.2f}")
 print(f"Price: ${s2['price']:.1f}")
-print(f"RSI: {s2['rsi']:.1f} | Volatility: {s2['volatility']:.1f}%")
+print(f"RSI: {s2['rsi']:.1f} | Volatility: {s2['volatility']:.1f}% | Vol Ratio (D/U): {s2['vol_ratio']:.2f}")
 print(f"Penalties: {s2['penalties']['total']} (scaled: {s2['penalty_scaled']:.1f}) ({s2['penalties']['flags'] or 'None'})")
 print(f"\n── External Context (BD2) ──")
 print(f"D6 Raw: {s2['d6_raw']:+d} → Scaled: {s2['d6']:.1f}/100")
@@ -774,6 +796,7 @@ csv_row = {
     'Price': round(s2['price'], 2),
     'Golden_Cross': str(s2['golden_cross']),
     'Volatility_Pct': round(s2['volatility'], 2),
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
     'Penalty_Total': s2['penalties']['total'],
     'Penalty_Reversal': s2['penalties']['reversal'],
     'Penalty_DeathCross': s2['penalties']['death_cross'],
@@ -885,7 +908,7 @@ data_rows = [
     ['D2 Volume Rank (/100)', s1['d2'], s2['d2'], (s1['d2']+s2['d2'])/2, s2['d2']-s1['d2']],
     ['D3 RSI (/100)', s1['d3'], s2['d3'], (s1['d3']+s2['d3'])/2, s2['d3']-s1['d3']],
     ['D4 MA Trend (/100)', s1['d4'], s2['d4'], (s1['d4']+s2['d4'])/2, s2['d4']-s1['d4']],
-    ['D5 Volatility (/100)', s1['d5'], s2['d5'], (s1['d5']+s2['d5'])/2, s2['d5']-s1['d5']],
+    ['D5 Dir.Volatility (/100)', s1['d5'], s2['d5'], (s1['d5']+s2['d5'])/2, s2['d5']-s1['d5']],
     ['D6 External (/100)', s1['d6'], s2['d6'], (s1['d6']+s2['d6'])/2, s2['d6']-s1['d6']],
     ['Penalty (raw)', s1['penalties']['total'], s2['penalties']['total'], (s1['penalties']['total']+s2['penalties']['total'])/2, s2['penalties']['total']-s1['penalties']['total']],
     ['Penalty (scaled /100)', s1['penalty_scaled'], s2['penalty_scaled'], (s1['penalty_scaled']+s2['penalty_scaled'])/2, s2['penalty_scaled']-s1['penalty_scaled']],
@@ -1099,7 +1122,7 @@ methods = [
     ("D2: Volume Rank (0-100)", "Rolling Percentile of cumulative volume vs self over 252 days\nSame weights as D1\nScore = Weighted Percentile (already 0-100)"),
     ("D3: RSI (0-100)", "14-day RSI\n50-70→100, 40-49→80, 71-80→70\n30-39→60, >80→50, <30→30"),
     ("D4: MA Trend (0-100)", "Price>MA50→+35, Price>MA200→+35, Golden Cross(MA50>MA200)→+30\nMax: 100 pts"),
-    ("D5: Volatility (0-100)", "21-day annualized volatility\n≤20%→100, 21-30%→90, 31-40%→70, 41-50%→55\n51-60%→40, 61-80%→25, >80%→10"),
+    ("D5: Directional Volatility (0-100)", "21-day directional volatility\nvol_ratio = downside_vol / upside_vol\n≤0.6→100, ≤0.8→85, ≤1.0→70, ≤1.2→55\n≤1.5→40, ≤2.0→20, >2.0→10"),
     ("D6: External Context (0-100)", "Raw score ±10 mapped to 0-100 (center=50)\n-10→0, 0→50, +10→100\nPart A — DXY Divergence (±5)\nPart B — VIX Regime (±5)"),
     ("Penalty System (0 to -14)", "Same triggers as before, scaled from /110 to /100:\nPenalty_Scaled = Penalty_Raw × (100/110)\nMild Reversal: ~-4.5 | Strong Reversal: ~-9.1 | Death Cross: ~-4.5\nMax: ~-13.6 (capped)"),
     ("Net Score Formula", "Gross = Average(D1, D2, D3, D4, D5, D6)  [all /100]\nNet = Gross + Penalty_Scaled\nAll dimensions weighted equally (1/6 each)"),
