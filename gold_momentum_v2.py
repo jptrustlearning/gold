@@ -865,6 +865,10 @@ history_df = pd.DataFrame([history_row])
 
 if os.path.exists(history_path):
     existing = pd.read_csv(history_path, encoding='utf-8')
+    # Ensure string columns don't become float64 from empty values
+    for col in ['Exhaust_Scenario', 'Warning_Flags', 'Tier', 'Z_Zone', 'Golden_Cross', 'As_Of_Running']:
+        if col in existing.columns:
+            existing[col] = existing[col].fillna('').astype(str)
     # ไม่ซ้ำวันเดียวกัน — ถ้ารันซ้ำวันเดิม overwrite แถวนั้น
     existing = existing[existing['Date'] != history_row['Date']]
     history_df = pd.concat([existing, history_df], ignore_index=True)
