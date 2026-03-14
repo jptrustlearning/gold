@@ -574,24 +574,24 @@ def calc_zscore_regime(df, base_idx):
         result['signal'] = '⚪ N/A'
     elif z_primary >= 2.5:
         result['zone'] = 'Extreme Extended'
-        result['regime'] = 'ราคาวิ่งเกิน +2.5σ — pullback risk สูงมาก'
-        result['signal'] = '🔴 Extreme Extended (Z≥+2.5)'
+        result['regime'] = 'ราคาวิ่งเกิน +2.5σ — pullback risk สูงมาก เสริมสัญญาณ Sell'
+        result['signal'] = '🟢 Extreme Extended (Z≥+2.5)'
     elif z_primary >= 2.0:
         result['zone'] = 'Extended'
-        result['regime'] = 'ราคาเหนือ +2.0σ — pullback risk เพิ่มขึ้น'
+        result['regime'] = 'ราคาเหนือ +2.0σ — อาจเริ่มย่อตัว Sell มีน้ำหนักขึ้น'
         result['signal'] = '🟡 Extended (Z≥+2.0)'
     elif z_primary <= -2.0:
         result['zone'] = 'Extreme Depressed'
-        result['regime'] = 'ราคาตกเกิน -2.0σ — oversold สุดโต่ง'
-        result['signal'] = '🟢 Extreme Depressed (Z≤-2.0)'
+        result['regime'] = 'ราคาตกเกิน -2.0σ — oversold สุดโต่ง ระวัง bounce ก่อน Short ใหม่'
+        result['signal'] = '🔴 Extreme Depressed (Z≤-2.0)'
     elif z_primary <= -1.5:
         result['zone'] = 'Depressed'
-        result['regime'] = 'ราคาต่ำกว่า -1.5σ — oversold zone'
-        result['signal'] = '🔵 Depressed (Z≤-1.5)'
+        result['regime'] = 'ราคาต่ำกว่า -1.5σ — ขายช้าไปอาจเจอ bounce ระวัง Sell ใหม่'
+        result['signal'] = '🟡 Depressed (Z≤-1.5)'
     else:
         result['zone'] = 'Normal'
-        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +2.0σ)'
-        result['signal'] = '🟢 Normal'
+        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +2.0σ) — sell score ใช้ได้ตามปกติ'
+        result['signal'] = '⚪ Normal'
 
     if len(closes) >= 55:
         closes_5d_ago = closes[:-5]
