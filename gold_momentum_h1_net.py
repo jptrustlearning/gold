@@ -46,10 +46,12 @@ r2 = float(buy.get('Pivot_D1_R2', 0)) if buy.get('Pivot_D1_R2', '') != '' else 0
 s1 = float(buy.get('Pivot_D1_S1', 0)) if buy.get('Pivot_D1_S1', '') != '' else 0
 s2_pv = float(buy.get('Pivot_D1_S2', 0)) if buy.get('Pivot_D1_S2', '') != '' else 0
 
+buy_d5_col = 'D5_DirVol' if 'D5_DirVol' in buy else 'D5_Volatility'
+sell_d5_col = 'D5_DirVol' if 'D5_DirVol' in sell else 'D5_Volatility'
 buy_dims = {f'Buy_D{i}': float(buy[col]) for i, col in enumerate(
-    ['D1_ReturnRank','D2_VolumeRank','D3_RSI','D4_MA','D5_Volatility','D6_External'], 1)}
+    ['D1_ReturnRank','D2_VolumeRank','D3_RSI','D4_MA',buy_d5_col,'D6_External'], 1)}
 sell_dims = {f'Sell_D{i}': float(sell[col]) for i, col in enumerate(
-    ['D1_ReturnRank','D2_VolumeRank','D3_RSI','D4_MA','D5_Volatility','D6_External'], 1)}
+    ['D1_ReturnRank','D2_VolumeRank','D3_RSI','D4_MA',sell_d5_col,'D6_External'], 1)}
 
 print(f"Buy Score:  {buy_score:.2f} ({buy['Tier']})")
 print(f"Sell Score: {sell_score:.2f} ({sell['Tier']})")
