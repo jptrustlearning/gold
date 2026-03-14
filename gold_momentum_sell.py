@@ -158,13 +158,29 @@ def calc_ma(df, base_idx, window):
     return np.mean(df['Close'].values[start:base_idx+1])
 
 def calc_volatility(df, base_idx):
+    """Directional Volatility — แยก upside/downside vol แล้วคำนวณ ratio"""
     start = base_idx - 20
     if start < 0: start = 0
     closes = df['Close'].values[start:base_idx+1]
     if len(closes) < 2:
-        return 0
+        return {'abs_vol': 0, 'up_vol': 0, 'down_vol': 0, 'vol_ratio': 1.0}
     rets = np.diff(closes) / closes[:-1]
-    return np.std(rets) * np.sqrt(252) * 100
+    abs_vol = float(np.std(rets) * np.sqrt(252) * 100)
+
+    up_rets = rets[rets > 0]
+    down_rets = rets[rets < 0]
+
+    up_vol = float(np.std(up_rets) * np.sqrt(252) * 100) if len(up_rets) >= 2 else 0
+    down_vol = float(np.std(down_rets) * np.sqrt(252) * 100) if len(down_rets) >= 2 else 0
+
+    if up_vol > 0:
+        vol_ratio = down_vol / up_vol
+    elif down_vol > 0:
+        vol_ratio = 999
+    else:
+        vol_ratio = 1.0
+
+    return {'abs_vol': abs_vol, 'up_vol': up_vol, 'down_vol': down_vol, 'vol_ratio': vol_ratio}
 
 def find_closest_idx(ext_df, target_date, max_gap_days=5):
     if ext_df is None:
@@ -256,26 +272,20 @@ def d4_sell_score(price, ma50, ma200):
     if ma50 is not None and ma200 is not None and ma50 < ma200: pts += 30
     return min(pts, 100)
 
-def d5_sell_score(vol):
+def d5_sell_score(vol_data):
     """
-    D5s Volatility (Sell): HIGH volatility = panic/fear = good sell conditions.
-    Opposite of buy score.
-    
-    > 80% → 100 (extreme panic)
-    61-80% → 90
-    51-60% → 75
-    41-50% → 60
-    31-40% → 40
-    21-30% → 20
-    ≤ 20% → 5 (calm market, no sell pressure)
+    D5s Directional Volatility (Sell): FLIPPED — high vol_ratio = downside dominant = strong sell.
+    vol_ratio = down_vol / up_vol
+    High ratio means downside volatility dominates → panic/fear → sell signal strong.
     """
-    if vol > 80:  return 100
-    if vol > 60:  return 90
-    if vol > 50:  return 75
-    if vol > 40:  return 60
-    if vol > 30:  return 40
-    if vol > 20:  return 20
-    return 5
+    ratio = vol_data['vol_ratio'] if isinstance(vol_data, dict) else 1.0
+    if ratio >= 2.0:  return 100   # downside dominant มาก
+    if ratio >= 1.5:  return 85
+    if ratio >= 1.2:  return 70
+    if ratio >= 1.0:  return 55    # balanced
+    if ratio >= 0.8:  return 40
+    if ratio >= 0.6:  return 20
+    return 10                       # upside dominant → no sell pressure
 
 def calc_d6_sell_external(df_gold, gold_idx, df_dxy, df_vix):
     """
@@ -459,9 +469,10 @@ def full_sell_score(df, idx, df_dxy, df_vix):
     ma200 = calc_ma(df, idx, 200)
     d4 = d4_sell_score(price, ma50, ma200)
     
-    # Sell-side D5: Volatility (flipped)
-    vol = calc_volatility(df, idx)
-    d5 = d5_sell_score(vol)
+    # Sell-side D5: Volatility (flipped — uses vol_ratio)
+    vol_data = calc_volatility(df, idx)
+    vol = vol_data['abs_vol']
+    d5 = d5_sell_score(vol_data)
     
     # Sell-side D6: External (inverted)
     ext = calc_d6_sell_external(df, idx, df_dxy, df_vix)
@@ -490,7 +501,7 @@ def full_sell_score(df, idx, df_dxy, df_vix):
         'd6_raw': ext['d6_total'],
         'rsi': rsi, 'ma50': ma50, 'ma200': ma200,
         'death_cross': death_cross, 'golden_cross': golden_cross,
-        'volatility': vol,
+        'volatility': vol, 'vol_ratio': vol_data['vol_ratio'],
         'gross': gross, 'penalties': penalties,
         'penalty_scaled': penalty_scaled,
         'net': net,
@@ -552,9 +563,10 @@ csv_row = {
     'D2_VolumeRank': round(s2['d2'], 2),
     'D3_RSI': round(s2['d3'], 2),
     'D4_MA': round(s2['d4'], 2),
-    'D5_Volatility': round(s2['d5'], 2),
+    'D5_DirVol': round(s2['d5'], 2),
     'D6_External': round(s2['d6'], 2),
     'D6_Raw': s2['d6_raw'],
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
     'Penalty_Scaled': round(s2['penalty_scaled'], 2),
     'WP_Return_Pct': round(s2['wp_ret'], 2),
     'WP_Volume_Pct': round(s2['wp_vol'], 2),
@@ -604,14 +616,20 @@ history_row = {
     'D2_Volume': round(s2['d2'], 2),
     'D3_RSI': round(s2['d3'], 2),
     'D4_MA': round(s2['d4'], 2),
-    'D5_Volatility': round(s2['d5'], 2),
+    'D5_DirVol': round(s2['d5'], 2),
     'D6_External': round(s2['d6'], 2),
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
     'RSI': round(s2['rsi'], 2),
     'Volatility_Pct': round(s2['volatility'], 2),
     'Penalty_Scaled': round(s2['penalty_scaled'], 2),
+    'Ret_1W': round(s2['ret_pctls']['1W']['return'], 2),
+    'Ret_1M': round(s2['ret_pctls']['1M']['return'], 2),
+    'Ret_3M': round(s2['ret_pctls']['3M']['return'], 2),
+    'Golden_Cross': str(s2['golden_cross']),
     'Warning_Flags': s2['penalties']['flags'] if s2['penalties']['flags'] else 'None',
     'Tier': sell_tier,
     'As_Of_Running': AS_OF,
+    'Exhaust_Scenario': '',
 }
 
 history_path = os.path.join(base_dir, 'score_history_sell.csv')
@@ -643,11 +661,11 @@ exhaust_result = {
 if len(history_df) >= 6:
     h = history_df.copy()
     h['Net_Score'] = pd.to_numeric(h['Net_Score'], errors='coerce')
-    h['D5_Volatility'] = pd.to_numeric(h['D5_Volatility'], errors='coerce')
+    h['D5_DirVol'] = pd.to_numeric(h['D5_DirVol'], errors='coerce')
 
     current = h.iloc[-1]
     net_now = current['Net_Score']
-    d5_now = current['D5_Volatility']
+    d5_now = current['D5_DirVol']
 
     # Net score 5d ago
     net_5d_ago = h.iloc[-6]['Net_Score'] if len(h) >= 6 else net_now
@@ -659,7 +677,7 @@ if len(history_df) >= 6:
     min_10d = last10.min()
 
     # D5 shift in 5 days
-    d5_5d_ago = h.iloc[-6]['D5_Volatility'] if len(h) >= 6 else d5_now
+    d5_5d_ago = h.iloc[-6]['D5_DirVol'] if len(h) >= 6 else d5_now
     d5_shift = d5_now - d5_5d_ago
 
     exhaust_result['net_5d_change'] = round(net_5d_change, 2)
