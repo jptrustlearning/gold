@@ -546,6 +546,85 @@ print(f"  VIX: {s2['external']['vix_score']:+d}  ({s2['external']['vix_signal']}
 
 
 # ══════════════════════════════════════════════════════
+# Z-SCORE REGIME FILTER
+# ══════════════════════════════════════════════════════
+
+def calc_zscore_regime(df, base_idx):
+    """
+    Z-Score regime — same as buy script.
+    Asymmetric thresholds calibrated for gold's positive drift bias.
+    """
+    closes = df['Close'].values[:base_idx + 1]
+    result = {}
+
+    for period, label in [(50, '50d'), (100, '100d'), (200, '200d')]:
+        if len(closes) < period:
+            result[f'z_{label}'] = None
+            continue
+        window = closes[-period:]
+        mean = np.mean(window)
+        std = np.std(window, ddof=1)
+        result[f'z_{label}'] = (closes[-1] - mean) / std if std > 0 else 0.0
+
+    z_primary = result.get('z_50d')
+
+    if z_primary is None:
+        result['zone'] = 'N/A'
+        result['regime'] = 'Insufficient data for Z-Score'
+        result['signal'] = '⚪ N/A'
+    elif z_primary >= 2.5:
+        result['zone'] = 'Extreme Extended'
+        result['regime'] = 'ราคาวิ่งเกิน +2.5σ — pullback risk สูงมาก'
+        result['signal'] = '🔴 Extreme Extended (Z≥+2.5)'
+    elif z_primary >= 2.0:
+        result['zone'] = 'Extended'
+        result['regime'] = 'ราคาเหนือ +2.0σ — pullback risk เพิ่มขึ้น'
+        result['signal'] = '🟡 Extended (Z≥+2.0)'
+    elif z_primary <= -2.0:
+        result['zone'] = 'Extreme Depressed'
+        result['regime'] = 'ราคาตกเกิน -2.0σ — oversold สุดโต่ง'
+        result['signal'] = '🟢 Extreme Depressed (Z≤-2.0)'
+    elif z_primary <= -1.5:
+        result['zone'] = 'Depressed'
+        result['regime'] = 'ราคาต่ำกว่า -1.5σ — oversold zone'
+        result['signal'] = '🔵 Depressed (Z≤-1.5)'
+    else:
+        result['zone'] = 'Normal'
+        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +2.0σ)'
+        result['signal'] = '🟢 Normal'
+
+    if len(closes) >= 55:
+        closes_5d_ago = closes[:-5]
+        window_5d_ago = closes_5d_ago[-50:]
+        mean_ago = np.mean(window_5d_ago)
+        std_ago = np.std(window_5d_ago, ddof=1)
+        if std_ago > 0:
+            z_5d_ago = (closes_5d_ago[-1] - mean_ago) / std_ago
+            result['z_delta_5d'] = result['z_50d'] - z_5d_ago
+        else:
+            result['z_delta_5d'] = 0.0
+    else:
+        result['z_delta_5d'] = None
+
+    return result
+
+# Compute Z-Score for BD2 (latest)
+zscore = calc_zscore_regime(df, BD2_idx)
+
+print(f"\n{'='*55}")
+print(f"Z-Score Regime Filter (SELL)")
+print(f"{'='*55}")
+print(f"  Z-Score 50d:  {zscore['z_50d']:.3f}" if zscore['z_50d'] is not None else "  Z-Score 50d:  N/A")
+print(f"  Z-Score 100d: {zscore['z_100d']:.3f}" if zscore['z_100d'] is not None else "  Z-Score 100d: N/A")
+print(f"  Z-Score 200d: {zscore['z_200d']:.3f}" if zscore['z_200d'] is not None else "  Z-Score 200d: N/A")
+print(f"  Zone:         {zscore['zone']}")
+print(f"  Signal:       {zscore['signal']}")
+if zscore.get('z_delta_5d') is not None:
+    zd5 = zscore['z_delta_5d']
+    print(f"  Z Delta 5d:   {zd5:+.3f} ({'Z rising — extending' if zd5 > 0 else 'Z falling — reverting' if zd5 < 0 else 'flat'})")
+
+
+# ══════════════════════════════════════════════════════
 # CSV OUTPUT — SELL
 # ══════════════════════════════════════════════════════
 
@@ -590,6 +669,13 @@ csv_row = {
     'VIX_Level': round(s2['external']['vix_level'], 2) if s2['external']['vix_level'] is not None else '',
     'DXY_Signal': s2['external']['dxy_signal'],
     'VIX_Signal': s2['external']['vix_signal'],
+    'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
+    'Z_Score_100d': round(zscore['z_100d'], 3) if zscore['z_100d'] is not None else '',
+    'Z_Score_200d': round(zscore['z_200d'], 3) if zscore['z_200d'] is not None else '',
+    'Z_Zone': zscore['zone'],
+    'Z_Signal': zscore['signal'],
+    'Z_Regime': zscore['regime'],
+    'Z_Delta_5d': round(zscore['z_delta_5d'], 3) if zscore.get('z_delta_5d') is not None else '',
     'Base_Date_1': s1['date'].strftime('%Y-%m-%d'),
     'Base_Date_2': s2['date'].strftime('%Y-%m-%d'),
     'As_Of_Running': AS_OF,
@@ -626,6 +712,9 @@ history_row = {
     'Ret_1M': round(s2['ret_pctls']['1M']['return'], 2),
     'Ret_3M': round(s2['ret_pctls']['3M']['return'], 2),
     'Golden_Cross': str(s2['golden_cross']),
+    'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
+    'Z_Zone': zscore['zone'],
+    'Z_Delta_5d': round(zscore['z_delta_5d'], 3) if zscore.get('z_delta_5d') is not None else '',
     'Warning_Flags': s2['penalties']['flags'] if s2['penalties']['flags'] else 'None',
     'Tier': sell_tier,
     'As_Of_Running': AS_OF,
