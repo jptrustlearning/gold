@@ -1244,14 +1244,15 @@ function renderMacro(){
   const vc=vg?'var(--emerald)':vb?'var(--blue)':vs.includes('🟡')?'var(--gold)':'var(--red)';
   const vbg=vg?'var(--emerald-dim)':vb?'var(--blue-dim)':vs.includes('🟡')?'var(--gold-dim)':'var(--red-dim)';
   const dsc=ds.replace(/^[🟢🟡🔴🔵]\s*/,''),vsc=vs.replace(/^[🟢🟡🔴🔵]\s*/,'');
+  const dEmoji=Array.from(ds)[0]||'',vEmoji=Array.from(vs)[0]||'';
   document.getElementById('macroGrid').innerHTML=`
     <div class="macro-card dxy"><div class="macro-header"><span class="macro-label">DXY (US Dollar Index) — 1M Change</span></div>
       <div class="macro-value" style="color:${dp>=0?'var(--emerald)':'var(--red)'}">${dp>=0?'+':''}${dp.toFixed(2)}%</div>
-      <div class="macro-signal" style="color:${dc};background:${dbg}">${ds.charAt(0)} ${dsc}</div>
+      <div class="macro-signal" style="color:${dc};background:${dbg}">${dEmoji} ${dsc}</div>
       <div class="macro-note">DXY ↑ = dollar strong → typically bearish gold | DXY ↓ = dollar weak → typically bullish gold</div></div>
     <div class="macro-card vix"><div class="macro-header"><span class="macro-label">VIX (CBOE Volatility Index) — Current Level</span></div>
       <div class="macro-value" style="color:${vl<=15?'var(--emerald)':vl<=20?'var(--gold)':vl<=30?'var(--orange)':'var(--red)'}">${vl.toFixed(2)}</div>
-      <div class="macro-signal" style="color:${vc};background:${vbg}">${vs.charAt(0)} ${vsc}</div>
+      <div class="macro-signal" style="color:${vc};background:${vbg}">${vEmoji} ${vsc}</div>
       <div class="macro-note">VIX &lt;15 calm | 15-20 normal | 20-30 elevated fear → gold safe haven | &gt;30 panic</div></div>`;
 }
 
