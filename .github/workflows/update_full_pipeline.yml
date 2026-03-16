@@ -285,6 +285,17 @@ jobs:
           git add score_history.csv 2>/dev/null || true
           git add score_history_sell.csv 2>/dev/null || true
 
+          # H1 outputs
+          git add gold_prices_h1_tail.csv 2>/dev/null || true
+          git add output_momentum_gold_h1.csv 2>/dev/null || true
+          git add output_momentum_gold_h1_*.csv 2>/dev/null || true
+          git add output_momentum_gold_h1_sell.csv 2>/dev/null || true
+          git add output_momentum_gold_h1_sell_*.csv 2>/dev/null || true
+          git add output_momentum_gold_h1_net.csv 2>/dev/null || true
+          git add output_momentum_gold_h1_net_*.csv 2>/dev/null || true
+          git add score_history_h1.csv 2>/dev/null || true
+          git add score_history_h1_sell.csv 2>/dev/null || true
+
           # ไม่ push Excel (ใหญ่เกินไป)
           git reset HEAD Gold_Momentum_v3.0.xlsx 2>/dev/null || true
 

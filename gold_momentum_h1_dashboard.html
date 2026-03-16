@@ -438,7 +438,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1.csv';
 const SELL_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_sell.csv';
 const NET_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_net.csv';
-const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices_h1.csv';
+const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices_h1_tail.csv';
 let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],UPZ_ZONES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
@@ -710,7 +710,7 @@ function drawPivotChart(tab){
   const price=PIVOT.price;
   const chartBars=Math.min(72,PRICE_DATA.length);
   const chartData=PRICE_DATA.slice(-chartBars);
-  const zoneSlots=5;
+  const zoneSlots=2;
   const totalSlots=chartBars+zoneSlots;
   // Labels: show only every 6th bar (6h intervals) for readability
   const labels=[...chartData.map((d,i)=>{
@@ -1016,7 +1016,7 @@ function drawPivotChart(tab){
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      layout:{padding:{right:10}},
+      layout:{padding:{right:220}},
       plugins:{
         legend:{
           display:true,position:'top',
