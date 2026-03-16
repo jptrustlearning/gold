@@ -239,31 +239,39 @@ def d4_score(price, ma_short, ma_long):
 
 
 def calc_volatility(df, idx, period=24):
-    """Annualized volatility from H1 returns. period=24 (1 day of bars)."""
+    """Directional Volatility — แยก upside/downside vol แล้วคำนวณ ratio (H1 version)."""
     if idx < period:
-        return 0
+        return {'abs_vol': 0, 'up_vol': 0, 'down_vol': 0, 'vol_ratio': 1.0}
     closes = df['Close'].values[idx - period:idx + 1]
     rets = np.diff(closes) / closes[:-1]
-    # Annualize: sqrt(24 bars/day * 252 trading days)
-    return float(np.std(rets) * np.sqrt(24 * 252) * 100)
+    abs_vol = float(np.std(rets) * np.sqrt(24 * 252) * 100)
 
+    up_rets = rets[rets > 0]
+    down_rets = rets[rets < 0]
 
-def d5_score(vol):
-    """Volatility scoring (0-100 scale)."""
-    if vol <= 20:
-        return 100
-    elif vol <= 30:
-        return 90
-    elif vol <= 40:
-        return 70
-    elif vol <= 50:
-        return 55
-    elif vol <= 60:
-        return 40
-    elif vol <= 80:
-        return 25
+    up_vol = float(np.std(up_rets) * np.sqrt(24 * 252) * 100) if len(up_rets) >= 2 else 0
+    down_vol = float(np.std(down_rets) * np.sqrt(24 * 252) * 100) if len(down_rets) >= 2 else 0
+
+    if up_vol > 0:
+        vol_ratio = down_vol / up_vol
+    elif down_vol > 0:
+        vol_ratio = 999
     else:
-        return 10
+        vol_ratio = 1.0
+
+    return {'abs_vol': abs_vol, 'up_vol': up_vol, 'down_vol': down_vol, 'vol_ratio': vol_ratio}
+
+
+def d5_score(vol_data):
+    """D5 Directional Volatility Score (0-100) — ใช้ vol_ratio (H1 Buy)."""
+    ratio = vol_data['vol_ratio'] if isinstance(vol_data, dict) else 1.0
+    if ratio <= 0.6:  return 100
+    if ratio <= 0.8:  return 85
+    if ratio <= 1.0:  return 70
+    if ratio <= 1.2:  return 55
+    if ratio <= 1.5:  return 40
+    if ratio <= 2.0:  return 20
+    return 10
 
 
 # ══════════════════════════════════════════════════════
@@ -622,8 +630,9 @@ def full_score(df, idx, df_dxy, df_vix):
     ma_long = calc_ma(df, idx, MA_LONG)
     d4 = d4_score(price, ma_short, ma_long)
 
-    vol = calc_volatility(df, idx)
-    d5 = d5_score(vol)
+    vol_data = calc_volatility(df, idx)
+    vol = vol_data['abs_vol']
+    d5 = d5_score(vol_data)
 
     penalties = calc_penalties(df, idx)
 
@@ -644,6 +653,7 @@ def full_score(df, idx, df_dxy, df_vix):
         'd6_raw': ext['d6_total'],
         'rsi': rsi, 'ma_short': ma_short, 'ma_long': ma_long,
         'golden_cross': golden_cross, 'volatility': vol,
+        'vol_ratio': vol_data['vol_ratio'],
         'gross': gross_avg_dims, 'penalties': penalties,
         'penalty_scaled': penalty_scaled,
         'net': net,
@@ -702,6 +712,82 @@ for tf in ['H4', 'D1', 'W1']:
         print(f"  {tf}: PP={p['PP']} | R1={p['R1']} R2={p['R2']} R3={p['R3']} | S1={p['S1']} S2={p['S2']} S3={p['S3']}")
 
 # ══════════════════════════════════════════════════════
+# Z-SCORE REGIME FILTER (H1 version — uses H1 close prices)
+# ══════════════════════════════════════════════════════
+
+def calc_zscore_regime(df, base_idx):
+    """Z-Score regime for H1 data. Uses bar-count equivalent lookbacks.
+    50d daily ≈ 50*24=1200 bars, 100d≈2400, 200d≈4800."""
+    closes = df['Close'].values[:base_idx + 1]
+    result = {}
+
+    for bars, label in [(1200, '50d'), (2400, '100d'), (4800, '200d')]:
+        if len(closes) < bars:
+            result[f'z_{label}'] = None
+            continue
+        window = closes[-bars:]
+        mean = np.mean(window)
+        std = np.std(window, ddof=1)
+        result[f'z_{label}'] = (closes[-1] - mean) / std if std > 0 else 0.0
+
+    z_primary = result.get('z_50d')
+
+    if z_primary is None:
+        result['zone'] = 'N/A'
+        result['regime'] = 'Insufficient data for Z-Score'
+        result['signal'] = '⚪ N/A'
+    elif z_primary >= 2.5:
+        result['zone'] = 'Extreme Extended'
+        result['regime'] = 'ราคาวิ่งเกิน +2.5σ — pullback risk สูงมาก ควรระวังการเปิด Long ใหม่'
+        result['signal'] = '🔴 Extreme Extended (Z≥+2.5)'
+    elif z_primary >= 2.0:
+        result['zone'] = 'Extended'
+        result['regime'] = 'ราคาเหนือ +2.0σ — momentum อาจแรงจริง แต่ pullback risk เพิ่มขึ้น'
+        result['signal'] = '🟡 Extended (Z≥+2.0)'
+    elif z_primary <= -2.0:
+        result['zone'] = 'Extreme Depressed'
+        result['regime'] = 'ราคาตกเกิน -2.0σ — oversold สุดโต่ง bounce potential สูง'
+        result['signal'] = '🟢 Extreme Depressed (Z≤-2.0)'
+    elif z_primary <= -1.5:
+        result['zone'] = 'Depressed'
+        result['regime'] = 'ราคาต่ำกว่า -1.5σ — oversold zone อาจเป็นจุด mean-revert'
+        result['signal'] = '🔵 Depressed (Z≤-1.5)'
+    else:
+        result['zone'] = 'Normal'
+        result['regime'] = 'ราคาอยู่ในกรอบปกติ (-1.5σ ถึง +2.0σ) — momentum score ใช้ได้ตามปกติ'
+        result['signal'] = '🟢 Normal'
+
+    # Z delta: compare current 50d Z vs approx 120 bars (5 days) ago
+    if len(closes) >= 1320:  # 1200 + 120
+        closes_ago = closes[:-120]
+        w_ago = closes_ago[-1200:]
+        m_ago = np.mean(w_ago)
+        s_ago = np.std(w_ago, ddof=1)
+        if s_ago > 0:
+            z_ago = (closes_ago[-1] - m_ago) / s_ago
+            result['z_delta_5d'] = result['z_50d'] - z_ago
+        else:
+            result['z_delta_5d'] = 0.0
+    else:
+        result['z_delta_5d'] = None
+
+    return result
+
+zscore = calc_zscore_regime(df, BD2_idx)
+
+print(f"\n{'='*55}")
+print(f"Z-Score Regime Filter (H1)")
+print(f"{'='*55}")
+print(f"  Z-Score 50d:  {zscore['z_50d']:.3f}" if zscore['z_50d'] is not None else "  Z-Score 50d:  N/A")
+print(f"  Z-Score 100d: {zscore['z_100d']:.3f}" if zscore['z_100d'] is not None else "  Z-Score 100d: N/A")
+print(f"  Z-Score 200d: {zscore['z_200d']:.3f}" if zscore['z_200d'] is not None else "  Z-Score 200d: N/A")
+print(f"  Zone:         {zscore['zone']}")
+print(f"  Signal:       {zscore['signal']}")
+if zscore.get('z_delta_5d') is not None:
+    zd = zscore['z_delta_5d']
+    print(f"  Z Delta 5d:   {zd:+.3f} ({'Z rising' if zd > 0 else 'Z falling' if zd < 0 else 'flat'})")
+
+# ══════════════════════════════════════════════════════
 # CSV OUTPUT
 # ══════════════════════════════════════════════════════
 
@@ -719,7 +805,7 @@ csv_row = {
     'D2_VolumeRank': round(s2['d2'], 2),
     'D3_RSI': round(s2['d3'], 2),
     'D4_MA': round(s2['d4'], 2),
-    'D5_Volatility': round(s2['d5'], 2),
+    'D5_DirVol': round(s2['d5'], 2),
     'D6_External': round(s2['d6'], 2),
     'D6_Raw': s2['d6_raw'],
     'Penalty_Scaled': round(s2['penalty_scaled'], 2),
@@ -738,6 +824,7 @@ csv_row = {
     'Price': round(s2['price'], 2),
     'Golden_Cross': str(s2['golden_cross']),
     'Volatility_Pct': round(s2['volatility'], 2),
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
     'Penalty_Total': s2['penalties']['total'],
     'Penalty_Reversal': s2['penalties']['reversal'],
     'Penalty_DeathCross': s2['penalties']['death_cross'],
@@ -749,7 +836,15 @@ csv_row = {
     'Base_Date_1': s1['datetime'].strftime('%Y-%m-%d %H:%M'),
     'Base_Date_2': s2['datetime'].strftime('%Y-%m-%d %H:%M'),
     'As_Of_Running': AS_OF,
-    **pivot_csv
+    **pivot_csv,
+    # Z-Score Regime Filter
+    'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
+    'Z_Score_100d': round(zscore['z_100d'], 3) if zscore['z_100d'] is not None else '',
+    'Z_Score_200d': round(zscore['z_200d'], 3) if zscore['z_200d'] is not None else '',
+    'Z_Zone': zscore['zone'],
+    'Z_Signal': zscore['signal'],
+    'Z_Regime': zscore['regime'],
+    'Z_Delta_5d': round(zscore['z_delta_5d'], 3) if zscore.get('z_delta_5d') is not None else '',
 }
 
 csv_df = pd.DataFrame([csv_row])
@@ -759,6 +854,151 @@ csv_df.to_csv(csv_fixed, index=False, encoding='utf-8')
 csv_df.to_csv(csv_ts, index=False, encoding='utf-8')
 print(f"\nCSV saved: {csv_fixed}")
 print(f"CSV saved: {csv_ts}")
+
+# ══════════════════════════════════════════════════════
+# SCORE HISTORY — append per-run (for exhaustion detection)
+# ══════════════════════════════════════════════════════
+
+history_row = {
+    'Date': s2['datetime'].strftime('%Y-%m-%d %H:%M'),
+    'Price': round(s2['price'], 2),
+    'Net_Score': round(s2['net'], 2),
+    'Gross_Score': round(s2['gross'], 2),
+    'D1_Return': round(s2['d1'], 2),
+    'D2_Volume': round(s2['d2'], 2),
+    'D3_RSI': round(s2['d3'], 2),
+    'D4_MA': round(s2['d4'], 2),
+    'D5_DirVol': round(s2['d5'], 2),
+    'D6_External': round(s2['d6'], 2),
+    'Vol_Ratio': round(s2['vol_ratio'], 3),
+    'RSI': round(s2['rsi'], 2),
+    'Volatility_Pct': round(s2['volatility'], 2),
+    'Penalty_Scaled': round(s2['penalty_scaled'], 2),
+    'Ret_1W': round(s2['ret_pctls']['1W']['return'], 2),
+    'Ret_1M': round(s2['ret_pctls']['1M']['return'], 2),
+    'Golden_Cross': str(s2['golden_cross']),
+    'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
+    'Z_Zone': zscore['zone'],
+    'Z_Delta_5d': round(zscore['z_delta_5d'], 3) if zscore.get('z_delta_5d') is not None else '',
+    'Warning_Flags': s2['penalties']['flags'] if s2['penalties']['flags'] else 'None',
+    'Tier': momentum_tier,
+    'As_Of_Running': AS_OF,
+}
+
+history_path = os.path.join(base_dir, 'score_history_h1.csv')
+history_df = pd.DataFrame([history_row])
+
+if os.path.exists(history_path):
+    existing = pd.read_csv(history_path, encoding='utf-8')
+    for col in ['Exhaust_Scenario', 'Warning_Flags', 'Tier', 'Z_Zone', 'Golden_Cross', 'As_Of_Running']:
+        if col in existing.columns:
+            existing[col] = existing[col].fillna('').astype(str)
+    existing = existing[existing['Date'] != history_row['Date']]
+    history_df = pd.concat([existing, history_df], ignore_index=True)
+    history_df = history_df.sort_values('Date').reset_index(drop=True)
+
+history_df.to_csv(history_path, index=False, encoding='utf-8')
+print(f"Score history: {history_path} ({len(history_df)} rows)")
+
+# ══════════════════════════════════════════════════════
+# EXHAUSTION DETECTION (from score_history_h1)
+# ══════════════════════════════════════════════════════
+
+exhaust_result = {
+    'scenario': 'None', 'label': '', 'action_override': '',
+    'net_5d_change': '', 'max_10d': '', 'min_10d': '', 'd5_shift_5d': '',
+}
+
+# H1 runs hourly → "5d" ≈ last 120 rows, "10d" ≈ last 240 rows
+# But history has 1 row per run (hourly), so 5d ≈ ~120 rows weekday
+# Use index-based: 6 rows back ≈ 6 hours (short), better use date-based
+# For simplicity: use last 120 rows for "5d equivalent" and last 240 for "10d"
+# BUT history deduplicates by datetime, so each run = 1 row
+# With hourly runs, 5 days ≈ 5*24 = 120 rows
+H1_5D_ROWS = 120
+H1_10D_ROWS = 240
+
+if len(history_df) >= 6:
+    h = history_df.copy()
+    h['Net_Score'] = pd.to_numeric(h['Net_Score'], errors='coerce')
+    h['D5_DirVol'] = pd.to_numeric(h.get('D5_DirVol', h.get('D5_Volatility', 0)), errors='coerce')
+    h['Z_Score_50d'] = pd.to_numeric(h['Z_Score_50d'], errors='coerce')
+
+    current = h.iloc[-1]
+    net_now = current['Net_Score']
+    d5_now = current['D5_DirVol'] if pd.notna(current.get('D5_DirVol')) else 0
+    z_now = current['Z_Score_50d'] if pd.notna(current.get('Z_Score_50d')) else 0
+
+    # Use min of available rows vs target
+    n5 = min(H1_5D_ROWS, len(h) - 1)
+    n10 = min(H1_10D_ROWS, len(h))
+
+    net_5d_ago = h.iloc[-(n5+1)]['Net_Score'] if n5 > 0 else net_now
+    net_5d_change = net_now - net_5d_ago
+
+    last_10d = h['Net_Score'].tail(n10)
+    max_10d = last_10d.max()
+    min_10d = last_10d.min()
+
+    d5_5d_ago_val = h.iloc[-(n5+1)].get('D5_DirVol', h.iloc[-(n5+1)].get('D5_Volatility', d5_now))
+    d5_5d_ago = pd.to_numeric(d5_5d_ago_val, errors='coerce')
+    if pd.isna(d5_5d_ago): d5_5d_ago = d5_now
+    d5_shift = d5_now - d5_5d_ago
+
+    exhaust_result['net_5d_change'] = round(net_5d_change, 2)
+    exhaust_result['max_10d'] = round(max_10d, 2)
+    exhaust_result['min_10d'] = round(min_10d, 2)
+    exhaust_result['d5_shift_5d'] = round(d5_shift, 2)
+
+    sc13 = z_now >= 2.0 and net_now >= 70 and net_5d_change < 0
+    sc14 = max_10d >= 80 and net_5d_change < -8 and not sc13
+    sc15 = min_10d < 50 and net_5d_change > 3
+    sc16 = abs(d5_shift) >= 50 and not sc13 and not sc14 and not sc15
+
+    if sc13:
+        exhaust_result['scenario'] = 'Bull Exhaustion'
+        exhaust_result['label'] = '🔥 Bull Exhaustion: Z extended + momentum fading → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+    elif sc15:
+        exhaust_result['scenario'] = 'Bear Exhaustion'
+        exhaust_result['label'] = '🔋 Bear Exhaustion: Selling exhausted, bounce likely → BUY'
+        exhaust_result['action_override'] = 'BUY'
+    elif sc14:
+        exhaust_result['scenario'] = 'Topping'
+        exhaust_result['label'] = '🏔️ Topping: Score collapsed from recent high → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+    elif sc16:
+        exhaust_result['scenario'] = 'Vol Shift'
+        exhaust_result['label'] = '⚡ Vol Regime Shift: D5 changed ' + str(round(d5_shift)) + 'pts → HOLD'
+        exhaust_result['action_override'] = 'HOLD'
+
+    print(f"\n── Exhaustion Detection (H1) ──")
+    print(f"  Net {n5}-bar Δ: {net_5d_change:+.2f}")
+    print(f"  Max {n10}-bar:  {max_10d:.2f}  |  Min: {min_10d:.2f}")
+    print(f"  D5 shift:    {d5_shift:+.0f}")
+    print(f"  Z-Score:     {z_now:.3f}")
+    if exhaust_result['scenario'] != 'None':
+        print(f"  >>> {exhaust_result['label']}")
+    else:
+        print(f"  >>> No exhaustion signal")
+
+# Add exhaustion columns to main CSV
+csv_row['Exhaust_Scenario'] = exhaust_result['scenario']
+csv_row['Exhaust_Action'] = exhaust_result['action_override']
+csv_row['Net_5d_Change'] = exhaust_result['net_5d_change']
+csv_row['Max_10d'] = exhaust_result['max_10d']
+csv_row['Min_10d'] = exhaust_result['min_10d']
+csv_row['D5_Shift_5d'] = exhaust_result['d5_shift_5d']
+
+# Re-save CSVs with exhaustion columns
+csv_df = pd.DataFrame([csv_row])
+csv_df.to_csv(csv_fixed, index=False, encoding='utf-8')
+csv_df.to_csv(csv_ts, index=False, encoding='utf-8')
+print(f"\nCSV updated with exhaustion: {csv_fixed}")
+
+# Update history with exhaustion info
+history_df.loc[history_df['Date'] == history_row['Date'], 'Exhaust_Scenario'] = exhaust_result['scenario']
+history_df.to_csv(history_path, index=False, encoding='utf-8')
 
 print(f"\n{'='*55}")
 print(f"✅ H1 Momentum Scoring Complete")

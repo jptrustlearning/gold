@@ -71,6 +71,10 @@ jobs:
           git add output_momentum_gold_h1_net.csv 2>/dev/null || true
           git add output_momentum_gold_h1_net_*.csv 2>/dev/null || true
 
+          # Score history (for exhaustion detection)
+          git add score_history_h1.csv 2>/dev/null || true
+          git add score_history_h1_sell.csv 2>/dev/null || true
+
           git diff --cached --quiet || (
             TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
             H1_ROWS=$(wc -l < gold_prices_h1.csv)
