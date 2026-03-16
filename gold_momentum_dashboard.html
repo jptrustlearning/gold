@@ -241,7 +241,10 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 }
 @media(max-width:768px){
   .container{width:98%;padding:3% 2%}
-  .hero{gap:20px}
+  .hero{gap:16px;flex-direction:column;align-items:center}
+  .hero-score .ring{width:160px;height:160px}
+  .hero-score .ring canvas{width:160px!important;height:160px!important}
+  .hero-tier .price{font-size:2rem}
   .dim-grid{grid-template-columns:repeat(3,1fr)}
   .ret-grid{grid-template-columns:repeat(3,1fr)}
   .chart-box{height:260px}
@@ -254,6 +257,9 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   .upz-dist{min-width:auto;font-size:.7rem}
   .upz-sources{font-size:.65rem}
   .pivot-tab{padding:6px 14px;font-size:.72rem}
+  .pivot-tabs{justify-content:center}
+  .bias-signal{font-size:.85rem}
+  .section{padding:clamp(10px,3%,20px)}
 }
 @media(max-width:480px){
   .dim-grid{grid-template-columns:repeat(2,1fr)}
@@ -262,6 +268,11 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   .zscore-detail-grid{grid-template-columns:repeat(2,1fr)}
   .upz-zone{padding:8px 10px}
   .upz-conf{min-width:40px}
+  .hero-score .ring{width:140px;height:140px}
+  .hero-score .ring canvas{width:140px!important;height:140px!important}
+  .hero-tier .price{font-size:1.6rem}
+  .header h1{font-size:1.6rem}
+  .header .sub{font-size:.75rem;letter-spacing:1.5px}
 }
 @keyframes priceGlow{
   0%,100%{text-shadow:0 0 20px rgba(26,115,232,.2),0 0 40px rgba(26,115,232,.08)}
@@ -1796,16 +1807,20 @@ function renderRadarChart(){
   const ctx=document.getElementById('radarChart').getContext('2d');
   const radarOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
     tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+' / 100'}}},
-    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:tc('text3'),backdropColor:'transparent',font:{size:10}},grid:{color:tc('gridLine')},angleLines:{color:tc('gridLine')},pointLabels:{color:tc('text2'),font:{size:11,family:'Instrument Sans',weight:'600'}}}}};
+    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:tc('text3'),backdropColor:'transparent',font:{size:10}},grid:{color:tc('gridLine')},angleLines:{color:tc('gridLine')},pointLabels:{color:tc('text2'),font:{size:11,family:'Anuphan',weight:'600'}}}}};
+  // Use /100 scores from DN if available, otherwise scale D1-D6 (/20) × 5
+  const buyData=DN?[parseFloat(DN.Buy_D1||0),parseFloat(DN.Buy_D2||0),parseFloat(DN.Buy_D3||0),parseFloat(DN.Buy_D4||0),parseFloat(DN.Buy_D5||0),parseFloat(DN.Buy_D6||0)]
+    :[fi('D1_ReturnRank')*5,fi('D2_VolumeRank')*5,fi('D3_RSI')*5,fi('D4_MA')*5,fi('D5_Volatility')*5,fi('D6_External')*5];
   new Chart(ctx,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
-    datasets:[{label:'Buy',data:[fi('D1_ReturnRank'),fi('D2_VolumeRank'),fi('D3_RSI'),fi('D4_MA'),fi('D5_Volatility'),fi('D6_External')],
+    datasets:[{label:'Buy',data:buyData,
       backgroundColor:tc('radarBuy'),borderColor:tc('radarBuyBorder'),borderWidth:2,pointBackgroundColor:tc('radarBuyBorder'),pointBorderColor:tc('radarBuyBorder'),pointRadius:5,pointHoverRadius:8}]},
     options:radarOpts});
   if(DS){
     const ctx2=document.getElementById('radarSellChart').getContext('2d');
-    const sf=k=>DS[k]?parseFloat(DS[k]):0;
+    const sellData=DN?[parseFloat(DN.Sell_D1||0),parseFloat(DN.Sell_D2||0),parseFloat(DN.Sell_D3||0),parseFloat(DN.Sell_D4||0),parseFloat(DN.Sell_D5||0),parseFloat(DN.Sell_D6||0)]
+      :[parseFloat(DS.D1_ReturnRank||0)*5,parseFloat(DS.D2_VolumeRank||0)*5,parseFloat(DS.D3_RSI||0)*5,parseFloat(DS.D4_MA||0)*5,parseFloat(DS.D5_Volatility||0)*5,parseFloat(DS.D6_External||0)*5];
     new Chart(ctx2,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
-      datasets:[{label:'Sell',data:[sf('D1_ReturnRank'),sf('D2_VolumeRank'),sf('D3_RSI'),sf('D4_MA'),sf('D5_Volatility'),sf('D6_External')],
+      datasets:[{label:'Sell',data:sellData,
         backgroundColor:tc('radarSell'),borderColor:tc('radarSellBorder'),borderWidth:2,pointBackgroundColor:tc('radarSellBorder'),pointBorderColor:tc('radarSellBorder'),pointRadius:5,pointHoverRadius:8}]},
       options:radarOpts});
   }
