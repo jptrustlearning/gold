@@ -839,15 +839,13 @@ function drawPivotChart(tab){
       if(d1pp){
         const yPP=yScale.getPixelForValue(d1pp);
         if(yPP>=area.top&&yPP<=area.bottom){
-          ctx.setLineDash([6,3]);ctx.strokeStyle='#1A73E8';ctx.lineWidth=1.2;
-          ctx.beginPath();ctx.moveTo(area.left,yPP);ctx.lineTo(area.right-100,yPP);ctx.stroke();
+          ctx.setLineDash([6,3]);ctx.strokeStyle='#1A73E880';ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(area.left,yPP);ctx.lineTo(area.right,yPP);ctx.stroke();
           ctx.setLineDash([]);
-          // PP label on left
-          const ppLabel='D1 PP '+fp(d1pp);
-          ctx.font='bold 9px Instrument Sans, sans-serif';
-          const pw=ctx.measureText(ppLabel).width+10;
-          ctx.fillStyle='rgba(26,115,232,.12)';ctx.beginPath();ctx.roundRect(area.left+4,yPP-8,pw,16,4);ctx.fill();
-          ctx.fillStyle='#1A73E8';ctx.textAlign='left';ctx.fillText(ppLabel,area.left+9,yPP);
+          // Small PP label below the line on left edge
+          ctx.font='bold 7.5px Instrument Sans, sans-serif';
+          ctx.fillStyle='#1A73E8';ctx.textAlign='left';
+          ctx.fillText('PP '+fp(d1pp),area.left+4,yPP+12);
         }
       }
       ctx.restore();
