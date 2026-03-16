@@ -407,6 +407,9 @@ async function loadData(){
     D=rows[0];
     DS=sellRows.length?sellRows[0]:null;
     DN=netRows.length?netRows[0]:null;
+    // Normalize D5 column name: support both D5_Volatility (old) and D5_DirVol (new)
+    if(D&&!D.D5_DirVol&&D.D5_Volatility) D.D5_DirVol=D.D5_Volatility;
+    if(DS&&!DS.D5_DirVol&&DS.D5_Volatility) DS.D5_DirVol=DS.D5_Volatility;
     PIVOT_ALL=loadMultiTFPivots(D);
     PIVOT=PIVOT_ALL['D1']||PIVOT_ALL['H4']||null;
     CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
