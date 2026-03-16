@@ -1046,8 +1046,8 @@ function drawPivotChart(tab){
         }
       },
       scales:{
-        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:8,family:'Anuphan'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
-        y:{min:yMin,max:yMax,grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:10,family:'Anuphan'},callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
+        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:8,family:'Anuphan'},maxRotation:45,maxTicksLimit:8,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
+        y:{min:yMin,max:yMax,grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:10,family:'Anuphan'},maxTicksLimit:6,callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
       }
     }
   });
