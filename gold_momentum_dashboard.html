@@ -249,6 +249,20 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   50%{text-shadow:0 0 30px rgba(26,115,232,.4),0 0 60px rgba(26,115,232,.15),0 0 80px rgba(26,115,232,.06)}
 }
 .hero-price-glow{animation:priceGlow 3s ease-in-out infinite}
+.upz-bar{position:relative;border-radius:10px;overflow:hidden;background:var(--bg3);min-height:280px}
+.upz-zone{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:background .2s}
+.upz-zone:last-child{border-bottom:none}
+.upz-zone:hover{background:rgba(232,185,49,.06)}
+.upz-zone.upz-now{background:rgba(232,185,49,.1);border:1px solid var(--gold);border-radius:8px;margin:4px 8px;padding:10px 12px}
+.upz-label{font-weight:700;font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;min-width:100px}
+.upz-price{font-family:var(--font-h);font-size:.92rem;font-weight:700;min-width:80px;text-align:right}
+.upz-dist{font-size:.72rem;min-width:90px;text-align:right}
+.upz-sources{font-size:.68rem;color:var(--text3);flex:1}
+.upz-conf{display:flex;gap:2px;min-width:60px;justify-content:center}
+.upz-star{color:var(--gold);font-size:.6rem}
+.upz-star.dim{color:var(--border2)}
+.upz-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border2)}
+.upz-atr-badge{font-size:.72rem;padding:4px 10px;border-radius:6px;background:rgba(96,165,250,.12);color:var(--blue);font-weight:600}
 </style>
 </head>
 <body>
@@ -294,6 +308,11 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
     </div>
 
     <!-- ★ MULTI-TF TABLE + CONFLUENCE ★ -->
+    <div class="section fade-up">
+      <div class="section-title"><span class="dot"></span>Unified Price Zones — ATR + Pivot + Mean Confluence</div>
+      <div id="upzSection" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
+    </div>
+
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Pivot Levels — D1 (Daily) / W1 (Weekly) / MN (Monthly)</div>
       <div id="multiTFTable" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
@@ -389,7 +408,7 @@ const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/outpu
 const SELL_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_sell.csv';
 const NET_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_net.csv';
 const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
-let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],PRICE_DATA=null;
+let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],UPZ_ZONES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
 
@@ -412,6 +431,7 @@ async function loadData(){
     PIVOT_ALL=loadMultiTFPivots(D);
     PIVOT=PIVOT_ALL['D1']||null;
     CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
+    UPZ_ZONES=parseUPZ(D);
     PRICE_DATA=parsePriceCSV(pText);
     if(PIVOT) PIVOT.price=parseFloat(D.Price)||0;
     st.className='status-indicator success';
@@ -467,6 +487,24 @@ function parseConfluences(str){
   });
 }
 
+function parseUPZ(d){
+  const zones=[];
+  const count=parseInt(d.UPZ_Count)||0;
+  for(let i=1;i<=Math.min(count,7);i++){
+    const label=d['UPZ_'+i+'_Label'];
+    if(!label)continue;
+    zones.push({
+      label:label,
+      price:parseFloat(d['UPZ_'+i+'_Price'])||0,
+      sources:d['UPZ_'+i+'_Sources']||'',
+      confluence:parseInt(d['UPZ_'+i+'_Confluence'])||1,
+      distPts:parseFloat(d['UPZ_'+i+'_DistPts'])||0,
+      distPct:parseFloat(d['UPZ_'+i+'_DistPct'])||0,
+    });
+  }
+  return zones;
+}
+
 function parsePriceCSV(csv){
   const lines=csv.trim().split('\n');
   const data=[];
@@ -511,10 +549,72 @@ const fp=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractio
 
 function render(){
   renderHero();renderStats();renderNetBias();renderDimCompare();
-  renderPivotZone();renderDimensions();renderMacro();
+  renderPivotZone();renderUPZ();renderDimensions();renderMacro();
   renderReturns();renderZScore();renderExhaustion();renderPenalty();renderInfo();renderTierLegend();renderMethodology();
   renderScenarioTable();
   renderRadarChart();renderBarChart();
+}
+
+// ── UNIFIED PRICE ZONES ──
+function renderUPZ(){
+  const el=document.getElementById('upzSection');
+  if(!UPZ_ZONES.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No Unified Price Zone data</div>';return;}
+  const price=parseFloat(D.Price)||0;
+  const atr=D.ATR_14d||'—';
+
+  const colorMap={
+    'BREAKOUT':'#f97316','BULL TARGET':'#34d399','RESISTANCE':'#ea4335',
+    'SUPPORT':'#34a853','PULLBACK':'#60a5fa','BEAR TARGET':'#f87171',
+    'DEEP MEAN':'#a78bfa','CURRENT':'var(--gold)'
+  };
+
+  // Insert NOW marker in the sorted zones
+  let items=[];
+  let nowInserted=false;
+  for(const z of UPZ_ZONES){
+    if(!nowInserted&&z.price<price){
+      items.push({isNow:true,price:price});
+      nowInserted=true;
+    }
+    items.push(z);
+  }
+  if(!nowInserted) items.push({isNow:true,price:price});
+
+  let html=`<div class="upz-header">
+    <div style="font-weight:700;font-size:.82rem;color:var(--text)">Price Zones (high → low)</div>
+    <div class="upz-atr-badge">ATR 14d: ${fp(parseFloat(atr))}</div>
+  </div>`;
+
+  items.forEach(item=>{
+    if(item.isNow){
+      html+=`<div class="upz-zone upz-now">
+        <div class="upz-label" style="color:var(--gold)">★ NOW</div>
+        <div class="upz-price" style="color:var(--gold)">${fp(item.price)}</div>
+        <div class="upz-dist" style="color:var(--text3)">—</div>
+        <div class="upz-conf"></div>
+        <div class="upz-sources" style="color:var(--gold)">Current price</div>
+      </div>`;
+      return;
+    }
+    const z=item;
+    const color=colorMap[z.label]||'var(--text2)';
+    const isUp=z.distPts>0;
+    const distColor=isUp?'#34d399':'#f87171';
+    const arrow=isUp?'▲':'▼';
+    const stars=Array.from({length:5},(_, i)=>
+      `<span class="upz-star${i<z.confluence?'':' dim'}">★</span>`
+    ).join('');
+
+    html+=`<div class="upz-zone">
+      <div class="upz-label" style="color:${color}">${z.label}</div>
+      <div class="upz-price" style="color:${color}">${fp(z.price)}</div>
+      <div class="upz-dist" style="color:${distColor}">${arrow} ${z.distPts>0?'+':''}${z.distPts.toFixed(0)} (${z.distPct>0?'+':''}${z.distPct.toFixed(2)}%)</div>
+      <div class="upz-conf">${stars}</div>
+      <div class="upz-sources">${z.sources}</div>
+    </div>`;
+  });
+
+  el.innerHTML=html;
 }
 
 // ── PIVOT ZONE (Tabbed) ──

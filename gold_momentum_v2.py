@@ -579,6 +579,193 @@ def find_confluence_zones(pivots, threshold=20):
     
     return clusters
 
+
+def calc_atr(df, period=14):
+    """Calculate Average True Range over `period` days."""
+    highs = df['High'].values
+    lows = df['Low'].values
+    closes = df['Close'].values
+    n = len(df)
+    if n < period + 1:
+        return None
+    trs = []
+    for i in range(n - period, n):
+        tr = max(
+            highs[i] - lows[i],
+            abs(highs[i] - closes[i - 1]),
+            abs(lows[i] - closes[i - 1])
+        )
+        trs.append(tr)
+    return sum(trs) / len(trs)
+
+
+def calc_unified_price_zones(df, pivots, confluences):
+    """
+    Unified Price Zone — merges Pivot Points + ATR targets + Mean levels
+    into a concise set of actionable price zones with confluence scoring.
+
+    Returns list of zone dicts sorted high→low:
+      {label, price, sources[], zone_type, confluence_score, description}
+    """
+    price = df['Close'].values[-1]
+    atr14 = calc_atr(df, 14)
+    if atr14 is None:
+        return [], 0, price
+
+    # MA levels
+    ma50 = float(np.mean(df['Close'].values[-50:])) if len(df) >= 50 else None
+    ma200 = float(np.mean(df['Close'].values[-200:])) if len(df) >= 200 else None
+
+    # ── Candidate levels ──
+    candidates = []
+
+    # ATR-based targets
+    candidates.append({'label': 'ATR_BULL', 'price': round(price + atr14, 2),
+                        'source': 'ATR +1', 'category': 'bull_target'})
+    candidates.append({'label': 'ATR_BULL2', 'price': round(price + 2 * atr14, 2),
+                        'source': 'ATR +2', 'category': 'breakout'})
+    candidates.append({'label': 'ATR_BEAR', 'price': round(price - atr14, 2),
+                        'source': 'ATR -1', 'category': 'bear_target'})
+    candidates.append({'label': 'ATR_BEAR2', 'price': round(price - 2 * atr14, 2),
+                        'source': 'ATR -2', 'category': 'deep_bear'})
+
+    # Mean reversion targets
+    if ma50:
+        candidates.append({'label': 'MA50', 'price': round(ma50, 2),
+                            'source': 'MA50', 'category': 'mean'})
+    if ma200:
+        candidates.append({'label': 'MA200', 'price': round(ma200, 2),
+                            'source': 'MA200', 'category': 'deep_mean'})
+
+    # Key pivot levels (PP, R1, R2, S1, S2 from all TFs)
+    key_levels = ['R2', 'R1', 'PP', 'S1', 'S2']
+    for tf in ['D1', 'W1', 'MN']:
+        if tf not in pivots:
+            continue
+        for lv in key_levels:
+            if lv in pivots[tf]:
+                cat = 'resistance' if lv.startswith('R') else ('pivot' if lv == 'PP' else 'support')
+                candidates.append({'label': f'{tf}_{lv}', 'price': pivots[tf][lv],
+                                    'source': f'{tf} {lv}', 'category': cat})
+
+    # ── Merge nearby levels (within 0.5 × ATR) into unified zones ──
+    merge_threshold = atr14 * 0.5
+    candidates.sort(key=lambda x: x['price'], reverse=True)
+
+    zones = []
+    used = set()
+    for i, c in enumerate(candidates):
+        if i in used:
+            continue
+        group = [c]
+        for j, d in enumerate(candidates):
+            if j <= i or j in used:
+                continue
+            if abs(c['price'] - d['price']) < merge_threshold:
+                group.append(d)
+                used.add(j)
+        used.add(i)
+
+        avg_price = round(sum(g['price'] for g in group) / len(group), 2)
+        sources = [g['source'] for g in group]
+        categories = [g['category'] for g in group]
+
+        # Determine zone type
+        if avg_price > price:
+            if any('breakout' in c for c in categories):
+                zone_type = 'BREAKOUT'
+            elif any('bull' in c for c in categories):
+                zone_type = 'BULL TARGET'
+            else:
+                zone_type = 'RESISTANCE'
+        elif avg_price < price:
+            if any('deep' in c for c in categories):
+                zone_type = 'DEEP MEAN'
+            elif any('bear' in c for c in categories):
+                zone_type = 'BEAR TARGET'
+            elif any('support' in c for c in categories):
+                zone_type = 'SUPPORT'
+            else:
+                zone_type = 'PULLBACK'
+        else:
+            zone_type = 'CURRENT'
+
+        # Confluence score: more sources = stronger zone
+        conf_score = len(sources)
+
+        # Check if any confluence cluster overlaps
+        for cluster in confluences:
+            cluster_avg = sum(x['price'] for x in cluster) / len(cluster)
+            if abs(cluster_avg - avg_price) < merge_threshold:
+                conf_score += len(cluster)
+                break
+
+        # Description
+        desc_parts = []
+        if conf_score >= 3:
+            desc_parts.append('Strong confluence')
+        elif conf_score >= 2:
+            desc_parts.append('Dual source')
+        else:
+            desc_parts.append('Single source')
+        desc_parts.append(' + '.join(sources))
+        dist_pct = round((avg_price - price) / price * 100, 2)
+        dist_pts = round(avg_price - price, 2)
+        desc_parts.append(f'{dist_pts:+.0f} pts ({dist_pct:+.2f}%)')
+
+        zones.append({
+            'label': zone_type,
+            'price': avg_price,
+            'sources': sources,
+            'source_str': ' + '.join(sources),
+            'zone_type': zone_type,
+            'confluence_score': conf_score,
+            'description': ' | '.join(desc_parts),
+            'distance_pts': dist_pts,
+            'distance_pct': dist_pct,
+        })
+
+    # Sort high→low
+    zones.sort(key=lambda z: z['price'], reverse=True)
+
+    # Limit: keep max 7 most meaningful zones (top conf_score or closest to price)
+    if len(zones) > 7:
+        # Always keep zones closest to price and highest confluence
+        for z in zones:
+            z['_priority'] = z['confluence_score'] * 10 + max(0, 5 - abs(z['distance_pct']))
+        zones.sort(key=lambda z: z['_priority'], reverse=True)
+        zones = zones[:7]
+        for z in zones:
+            del z['_priority']
+        zones.sort(key=lambda z: z['price'], reverse=True)
+
+    return zones, round(atr14, 2), price
+
+
+def flatten_zones_for_csv(zones, atr14, current_price):
+    """Create flat dict of Unified Price Zone data for CSV columns."""
+    flat = {
+        'ATR_14d': atr14,
+        'UPZ_Count': len(zones),
+    }
+    # Store up to 7 zones
+    for i, z in enumerate(zones):
+        flat[f'UPZ_{i+1}_Label'] = z['label']
+        flat[f'UPZ_{i+1}_Price'] = z['price']
+        flat[f'UPZ_{i+1}_Sources'] = z['source_str']
+        flat[f'UPZ_{i+1}_Confluence'] = z['confluence_score']
+        flat[f'UPZ_{i+1}_DistPts'] = z['distance_pts']
+        flat[f'UPZ_{i+1}_DistPct'] = z['distance_pct']
+    # Pad remaining slots
+    for i in range(len(zones), 7):
+        flat[f'UPZ_{i+1}_Label'] = ''
+        flat[f'UPZ_{i+1}_Price'] = ''
+        flat[f'UPZ_{i+1}_Sources'] = ''
+        flat[f'UPZ_{i+1}_Confluence'] = ''
+        flat[f'UPZ_{i+1}_DistPts'] = ''
+        flat[f'UPZ_{i+1}_DistPct'] = ''
+    return flat
+
 # ── Compute pivots ──
 pivots, current_price_pivot = calc_multi_tf_pivots(df)
 
@@ -661,6 +848,20 @@ def flatten_pivots_for_csv(pivots, confluences, current_price):
     return flat
 
 pivot_csv = flatten_pivots_for_csv(pivots, confluences, current_price_pivot)
+
+# ── Unified Price Zones (ATR + Pivot + Mean confluence) ──
+upz_zones, atr_14d, upz_price = calc_unified_price_zones(df, pivots, confluences)
+
+print(f"\n{'='*55}")
+print(f"Unified Price Zones (ATR 14d = {atr_14d:.2f})")
+print(f"{'='*55}")
+for z in upz_zones:
+    conf_stars = '★' * min(z['confluence_score'], 5)
+    arrow = '▲' if z['distance_pts'] > 0 else ('▼' if z['distance_pts'] < 0 else '●')
+    print(f"  {arrow} {z['label']:<14} {z['price']:>9.2f}  {z['distance_pts']:>+8.0f} pts ({z['distance_pct']:>+.2f}%)  {conf_stars}  [{z['source_str']}]")
+print(f"  ● {'NOW':<14} {upz_price:>9.2f}")
+
+upz_csv = flatten_zones_for_csv(upz_zones, atr_14d, upz_price)
 
 # ══════════════════════════════════════════════════════
 # Z-SCORE REGIME FILTER
@@ -811,6 +1012,7 @@ csv_row = {
     'As_Of_Running': AS_OF,
     # Multi-TF Pivot Points
     **pivot_csv,
+    **upz_csv,
     # Z-Score Regime Filter
     'Z_Score_50d': round(zscore['z_50d'], 3) if zscore['z_50d'] is not None else '',
     'Z_Score_100d': round(zscore['z_100d'], 3) if zscore['z_100d'] is not None else '',
