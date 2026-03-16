@@ -116,6 +116,7 @@ jobs:
 
                   df_all = pd.concat([df_existing, df_new], ignore_index=True)
                   df_all['Date'] = pd.to_datetime(df_all['Date'])
+                  df_all = df_all[df_all['Date'].dt.dayofweek < 5]  # Remove weekend rows
                   df_all = df_all.drop_duplicates(subset='Date', keep='last')
                   df_all = df_all.sort_values('Date').reset_index(drop=True)
 
