@@ -299,11 +299,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
     <!-- ★ PIVOT ZONE (Tabbed Multi-TF) ★ -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Multi-TF Pivot Points &times; Momentum Bias</div>
+      <div class="section-title"><span class="dot"></span>Unified Price Zones &times; Multi-TF Pivot &times; Momentum Bias</div>
       <div class="pivot-tabs" id="pivotTabs"></div>
       <div class="pivot-chart-wrap">
         <div style="height:420px;position:relative"><canvas id="pivotChart"></canvas></div>
         <div class="bias-signal" id="biasSignal"></div>
+        <div id="pivotExhaust"></div>
         <div class="pivot-score-link" id="pivotScoreLink"></div>
       </div>
     </div>
@@ -620,7 +621,7 @@ function renderUPZ(){
 
 // ── PIVOT ZONE (Tabbed) ──
 let pivotChartInstance=null;
-let activeTab='conf';
+let activeTab='upz';
 
 function renderPivotZone(){
   if(!PIVOT||!PRICE_DATA||PRICE_DATA.length<5){
@@ -628,10 +629,11 @@ function renderPivotZone(){
     return;
   }
 
-  // Build tabs: Confluence / D1 / W1 / MN / UPZ
-  const tabs=[{id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length}];
+  // Build tabs: UPZ / Confluence / D1 / W1 / MN
+  const tabs=[];
+  if(UPZ_ZONES.length) tabs.push({id:'upz',label:'🎯 Unified Price Zones',count:UPZ_ZONES.length});
+  tabs.push({id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length});
   ['D1','W1','MN'].forEach(tf=>{if(PIVOT_ALL[tf])tabs.push({id:tf,label:tf});});
-  if(UPZ_ZONES.length) tabs.push({id:'upz',label:'🎯 UPZ',count:UPZ_ZONES.length});
   
   const tabsEl=document.getElementById('pivotTabs');
   tabsEl.innerHTML=tabs.map(t=>{
@@ -986,6 +988,26 @@ function renderBiasAndInterpretation(){
   document.getElementById('pivotScoreLink').innerHTML=`
     <div class="link-title">🔗 Pivot × Buy vs Sell Interpretation</div>
     <div class="link-body">${linkText}</div>`;
+
+  // Exhaustion mini badges below bias signal
+  const exBuy=D.Exhaust_Scenario||'None',exBuyAct=D.Exhaust_Action||'';
+  const exSell=DS?DS.Exhaust_Scenario||'None':'None',exSellAct=DS?DS.Exhaust_Action||'':'';
+  const eIc={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡','Sell Exhaustion':'🔥','Sell Recovery':'🔋','Sell Topping':'🏔️'};
+  const eCol={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)','Sell Exhaustion':'var(--emerald)','Sell Recovery':'var(--red)','Sell Topping':'var(--gold)'};
+  const eBg={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)','Sell Exhaustion':'var(--emerald-dim)','Sell Recovery':'var(--red-dim)','Sell Topping':'var(--gold-dim)'};
+  const eDesc2={'Bull Exhaustion':'ขาขึ้นหมดแรง','Bear Exhaustion':'ขาลงหมดแรง — Buy เริ่มฟื้น','Topping':'Buy score หล่นจากพีค','Vol Shift':'โครงสร้างเปลี่ยน','Sell Exhaustion':'selling pressure หมดแรง','Sell Recovery':'Sell score เคยต่ำ + เริ่มเพิ่ม → sell pressure กำลังมา','Sell Topping':'panic selling อาจจบ'};
+  function miniBadge(sc,act,side){
+    const on=sc&&sc!=='None';
+    const acl=act==='BUY'?'buy':act==='SELL'?'sell':'hold';
+    if(on) return `<div style="padding:8px 14px;border-radius:8px;background:${eBg[sc]||'var(--gold-dim)'};border:1px solid ${eCol[sc]||'var(--gold)'}30;flex:1;min-width:240px">
+      <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <div style="display:flex;align-items:center;gap:6px"><span>${eIc[sc]||'⚠️'}</span><span style="font-weight:700;font-size:.8rem;color:${eCol[sc]||'var(--gold)'}">${sc}</span><span class="action-badge ${acl}" style="font-size:.58rem;padding:2px 8px">${act}</span></div>
+      <div style="font-size:.7rem;color:var(--text2);margin-top:3px">${eDesc2[sc]||''}</div></div>`;
+    return `<div style="padding:8px 14px;border-radius:8px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.15);flex:1;min-width:240px">
+      <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <span style="font-weight:700;font-size:.75rem;color:var(--emerald)">✅ No Signal</span></div>`;
+  }
+  document.getElementById('pivotExhaust').innerHTML=`<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">${miniBadge(exBuy,exBuyAct,'BUY')}${miniBadge(exSell,exSellAct,'SELL')}</div>`;
 }
 
 function renderMultiTFTable(){
