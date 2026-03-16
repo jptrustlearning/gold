@@ -1243,8 +1243,8 @@ function renderMacro(){
   const vb=vs.includes('🔵'),vg=vs.includes('🟢');
   const vc=vg?'var(--emerald)':vb?'var(--blue)':vs.includes('🟡')?'var(--gold)':'var(--red)';
   const vbg=vg?'var(--emerald-dim)':vb?'var(--blue-dim)':vs.includes('🟡')?'var(--gold-dim)':'var(--red-dim)';
-  const dsc=ds.replace(/^[🟢🟡🔴🔵]\s*/,''),vsc=vs.replace(/^[🟢🟡🔴🔵]\s*/,'');
   const dEmoji=Array.from(ds)[0]||'',vEmoji=Array.from(vs)[0]||'';
+  const dsc=Array.from(ds).slice(1).join('').trim(),vsc=Array.from(vs).slice(1).join('').trim();
   document.getElementById('macroGrid').innerHTML=`
     <div class="macro-card dxy"><div class="macro-header"><span class="macro-label">DXY (US Dollar Index) — 1M Change</span></div>
       <div class="macro-value" style="color:${dp>=0?'var(--emerald)':'var(--red)'}">${dp>=0?'+':''}${dp.toFixed(2)}%</div>
