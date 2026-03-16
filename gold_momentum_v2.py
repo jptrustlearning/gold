@@ -728,16 +728,29 @@ def calc_unified_price_zones(df, pivots, confluences):
     # Sort high→low
     zones.sort(key=lambda z: z['price'], reverse=True)
 
-    # Limit: keep max 10 most meaningful zones (top conf_score or closest to price)
-    if len(zones) > 10:
-        # Always keep zones closest to price and highest confluence
-        for z in zones:
+    # Split into above/below price, keep top 5 each (by priority)
+    above = [z for z in zones if z['price'] > price]
+    below = [z for z in zones if z['price'] <= price]
+
+    def top_n(zlist, n):
+        if len(zlist) <= n:
+            return zlist
+        for z in zlist:
             z['_priority'] = z['confluence_score'] * 10 + max(0, 5 - abs(z['distance_pct']))
-        zones.sort(key=lambda z: z['_priority'], reverse=True)
-        zones = zones[:10]
-        for z in zones:
+        zlist.sort(key=lambda z: z['_priority'], reverse=True)
+        kept = zlist[:n]
+        for z in kept:
             del z['_priority']
-        zones.sort(key=lambda z: z['price'], reverse=True)
+        # Also clean _priority from discarded
+        for z in zlist[n:]:
+            if '_priority' in z:
+                del z['_priority']
+        return kept
+
+    above = top_n(above, 5)
+    below = top_n(below, 5)
+    zones = above + below
+    zones.sort(key=lambda z: z['price'], reverse=True)
 
     return zones, round(atr14, 2), price
 
