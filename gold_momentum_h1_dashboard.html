@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F0F4F9;--bg2:#E8EDF3;--bg3:#FFFFFF;--card:#FFFFFF;
@@ -20,7 +20,7 @@
   --orange:#E8710A;--orange-dim:rgba(232,113,10,.1);
   --cyan:#0097A7;--cyan-dim:rgba(0,151,167,.1);
   --text:#202124;--text2:#5F6368;--text3:#9AA0A6;
-  --font-h:'DM Serif Display',serif;--font-b:'Instrument Sans',sans-serif;
+  --font-h:'Anuphan',sans-serif;--font-b:'Anuphan',sans-serif;
 }
 [data-theme="dark"]{
   --bg:#0B0E11;--bg2:#111518;--bg3:#181D22;--card:#151A1F;
@@ -62,167 +62,167 @@
 .theme-toggle .toggle-icon{font-size:1rem;transition:transform .3s}
 [data-theme="dark"] .theme-toggle .toggle-icon{transform:rotate(180deg)}
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-.container{max-width:1200px;margin:0 auto;padding:24px}
+html{scroll-behavior:smooth;font-size:clamp(14px,1.6vw,18px)}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased}
+.container{max-width:1400px;width:95%;margin:0 auto;padding:2% 2.5%}
 
-.header{text-align:center;padding:40px 0 30px;position:relative}
-.header::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(26,115,232,.06) 0%,rgba(26,115,232,.02) 40%,transparent 70%);pointer-events:none}
-.header h1{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);background:linear-gradient(135deg,#1A73E8,#4285F4,#1A73E8,#1565C0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;margin-bottom:6px}
-.header .sub{font-size:.88rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}
-.header .period{display:inline-block;padding:7px 24px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-size:.82rem}
+.header{text-align:center;padding:3% 0 2.5%;position:relative}
+.header::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:70%;height:350px;background:radial-gradient(ellipse,rgba(26,115,232,.06) 0%,rgba(26,115,232,.02) 40%,transparent 70%);pointer-events:none}
+.header h1{font-family:var(--font-h);font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;background:linear-gradient(135deg,#1A73E8,#4285F4,#1A73E8,#1565C0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;margin-bottom:6px}
+.header .sub{font-size:1rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}
+.header .period{display:inline-block;padding:8px 24px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-size:.9rem}
 
-.status-bar{display:flex;justify-content:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
-.status-indicator{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.82rem;padding:7px 18px;border-radius:50px;background:rgba(0,0,0,.03);border:1px solid var(--border2);transition:.3s}
+.status-bar{display:flex;justify-content:center;gap:12px;margin-bottom:2%;flex-wrap:wrap;align-items:center}
+.status-indicator{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;padding:8px 20px;border-radius:50px;background:rgba(0,0,0,.03);border:1px solid var(--border2);transition:.3s}
 .status-indicator.loading{color:var(--gold);border-color:var(--gold);background:var(--gold-dim)}
 .status-indicator.success{color:var(--emerald);border-color:var(--emerald);background:var(--emerald-dim)}
 .status-indicator.error{color:var(--red);border-color:var(--red);background:var(--red-dim)}
 
-.hero{display:flex;justify-content:center;align-items:center;gap:40px;margin-bottom:30px;flex-wrap:wrap}
+.hero{display:flex;justify-content:center;align-items:center;gap:clamp(20px,4vw,50px);margin-bottom:2.5%;flex-wrap:wrap}
 .hero-score{text-align:center;position:relative}
-.hero-score .ring{width:200px;height:200px;position:relative}
-.hero-score .ring canvas{position:absolute;top:0;left:0}
+.hero-score .ring{width:clamp(160px,18vw,220px);height:clamp(160px,18vw,220px);position:relative}
+.hero-score .ring canvas{position:absolute;top:0;left:0;width:100%;height:100%}
 .hero-score .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
-.hero-score .center .v{font-family:var(--font-h);font-size:3rem;line-height:1}
-.hero-score .center .l{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.hero-score .center .v{font-family:var(--font-h);font-size:clamp(2.2rem,4vw,3.2rem);font-weight:800;line-height:1}
+.hero-score .center .l{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
 .hero-tier{text-align:center}
-.hero-tier .tier{font-family:var(--font-h);font-size:2rem;margin-bottom:4px}
-.hero-tier .price{font-size:1.4rem;color:var(--gold);font-weight:700;margin-bottom:2px}
-.hero-tier .price-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
+.hero-tier .tier{font-family:var(--font-h);font-size:2.2rem;font-weight:700;margin-bottom:4px}
+.hero-tier .price{font-size:clamp(1.2rem,3vw,1.6rem);color:var(--gold);font-weight:700;margin-bottom:2px}
+.hero-tier .price-label{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
 .hero-delta{text-align:center;padding:16px 24px;background:var(--card);border:1px solid var(--border2);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.hero-delta .v{font-family:var(--font-h);font-size:1.8rem;line-height:1.2}
-.hero-delta .l{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
-.hero-delta .sub{font-size:.75rem;color:var(--text3);margin-top:6px}
+.hero-delta .v{font-family:var(--font-h);font-size:1.8rem;font-weight:700;line-height:1.2}
+.hero-delta .l{font-size:.88rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.hero-delta .sub{font-size:.82rem;color:var(--text3);margin-top:6px}
 
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:2%}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px;text-align:center;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.5}
 .stat-card.gold::after{background:var(--gold)}.stat-card.green::after{background:var(--emerald)}.stat-card.red::after{background:var(--red)}.stat-card.blue::after{background:var(--blue)}.stat-card.purple::after{background:var(--purple)}.stat-card.orange::after{background:var(--orange)}.stat-card.cyan::after{background:var(--cyan)}
-.stat-card .v{font-family:var(--font-h);font-size:1.5rem;line-height:1.2}
-.stat-card .l{font-size:.66rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
+.stat-card .v{font-family:var(--font-h);font-size:1.6rem;font-weight:700;line-height:1.2}
+.stat-card .l{font-size:.88rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
 
-.section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.section-title{font-family:var(--font-h);font-size:1.15rem;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,2.5%,24px);margin-bottom:1.5%;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.section-title{font-family:var(--font-h);font-size:clamp(1rem,2vw,1.3rem);font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .section-title .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
-.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:20px}
-.chart-box{height:320px;position:relative}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(40%,1fr));gap:16px;margin-bottom:1.5%}
+.chart-box{height:clamp(280px,35vw,360px);position:relative}
 
-.dim-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.dim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14%,1fr));gap:12px;margin-bottom:1.5%}
 .dim-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.dim-card .score{font-family:var(--font-h);font-size:1.8rem;line-height:1}
-.dim-card .max{font-size:.72rem;color:var(--text3);margin-top:2px}
-.dim-card .name{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-top:8px;font-weight:600}
+.dim-card .score{font-family:var(--font-h);font-size:clamp(1.4rem,2.5vw,2rem);font-weight:700;line-height:1}
+.dim-card .max{font-size:.8rem;color:var(--text3);margin-top:2px}
+.dim-card .name{font-size:.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-top:8px;font-weight:600}
 .dim-card .bar{width:100%;height:4px;background:rgba(0,0,0,.06);border-radius:2px;margin-top:8px;overflow:hidden}
 .dim-card .bar .fill{height:100%;border-radius:2px;transition:width .8s ease}
 
-.ret-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.ret-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16%,1fr));gap:8px;margin-bottom:1.5%}
 .ret-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.ret-card .period{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;font-weight:600}
-.ret-card .val{font-size:1.1rem;font-weight:700}
-.ret-card .pctl{font-size:.72rem;color:var(--text3);margin-top:4px}
+.ret-card .period{font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;font-weight:600}
+.ret-card .val{font-size:1.2rem;font-weight:700}
+.ret-card .pctl{font-size:.8rem;color:var(--text3);margin-top:4px}
 .pos{color:var(--emerald)}.neg{color:var(--red)}.neu{color:var(--text2)}
 
-.macro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.macro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(45%,1fr));gap:12px}
 .macro-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .macro-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:2px 2px 0 0}
 .macro-card.dxy::before{background:linear-gradient(90deg,#60A5FA,#818CF8)}
 .macro-card.vix::before{background:linear-gradient(90deg,#FB923C,#F87171)}
 .macro-card .macro-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.macro-card .macro-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
-.macro-card .macro-value{font-family:var(--font-h);font-size:1.6rem}
-.macro-card .macro-signal{display:inline-block;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;margin-top:6px;line-height:1.4}
-.macro-card .macro-note{font-size:.72rem;color:var(--text3);margin-top:8px}
+.macro-card .macro-label{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
+.macro-card .macro-value{font-family:var(--font-h);font-size:1.8rem;font-weight:700}
+.macro-card .macro-signal{display:inline-block;padding:5px 12px;border-radius:8px;font-size:.85rem;font-weight:600;margin-top:6px;line-height:1.4}
+.macro-card .macro-note{font-size:.8rem;color:var(--text3);margin-top:8px}
 
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
-.info-item{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:.82rem}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(30%,1fr));gap:8px}
+.info-item{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:.9rem}
 .info-item .k{color:var(--text3)}.info-item .v{font-weight:600}
 
-.penalty-box{padding:16px 20px;border-radius:12px;margin-bottom:16px}
+.penalty-box{padding:16px 20px;border-radius:12px;margin-bottom:1.5%}
 .penalty-box.clean{background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2)}
 .penalty-box.warn{background:var(--red-dim);border:1px solid rgba(248,113,113,.2)}
-.penalty-box .title{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.penalty-box .title{font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .penalty-box.clean .title{color:var(--emerald)}
 .penalty-box.warn .title{color:var(--red)}
-.penalty-box .desc{font-size:.82rem;color:var(--text2)}
+.penalty-box .desc{font-size:.9rem;color:var(--text2)}
 
 .tier-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
-.tier-chip{padding:5px 14px;border-radius:7px;font-size:.72rem;font-weight:700;letter-spacing:.4px}
+.tier-chip{padding:6px 16px;border-radius:7px;font-size:.82rem;font-weight:700;letter-spacing:.4px}
 
 .method-grid{display:flex;flex-wrap:wrap;gap:12px}
 .method-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;flex:1 1 calc(33.33% - 12px);min-width:250px;box-sizing:border-box;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.method-card .title{font-weight:700;font-size:.82rem;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
-.method-card .body{font-size:.78rem;color:var(--text2);line-height:1.6}
+.method-card .title{font-weight:700;font-size:.9rem;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
+.method-card .body{font-size:.85rem;color:var(--text2);line-height:1.6}
 
 /* Scenario Reference Table */
 .scenario-table-wrap{overflow-x:auto}
 .scenario-table{width:100%;border-collapse:collapse;font-size:.8rem}
-.scenario-table thead th{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;padding:12px 10px;text-align:left;border-bottom:2px solid var(--border2);background:rgba(0,0,0,.02);white-space:nowrap}
+.scenario-table thead th{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;padding:12px 10px;text-align:left;border-bottom:2px solid var(--border2);background:rgba(0,0,0,.02);white-space:nowrap}
 .scenario-table tbody td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
 .scenario-table tbody tr:last-child td{border-bottom:none}
 .scenario-table tbody tr:hover{background:rgba(0,0,0,.02)}
 .scenario-table tbody tr.current-scenario{background:rgba(26,115,232,.08);border-left:3px solid var(--gold)}
-.scenario-table .sc-num{font-weight:700;color:var(--text3);text-align:center;font-size:.75rem}
+.scenario-table .sc-num{font-weight:700;color:var(--text3);text-align:center;font-size:.88rem}
 .scenario-table .sc-icon{font-size:1.1rem;text-align:center}
 .scenario-table .sc-signal{font-weight:700;font-size:.82rem;white-space:nowrap}
-.scenario-table .sc-thai{font-size:.75rem;color:var(--text2);margin-top:2px}
-.scenario-table .sc-cond{font-size:.72rem;color:var(--text3);line-height:1.5}
-.scenario-table .sc-cond-th{font-size:.72rem;color:var(--text2);margin-top:3px;line-height:1.5}
-.scenario-table .sc-meaning{font-size:.75rem;color:var(--text2);line-height:1.5}
-.scenario-table .sc-action{font-weight:800;font-size:.72rem;letter-spacing:1.5px;text-align:center;padding:4px 10px;border-radius:5px;display:inline-block}
+.scenario-table .sc-thai{font-size:.88rem;color:var(--text2);margin-top:2px}
+.scenario-table .sc-cond{font-size:.85rem;color:var(--text3);line-height:1.5}
+.scenario-table .sc-cond-th{font-size:.85rem;color:var(--text2);margin-top:3px;line-height:1.5}
+.scenario-table .sc-meaning{font-size:.88rem;color:var(--text2);line-height:1.5}
+.scenario-table .sc-action{font-weight:800;font-size:.85rem;letter-spacing:1.5px;text-align:center;padding:4px 10px;border-radius:5px;display:inline-block}
 .scenario-table .sc-action.buy{color:#FFFFFF;background:var(--emerald)}
 .scenario-table .sc-action.sell{color:#FFFFFF;background:var(--red)}
 .scenario-table .sc-action.hold{color:#FFFFFF;background:var(--gold)}
-.scenario-table .sc-current-tag{display:inline-block;font-size:.6rem;background:var(--gold);color:#FFFFFF;padding:2px 8px;border-radius:4px;font-weight:800;letter-spacing:.8px;margin-left:6px;vertical-align:middle}
+.scenario-table .sc-current-tag{display:inline-block;font-size:.78rem;background:var(--gold);color:#FFFFFF;padding:2px 8px;border-radius:4px;font-weight:800;letter-spacing:.8px;margin-left:6px;vertical-align:middle}
 
 /* ========== PIVOT ZONE ========== */
 .pivot-chart-wrap{display:flex;flex-direction:column;gap:14px}
 @keyframes pulseDot{0%,100%{box-shadow:0 0 6px var(--gold-glow)}50%{box-shadow:0 0 12px var(--gold),0 0 20px var(--gold-glow)}}
 .pivot-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
-.pivot-tab{padding:8px 20px;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.8px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);transition:all .2s;text-transform:uppercase;user-select:none}
+.pivot-tab{padding:9px 22px;border-radius:8px;font-size:.85rem;font-weight:700;letter-spacing:.8px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);transition:all .2s;text-transform:uppercase;user-select:none}
 .pivot-tab:hover{background:var(--card);color:var(--text);border-color:var(--border2)}
 .pivot-tab.active{color:var(--bg);border-color:transparent}
 .pivot-tab.active[data-tab="conf"]{background:var(--orange);box-shadow:0 0 12px rgba(251,146,60,.3)}
-.pivot-tab.active[data-tab="H4"]{background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.3)}
-.pivot-tab.active[data-tab="D1"]{background:var(--blue);box-shadow:0 0 12px rgba(96,165,250,.3)}
-.pivot-tab.active[data-tab="W1"]{background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,.3)}
-.pivot-tab .tab-count{display:inline-block;font-size:.62rem;background:rgba(0,0,0,.2);padding:1px 6px;border-radius:4px;margin-left:4px}
+.pivot-tab.active[data-tab="D1"]{background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.3)}
+.pivot-tab.active[data-tab="W1"]{background:var(--blue);box-shadow:0 0 12px rgba(96,165,250,.3)}
+.pivot-tab.active[data-tab="MN"]{background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,.3)}
+.pivot-tab.active[data-tab="upz"]{background:#14b8a6;box-shadow:0 0 12px rgba(20,184,166,.3)}
+.pivot-tab .tab-count{display:inline-block;font-size:.78rem;background:rgba(0,0,0,.2);padding:1px 6px;border-radius:4px;margin-left:4px}
 .bias-signal{text-align:center;width:100%}
 .bias-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:.88rem;letter-spacing:.6px;border:1px solid}
 .bias-badge.bullish{color:var(--emerald);border-color:rgba(52,211,153,.3);background:var(--emerald-dim)}
 .bias-badge.bearish{color:var(--red);border-color:rgba(248,113,113,.3);background:var(--red-dim)}
 .bias-badge.neutral{color:var(--gold);border-color:rgba(232,185,49,.3);background:var(--gold-dim)}
-.bias-subtitle{font-size:.72rem;color:var(--text3);margin-top:6px;max-width:600px;margin-left:auto;margin-right:auto}
-.action-badge{display:inline-block;padding:5px 16px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:2px;margin-left:10px;text-transform:uppercase}
+.bias-subtitle{font-size:.85rem;color:var(--text3);margin-top:6px;max-width:600px;margin-left:auto;margin-right:auto}
+.action-badge{display:inline-block;padding:5px 16px;border-radius:6px;font-size:.85rem;font-weight:800;letter-spacing:2px;margin-left:10px;text-transform:uppercase}
 .action-badge.buy{color:#FFFFFF;background:var(--emerald);box-shadow:0 0 12px rgba(52,211,153,.4)}
 .action-badge.sell{color:#FFFFFF;background:var(--red);box-shadow:0 0 12px rgba(248,113,113,.4)}
 .action-badge.hold{color:#FFFFFF;background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.4)}
 .pivot-score-link{padding:14px;background:rgba(232,185,49,.06);border:1px solid rgba(232,185,49,.15);border-radius:10px}
-.pivot-score-link .link-title{font-size:.75rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.pivot-score-link .link-title{font-size:.88rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .pivot-score-link .link-body{font-size:.78rem;color:var(--text2);line-height:1.6}
 .pivot-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:8px}
 .pivot-legend-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;border-left:3px solid}
-.pivot-legend-item .pl-label{font-weight:700;font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;min-width:28px}
+.pivot-legend-item .pl-label{font-weight:700;font-size:.85rem;letter-spacing:.8px;text-transform:uppercase;min-width:28px}
 .pivot-legend-item .pl-price{font-family:var(--font-h);font-size:.88rem;min-width:72px}
-.pivot-legend-item .pl-desc{font-size:.72rem;color:var(--text2);line-height:1.5}
-
-/* ========== UNIFIED PRICE ZONES ========== */
-.upz-bar{position:relative;border-radius:10px;overflow:hidden;background:var(--bg3);min-height:280px}
-.upz-zone{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:background .2s}
-.upz-zone:last-child{border-bottom:none}
-.upz-zone:hover{background:rgba(232,185,49,.06)}
-.upz-zone.upz-now{background:rgba(232,185,49,.1);border:1px solid var(--gold);border-radius:8px;margin:4px 8px;padding:10px 12px}
-.upz-label{font-weight:700;font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;min-width:100px}
-.upz-price{font-family:var(--font-h);font-size:.92rem;font-weight:700;min-width:80px;text-align:right}
-.upz-dist{font-size:.72rem;min-width:90px;text-align:right}
-.upz-sources{font-size:.68rem;color:var(--text3);flex:1}
-.upz-conf{display:flex;gap:2px;min-width:60px;justify-content:center}
-.upz-star{color:var(--gold);font-size:.6rem}
-.upz-star.dim{color:var(--border2)}
-.upz-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border2)}
-.upz-atr-badge{font-size:.72rem;padding:4px 10px;border-radius:6px;background:rgba(96,165,250,.12);color:var(--blue);font-weight:600}
+.pivot-legend-item .pl-desc{font-size:.85rem;color:var(--text2);line-height:1.5}
 
 .footer{text-align:center;padding:24px 0;color:var(--text3);font-size:.78rem;border-top:1px solid var(--border);margin-top:30px}
 .footer strong{color:var(--gold)}
+
+/* ── Z-Score Regime Filter ── */
+.zscore-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5%}
+.zscore-gauge{text-align:center;padding:20px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;position:relative}
+.zscore-gauge .zg-label{font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px}
+.zscore-gauge .zg-value{font-family:var(--font-h);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;line-height:1}
+.zscore-gauge .zg-sub{font-size:.82rem;color:var(--text3);margin-top:4px}
+.zscore-bar-wrap{position:relative;height:28px;border-radius:6px;overflow:visible;margin:14px 0 6px;background:linear-gradient(90deg,var(--emerald) 0%,var(--emerald) 12.5%,var(--blue) 12.5%,var(--blue) 25%,rgba(0,0,0,.06) 25%,rgba(0,0,0,.06) 75%,var(--gold) 75%,var(--gold) 87.5%,var(--red) 87.5%,var(--red) 100%);opacity:.25;border-radius:14px}
+.zscore-bar-marker{position:absolute;top:-4px;width:4px;height:36px;border-radius:2px;transform:translateX(-50%);z-index:2;box-shadow:0 0 8px rgba(0,0,0,.3)}
+.zscore-bar-labels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text3);font-weight:600;padding:0 2px}
+.zscore-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zscore-detail-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.zscore-detail-card .zd-label{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.zscore-detail-card .zd-value{font-family:var(--font-h);font-size:1.2rem;margin-top:2px}
+.zscore-zone-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;font-weight:700;font-size:.82rem;letter-spacing:.5px;border:1px solid}
 .hidden{display:none!important}
 @keyframes pulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
 .loading-msg{text-align:center;padding:60px;color:var(--text2);font-size:1.1rem;animation:pulse 1.5s infinite}
@@ -230,46 +230,76 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .fade-up{animation:fadeUp .6s ease forwards;opacity:0}
 .fade-up:nth-child(1){animation-delay:.05s}.fade-up:nth-child(2){animation-delay:.1s}.fade-up:nth-child(3){animation-delay:.15s}.fade-up:nth-child(4){animation-delay:.2s}.fade-up:nth-child(5){animation-delay:.25s}.fade-up:nth-child(6){animation-delay:.3s}.fade-up:nth-child(7){animation-delay:.35s}.fade-up:nth-child(8){animation-delay:.4s}
 
-@media(max-width:768px){
-  .container{padding:14px 10px}
-  .hero{gap:20px}
+@media(max-width:1024px){
   .dim-grid{grid-template-columns:repeat(3,1fr)}
   .ret-grid{grid-template-columns:repeat(3,1fr)}
+  .charts-grid{grid-template-columns:1fr}
   .macro-grid{grid-template-columns:1fr}
-  .chart-box{height:260px}
+  .method-card{flex:1 1 calc(50% - 12px)}
+  .zscore-wrap{grid-template-columns:1fr}
+  .zscore-detail-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:768px){
+  .container{width:98%;padding:3% 2%}
+  .hero{gap:16px;flex-direction:column;align-items:center}
   .hero-score .ring{width:160px;height:160px}
-  .hero-score .center .v{font-size:2.2rem}
+  .hero-score .ring canvas{width:160px!important;height:160px!important}
+  .hero-tier .price{font-size:2rem}
+  .dim-grid{grid-template-columns:repeat(3,1fr)}
+  .ret-grid{grid-template-columns:repeat(3,1fr)}
+  .chart-box{height:260px}
   .pivot-layout{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+  .method-card{flex:1 1 100%}
+  .upz-zone{flex-wrap:wrap;gap:6px}
+  .upz-label{min-width:80px;font-size:.7rem}
+  .upz-price{min-width:70px;font-size:.85rem}
+  .upz-dist{min-width:auto;font-size:.7rem}
+  .upz-sources{font-size:.8rem}
+  .pivot-tab{padding:6px 14px;font-size:.85rem}
+  .pivot-tabs{justify-content:center}
+  .bias-signal{font-size:.85rem}
+  .section{padding:clamp(10px,3%,20px)}
 }
 @media(max-width:480px){
   .dim-grid{grid-template-columns:repeat(2,1fr)}
   .ret-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .zscore-detail-grid{grid-template-columns:repeat(2,1fr)}
+  .upz-zone{padding:8px 10px}
+  .upz-conf{min-width:40px}
+  .hero-score .ring{width:140px;height:140px}
+  .hero-score .ring canvas{width:140px!important;height:140px!important}
+  .hero-tier .price{font-size:1.6rem}
+  .header h1{font-size:1.6rem}
+  .header .sub{font-size:.88rem;letter-spacing:1.5px}
 }
 @keyframes priceGlow{
   0%,100%{text-shadow:0 0 20px rgba(26,115,232,.2),0 0 40px rgba(26,115,232,.08)}
   50%{text-shadow:0 0 30px rgba(26,115,232,.4),0 0 60px rgba(26,115,232,.15),0 0 80px rgba(26,115,232,.06)}
 }
 .hero-price-glow{animation:priceGlow 3s ease-in-out infinite}
-.zscore-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.zscore-gauge{text-align:center;padding:20px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;position:relative}
-.zscore-gauge .zg-label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px}
-.zscore-gauge .zg-value{font-family:var(--font-h);font-size:2.4rem;line-height:1}
-.zscore-gauge .zg-sub{font-size:.72rem;color:var(--text3);margin-top:4px}
-.zscore-bar-wrap{position:relative;height:28px;border-radius:6px;overflow:visible;margin:14px 0 6px;opacity:.25;border-radius:14px}
-.zscore-bar-marker{position:absolute;top:-4px;width:4px;height:36px;border-radius:2px;transform:translateX(-50%);z-index:2;box-shadow:0 0 8px rgba(0,0,0,.3)}
-.zscore-bar-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3);font-weight:600;padding:0 2px}
-.zscore-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.zscore-detail-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
-.zscore-detail-card .zd-label{font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
-.zscore-detail-card .zd-value{font-family:var(--font-h);font-size:1.2rem;margin-top:2px}
-.zscore-zone-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:10px;font-weight:700;font-size:.82rem;letter-spacing:.5px;border:1px solid}
+.upz-bar{position:relative;border-radius:10px;overflow:hidden;background:var(--bg3);min-height:280px}
+.upz-zone{display:flex;align-items:center;gap:clamp(6px,1.5%,12px);padding:12px clamp(10px,2%,18px);border-bottom:1px solid var(--border2);transition:background .2s}
+.upz-zone:last-child{border-bottom:none}
+.upz-zone:hover{background:rgba(232,185,49,.06)}
+.upz-zone.upz-now{background:rgba(232,185,49,.1);border:1px solid var(--gold);border-radius:8px;margin:4px 8px;padding:12px clamp(8px,2%,14px)}
+.upz-label{font-weight:700;font-size:.82rem;letter-spacing:.8px;text-transform:uppercase;min-width:110px}
+.upz-price{font-family:var(--font-h);font-size:1.05rem;font-weight:700;min-width:90px;text-align:right}
+.upz-dist{font-size:.82rem;min-width:100px;text-align:right}
+.upz-sources{font-size:.78rem;color:var(--text3);flex:1}
+.upz-conf{display:flex;gap:2px;min-width:65px;justify-content:center}
+.upz-star{color:var(--gold);font-size:.7rem}
+.upz-star.dim{color:var(--border2)}
+.upz-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border2)}
+.upz-atr-badge{font-size:.82rem;padding:5px 12px;border-radius:6px;background:rgba(96,165,250,.12);color:var(--blue);font-weight:600}
 </style>
 </head>
 <body>
 <div class="container">
   <header class="header">
-    <h1>Gold Momentum Score</h1>
-    <div class="sub">JP Trust Learning &bull; H1 Intraday Rolling Percentile + Macro Factor Analysis — All Dimensions /100</div>
+    <h1>Gold Momentum H1 Score</h1>
+    <div class="sub">JP Trust Learning &bull; Rolling Percentile + Macro Factor Analysis v3.0 — All Dimensions /100</div>
     <div class="period" id="periodLabel">Loading...</div>
   </header>
 
@@ -298,29 +328,29 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 
     <!-- ★ PIVOT ZONE (Tabbed Multi-TF) ★ -->
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>Multi-TF Pivot Points &times; Momentum Bias</div>
+      <div class="section-title"><span class="dot"></span>Unified Price Zones &times; Multi-TF Pivot &times; Momentum Bias</div>
       <div class="pivot-tabs" id="pivotTabs"></div>
       <div class="pivot-chart-wrap">
         <div style="height:420px;position:relative"><canvas id="pivotChart"></canvas></div>
         <div class="bias-signal" id="biasSignal"></div>
+        <div id="pivotExhaust"></div>
         <div class="pivot-score-link" id="pivotScoreLink"></div>
       </div>
     </div>
 
-    <!-- ★ UNIFIED PRICE ZONES ★ -->
+    <!-- ★ MULTI-TF TABLE + CONFLUENCE ★ -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Unified Price Zones — ATR + Pivot + Mean Confluence</div>
       <div id="upzSection" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
     </div>
 
-    <!-- ★ MULTI-TF TABLE + CONFLUENCE ★ -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Pivot Levels — H4 (4-Hour) / D1 (Daily) / W1 (Weekly)</div>
       <div id="multiTFTable" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
     </div>
 
     <div class="section fade-up">
-      <div class="section-title"><span class="dot"></span>⚡ Confluence Zones — โซนที่ Pivot หลาย TF ซ้อนกัน (ภายใน 15 จุด)</div>
+      <div class="section-title"><span class="dot"></span>⚡ Confluence Zones — โซนที่ Pivot หลาย TF ซ้อนกัน (ภายใน 20 จุด)</div>
       <div id="confluenceSection" style="background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border2)"></div>
     </div>
 
@@ -389,7 +419,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
       <div id="methSellGrid" class="method-grid" style="display:none"></div>
     </div>
 
-    <!-- ★ PIVOT BIAS REFERENCE TABLE ★ -->
+    <!-- ★ PIVOT BIAS + EXHAUSTION — COMBINED REFERENCE TABLE ★ -->
     <div class="section fade-up">
       <div class="section-title"><span class="dot"></span>Bias Scenarios &amp; Exhaustion Detection Reference</div>
       <div id="exhaustStatusBadge"></div>
@@ -399,8 +429,8 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
   </div>
 
   <footer class="footer">
-    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum H1 Dashboard + Multi-TF Pivot</p>
-    <p style="margin-top:4px">H1 Intraday Rolling Percentile + Macro Factor + Multi-TF Pivot Analysis</p>
+    <p><strong>JP Trust Learning</strong> &bull; Gold Momentum Dashboard v3.0 + Multi-TF Pivot</p>
+    <p style="margin-top:4px">Rolling Percentile + Macro Factor + Multi-TF Pivot &amp; Confluence Analysis — All Dimensions /100</p>
   </footer>
 </div>
 
@@ -408,7 +438,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1.csv';
 const SELL_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_sell.csv';
 const NET_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_net.csv';
-const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices_h1_tail.csv';
+const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
 let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],UPZ_ZONES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
@@ -429,9 +459,6 @@ async function loadData(){
     D=rows[0];
     DS=sellRows.length?sellRows[0]:null;
     DN=netRows.length?netRows[0]:null;
-    // Normalize D5 column name: support both D5_Volatility (old) and D5_DirVol (new)
-    if(D&&!D.D5_DirVol&&D.D5_Volatility) D.D5_DirVol=D.D5_Volatility;
-    if(DS&&!DS.D5_DirVol&&DS.D5_Volatility) DS.D5_DirVol=DS.D5_Volatility;
     PIVOT_ALL=loadMultiTFPivots(D);
     PIVOT=PIVOT_ALL['D1']||PIVOT_ALL['H4']||null;
     CONFLUENCES=parseConfluences(D.Confluence_Zones||'');
@@ -491,6 +518,24 @@ function parseConfluences(str){
   });
 }
 
+function parseUPZ(d){
+  const zones=[];
+  const count=parseInt(d.UPZ_Count)||0;
+  for(let i=1;i<=Math.min(count,10);i++){
+    const label=d['UPZ_'+i+'_Label'];
+    if(!label)continue;
+    zones.push({
+      label:label,
+      price:parseFloat(d['UPZ_'+i+'_Price'])||0,
+      sources:d['UPZ_'+i+'_Sources']||'',
+      confluence:parseInt(d['UPZ_'+i+'_Confluence'])||1,
+      distPts:parseFloat(d['UPZ_'+i+'_DistPts'])||0,
+      distPct:parseFloat(d['UPZ_'+i+'_DistPct'])||0,
+    });
+  }
+  return zones;
+}
+
 function parsePriceCSV(csv){
   const lines=csv.trim().split('\n');
   const data=[];
@@ -542,24 +587,6 @@ function render(){
 }
 
 // ── UNIFIED PRICE ZONES ──
-function parseUPZ(d){
-  const zones=[];
-  const count=parseInt(d.UPZ_Count)||0;
-  for(let i=1;i<=Math.min(count,7);i++){
-    const label=d['UPZ_'+i+'_Label'];
-    if(!label)continue;
-    zones.push({
-      label:label,
-      price:parseFloat(d['UPZ_'+i+'_Price'])||0,
-      sources:d['UPZ_'+i+'_Sources']||'',
-      confluence:parseInt(d['UPZ_'+i+'_Confluence'])||1,
-      distPts:parseFloat(d['UPZ_'+i+'_DistPts'])||0,
-      distPct:parseFloat(d['UPZ_'+i+'_DistPct'])||0,
-    });
-  }
-  return zones;
-}
-
 function renderUPZ(){
   const el=document.getElementById('upzSection');
   if(!UPZ_ZONES.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No Unified Price Zone data</div>';return;}
@@ -572,17 +599,24 @@ function renderUPZ(){
     'DEEP MEAN':'#a78bfa','CURRENT':'var(--gold)'
   };
 
-  // Insert NOW marker in the sorted zones
+  // Insert NOW marker and PP marker in the sorted zones
+  const d1pp=PIVOT_ALL['D1']?PIVOT_ALL['D1'].PP:null;
   let items=[];
   let nowInserted=false;
+  let ppInserted=false;
   for(const z of UPZ_ZONES){
     if(!nowInserted&&z.price<price){
       items.push({isNow:true,price:price});
       nowInserted=true;
     }
+    if(d1pp&&!ppInserted&&z.price<d1pp){
+      items.push({isPP:true,price:d1pp});
+      ppInserted=true;
+    }
     items.push(z);
   }
   if(!nowInserted) items.push({isNow:true,price:price});
+  if(d1pp&&!ppInserted) items.push({isPP:true,price:d1pp});
 
   let html=`<div class="upz-header">
     <div style="font-weight:700;font-size:.82rem;color:var(--text)">Price Zones (high → low)</div>
@@ -600,12 +634,24 @@ function renderUPZ(){
       </div>`;
       return;
     }
+    if(item.isPP){
+      const ppDist=item.price-price;
+      const ppPct=(ppDist/price*100);
+      html+=`<div class="upz-zone" style="border-bottom:1px dashed #1A73E840">
+        <div class="upz-label" style="color:#1A73E8;font-size:.82rem">⊙ D1 PP</div>
+        <div class="upz-price" style="color:#1A73E8">${fp(item.price)}</div>
+        <div class="upz-dist" style="color:#1A73E8;font-size:.82rem">${ppDist>=0?'▲':'▼'} ${ppDist>=0?'+':''}${ppDist.toFixed(0)} (${ppPct>=0?'+':''}${ppPct.toFixed(2)}%)</div>
+        <div class="upz-conf"></div>
+        <div class="upz-sources" style="color:#1A73E8;font-size:.82rem">Pivot Point center</div>
+      </div>`;
+      return;
+    }
     const z=item;
     const color=colorMap[z.label]||'var(--text2)';
     const isUp=z.distPts>0;
     const distColor=isUp?'#34d399':'#f87171';
     const arrow=isUp?'▲':'▼';
-    const stars=Array.from({length:5},(_,i)=>
+    const stars=Array.from({length:5},(_, i)=>
       `<span class="upz-star${i<z.confluence?'':' dim'}">★</span>`
     ).join('');
 
@@ -623,7 +669,7 @@ function renderUPZ(){
 
 // ── PIVOT ZONE (Tabbed) ──
 let pivotChartInstance=null;
-let activeTab='conf';
+let activeTab='upz';
 
 function renderPivotZone(){
   if(!PIVOT||!PRICE_DATA||PRICE_DATA.length<5){
@@ -631,8 +677,10 @@ function renderPivotZone(){
     return;
   }
 
-  // Build tabs: Confluence / D1 / W1 / MN
-  const tabs=[{id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length}];
+  // Build tabs: UPZ / Confluence / D1 / W1 / MN
+  const tabs=[];
+  if(UPZ_ZONES.length) tabs.push({id:'upz',label:'🎯 Unified Price Zones',count:UPZ_ZONES.length});
+  tabs.push({id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length});
   ['H4','D1','W1'].forEach(tf=>{if(PIVOT_ALL[tf])tabs.push({id:tf,label:tf});});
   
   const tabsEl=document.getElementById('pivotTabs');
@@ -660,7 +708,7 @@ function drawPivotChart(tab){
   if(pivotChartInstance){pivotChartInstance.destroy();pivotChartInstance=null;}
 
   const price=PIVOT.price;
-  const chartDays=Math.min(48,PRICE_DATA.length);
+  const chartDays=Math.min(10,PRICE_DATA.length);
   const chartData=PRICE_DATA.slice(-chartDays);
   const zoneSlots=5;
   const totalSlots=chartDays+zoneSlots;
@@ -672,8 +720,12 @@ function drawPivotChart(tab){
   // Determine which TF levels to show
   let showTFs=[];
   let confLevels=[];  // extra confluence-only levels from other TFs
+  let upzMode=false;
   
-  if(tab==='conf'){
+  if(tab==='upz'){
+    upzMode=true;
+    // UPZ mode: no pivot datasets, handled by UPZ plugin
+  }else if(tab==='conf'){
     // Show D1 as base + only confluence-matching levels from W1/MN
     showTFs=['H4'];
     // Gather confluence level labels
@@ -691,33 +743,60 @@ function drawPivotChart(tab){
     showTFs=[tab];
   }
 
+  // UPZ color map
+  const upzColorMap={
+    'BREAKOUT':'#f97316','BULL TARGET':'#34d399','RESISTANCE':'#ea4335',
+    'SUPPORT':'#34a853','PULLBACK':'#60a5fa','BEAR TARGET':'#f87171',
+    'DEEP MEAN':'#a78bfa','CURRENT':'var(--gold)'
+  };
+
   // Colors per TF
   const tfColorMap={
-    H4:{R:'#E8710A',S:'#E8710A',PP:'#E8710A'},
     D1:{R:'#EA4335',S:'#34A853',PP:'#1A73E8'},
-    W1:{R:'#4285F4',S:'#4285F4',PP:'#4285F4'}
+    W1:{R:'#4285F4',S:'#4285F4',PP:'#4285F4'},
+    MN:{R:'#9334E6',S:'#9334E6',PP:'#9334E6'}
   };
 
   // Build pivot datasets
   const pivotDatasets=[];
   const labelAnnotations=[];
 
-  showTFs.forEach(tf=>{
-    if(!PIVOT_ALL[tf])return;
-    const cols=tfColorMap[tf];
-    PIVOT_ALL[tf].levels.forEach(lv=>{
-      const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
+  if(upzMode){
+    // UPZ zones as label annotations
+    UPZ_ZONES.forEach(z=>{
+      const color=upzColorMap[z.label]||'#888';
       const data=Array(totalSlots).fill(null);
-      for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+      for(let i=chartDays-2;i<totalSlots;i++) data[i]=z.price;
       pivotDatasets.push({
-        label:tf+' '+lv.label+' '+fp(lv.value),
-        data,borderColor:'transparent',
-        borderWidth:0,
+        label:z.label+' '+fp(z.price),
+        data,borderColor:'transparent',borderWidth:0,
         pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:2,
       });
-      labelAnnotations.push({tf,label:lv.label,value:lv.value,color});
+      // Build star string
+      const stars='★'.repeat(Math.min(z.confluence,5))+'☆'.repeat(Math.max(0,5-z.confluence));
+      labelAnnotations.push({
+        tf:z.label, label:stars, value:z.price, color,
+        sources:z.sources, confluence:z.confluence, isUPZ:true
+      });
     });
-  });
+  }else{
+    showTFs.forEach(tf=>{
+      if(!PIVOT_ALL[tf])return;
+      const cols=tfColorMap[tf];
+      PIVOT_ALL[tf].levels.forEach(lv=>{
+        const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
+        const data=Array(totalSlots).fill(null);
+        for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+        pivotDatasets.push({
+          label:tf+' '+lv.label+' '+fp(lv.value),
+          data,borderColor:'transparent',
+          borderWidth:0,
+          pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:2,
+        });
+        labelAnnotations.push({tf,label:lv.label,value:lv.value,color});
+      });
+    });
+  }
 
   // Add confluence extra levels (dashed, semi-transparent)
   confLevels.forEach(lv=>{
@@ -735,7 +814,12 @@ function drawPivotChart(tab){
   });
 
   // Y-axis range from visible levels
-  const allVals=labelAnnotations.map(l=>l.value);
+  let allVals=labelAnnotations.map(l=>l.value);
+  // In UPZ mode, focus on zones within 10% of price to avoid extreme squishing
+  if(upzMode&&allVals.length>4){
+    const nearVals=allVals.filter(v=>Math.abs(v-price)/price<0.07);
+    if(nearVals.length>=3) allVals=nearVals;
+  }
   const lvMin=allVals.length?Math.min(...allVals):dataMin;
   const lvMax=allVals.length?Math.max(...allVals):dataMax;
   const lvRange=lvMax-lvMin||100;
@@ -754,12 +838,67 @@ function drawPivotChart(tab){
         if(y<area.top-5||y>area.bottom+5)return;
         if(drawn.some(d=>Math.abs(d-y)<10))return;
         drawn.push(y);
-        const text=lv.tf+' '+lv.label+' '+fp(lv.value);
-        ctx.font='bold 9px Instrument Sans, sans-serif';
-        const w=ctx.measureText(text).width+10;
-        ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-8,w+4,16,4);ctx.fill();
-        ctx.fillStyle=lv.color;ctx.fillText(text,x,y);
+
+        if(lv.isUPZ){
+          // UPZ label: single line — zone type $price ★★★ sources
+          const stars='★'.repeat(Math.min(lv.confluence,5));
+          const text=lv.tf+' '+fp(lv.value)+' '+stars+' '+lv.sources;
+          ctx.font='bold 10px Anuphan, sans-serif';
+          const w=ctx.measureText(text).width+10;
+          ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-8,w+4,16,4);ctx.fill();
+          ctx.fillStyle=lv.color;ctx.fillText(text,x,y);
+        }else{
+          const text=lv.tf+' '+lv.label+' '+fp(lv.value);
+          ctx.font='bold 11px Anuphan, sans-serif';
+          const w=ctx.measureText(text).width+10;
+          ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-8,w+4,16,4);ctx.fill();
+          ctx.fillStyle=lv.color;ctx.fillText(text,x,y);
+        }
       });
+      ctx.restore();
+    }
+  };
+
+  // UPZ zone band plugin — draw horizontal bands for each UPZ zone
+  const upzBandPlugin={
+    id:'upzBands',
+    beforeDatasetsDraw(chart){
+      if(!upzMode||!UPZ_ZONES.length)return;
+      const ctx=chart.ctx,yScale=chart.scales.y,area=chart.chartArea;
+      const atr=parseFloat(D.ATR_14d)||80;
+      const halfBand=atr*0.12; // band thickness based on ATR
+      ctx.save();
+      UPZ_ZONES.forEach(z=>{
+        const color=upzColorMap[z.label]||'#888';
+        const yCenter=yScale.getPixelForValue(z.price);
+        const yTop=yScale.getPixelForValue(z.price+halfBand);
+        const yBot=yScale.getPixelForValue(z.price-halfBand);
+        if(yTop>area.bottom||yBot<area.top)return;
+        const top=Math.max(yTop,area.top),bot=Math.min(yBot,area.bottom);
+        // Band opacity scales with confluence
+        const alpha=Math.min(0.04+z.confluence*0.025, 0.18);
+        ctx.fillStyle=color+Math.round(alpha*255).toString(16).padStart(2,'0');
+        ctx.fillRect(area.left,top,area.right-area.left,bot-top);
+        // Dashed line at center
+        ctx.setLineDash([4,4]);ctx.strokeStyle=color+'60';ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.moveTo(area.left,yCenter);ctx.lineTo(area.right-100,yCenter);ctx.stroke();
+        ctx.setLineDash([]);
+      });
+      // Always draw D1 PP as center reference line
+      const d1pp=PIVOT_ALL['D1']?PIVOT_ALL['D1'].PP:null;
+      if(d1pp){
+        const yPP=yScale.getPixelForValue(d1pp);
+        if(yPP>=area.top&&yPP<=area.bottom){
+          ctx.setLineDash([6,3]);ctx.strokeStyle='#1A73E880';ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(area.left,yPP);ctx.lineTo(area.right,yPP);ctx.stroke();
+          ctx.setLineDash([]);
+          // PP label in the zone area (right portion of chart)
+          const zoneX=area.left+(area.right-area.left)*0.72;
+          ctx.font='bold 10px Anuphan, sans-serif';
+          ctx.fillStyle='#1A73E8';ctx.textAlign='left';
+          ctx.fillText('PP '+fp(d1pp),zoneX,yPP+12);
+        }
+      }
       ctx.restore();
     }
   };
@@ -781,7 +920,7 @@ function drawPivotChart(tab){
         const top=Math.max(yHi,area.top),bot=Math.min(yLo,area.bottom);
         ctx.fillRect(area.left,top,area.right-area.left,bot-top);
         // Band label
-        ctx.font='bold 10px Instrument Sans';
+        ctx.font='bold 10px Anuphan';
         ctx.fillStyle=isR?'rgba(234,67,53,.6)':isS?'rgba(52,168,83,.6)':'rgba(26,115,232,.6)';
         ctx.textAlign='left';
         ctx.fillText('⚡ '+c.type+' ~'+fp(c.avg),area.left+8,(top+bot)/2);
@@ -802,7 +941,7 @@ function drawPivotChart(tab){
       ctx.beginPath();ctx.moveTo(area.left,y);ctx.lineTo(area.right,y);ctx.stroke();
       // Price label on left
       const label='NOW '+fp(price);
-      ctx.font='bold 9px Instrument Sans';
+      ctx.font='bold 11px Anuphan';
       const w=ctx.measureText(label).width+10;
       ctx.fillStyle=tc('priceMarkerBg');ctx.beginPath();ctx.roundRect(area.left+4,y-8,w,16,4);ctx.fill();
       ctx.fillStyle=tc('priceMarkerText');ctx.textAlign='left';ctx.fillText(label,area.left+9,y);
@@ -827,7 +966,7 @@ function drawPivotChart(tab){
         ...pivotDatasets
       ]
     },
-    plugins:[confPlugin,pivotLabelPlugin,priceMarkerPlugin],
+    plugins:[confPlugin,upzBandPlugin,pivotLabelPlugin,priceMarkerPlugin],
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -837,14 +976,14 @@ function drawPivotChart(tab){
           display:true,position:'top',
           labels:{
             usePointStyle:true,pointStyle:'line',color:tc('text2'),
-            font:{size:9,family:'Instrument Sans',weight:'600'},padding:8,boxWidth:20,
+            font:{size:9,family:'Anuphan',weight:'600'},padding:8,boxWidth:20,
             filter:function(item){const l=item.text;return l.includes('Gold')||l.includes(' PP ');}
           }
         },
         tooltip:{
           backgroundColor:tc('tooltipBg'),borderColor:tc('tooltipBorder'),borderWidth:1,
           titleColor:tc('tooltipTitle'),bodyColor:tc('tooltipBody'),padding:12,
-          titleFont:{family:'Instrument Sans',weight:'700'},bodyFont:{family:'Instrument Sans',size:11},
+          titleFont:{family:'Anuphan',weight:'700'},bodyFont:{family:'Anuphan',size:11},
           filter:function(item){return item.raw!==null;},
           callbacks:{
             title:function(items){return items[0]?items[0].label:'';},
@@ -853,8 +992,8 @@ function drawPivotChart(tab){
         }
       },
       scales:{
-        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:9,family:'Instrument Sans'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
-        y:{min:yMin,max:yMax,grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:10,family:'Instrument Sans'},callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
+        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:9,family:'Anuphan'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
+        y:{min:yMin,max:yMax,grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:10,family:'Anuphan'},callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
       }
     }
   });
@@ -880,7 +1019,7 @@ function renderBiasAndInterpretation(){
   document.getElementById('biasSignal').innerHTML=`
     <div class="bias-badge ${biasCls}"><span style="font-size:1.2rem">${biasIcon}</span> ${biasSignal}<span class="action-badge ${biasActionCls}">${biasAction}</span></div>
     <div class="bias-subtitle">${biasDetail}</div>
-    ${DN?`<div style="font-size:.68rem;color:var(--text3);margin-top:4px">Buy: ${score.toFixed(1)} | Sell: ${sellS.toFixed(1)} | Net: ${parseFloat(DN.Net_Bias)>=0?'+':''}${parseFloat(DN.Net_Bias).toFixed(1)}</div>`:''}`;
+    ${DN?`<div style="font-size:.82rem;color:var(--text3);margin-top:4px">Buy: ${score.toFixed(1)} | Sell: ${sellS.toFixed(1)} | Net: ${parseFloat(DN.Net_Bias)>=0?'+':''}${parseFloat(DN.Net_Bias).toFixed(1)}</div>`:''}`;
 
   let linkText='';
   if(price>=PIVOT.R1){
@@ -897,6 +1036,26 @@ function renderBiasAndInterpretation(){
   document.getElementById('pivotScoreLink').innerHTML=`
     <div class="link-title">🔗 Pivot × Buy vs Sell Interpretation</div>
     <div class="link-body">${linkText}</div>`;
+
+  // Exhaustion mini badges below bias signal
+  const exBuy=D.Exhaust_Scenario||'None',exBuyAct=D.Exhaust_Action||'';
+  const exSell=DS?DS.Exhaust_Scenario||'None':'None',exSellAct=DS?DS.Exhaust_Action||'':'';
+  const eIc={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡','Sell Exhaustion':'🔥','Sell Recovery':'🔋','Sell Topping':'🏔️'};
+  const eCol={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)','Sell Exhaustion':'var(--emerald)','Sell Recovery':'var(--red)','Sell Topping':'var(--gold)'};
+  const eBg={'Bull Exhaustion':'var(--orange-dim)','Bear Exhaustion':'var(--emerald-dim)','Topping':'var(--gold-dim)','Vol Shift':'var(--purple-dim)','Sell Exhaustion':'var(--emerald-dim)','Sell Recovery':'var(--red-dim)','Sell Topping':'var(--gold-dim)'};
+  const eDesc2={'Bull Exhaustion':'ขาขึ้นหมดแรง','Bear Exhaustion':'ขาลงหมดแรง — Buy เริ่มฟื้น','Topping':'Buy score หล่นจากพีค','Vol Shift':'โครงสร้างเปลี่ยน','Sell Exhaustion':'selling pressure หมดแรง','Sell Recovery':'Sell score เคยต่ำ + เริ่มเพิ่ม → sell pressure กำลังมา','Sell Topping':'panic selling อาจจบ'};
+  function miniBadge(sc,act,side){
+    const on=sc&&sc!=='None';
+    const acl=act==='BUY'?'buy':act==='SELL'?'sell':'hold';
+    if(on) return `<div style="padding:8px 14px;border-radius:8px;background:${eBg[sc]||'var(--gold-dim)'};border:1px solid ${eCol[sc]||'var(--gold)'}30;flex:1;min-width:240px">
+      <div style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <div style="display:flex;align-items:center;gap:6px"><span>${eIc[sc]||'⚠️'}</span><span style="font-weight:700;font-size:.8rem;color:${eCol[sc]||'var(--gold)'}">${sc}</span><span class="action-badge ${acl}" style="font-size:.78rem;padding:2px 8px">${act}</span></div>
+      <div style="font-size:.7rem;color:var(--text2);margin-top:3px">${eDesc2[sc]||''}</div></div>`;
+    return `<div style="padding:8px 14px;border-radius:8px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.15);flex:1;min-width:240px">
+      <div style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <span style="font-weight:700;font-size:.88rem;color:var(--emerald)">✅ No Signal</span></div>`;
+  }
+  document.getElementById('pivotExhaust').innerHTML=`<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">${miniBadge(exBuy,exBuyAct,'BUY')}${miniBadge(exSell,exSellAct,'SELL')}</div>`;
 }
 
 function renderMultiTFTable(){
@@ -919,7 +1078,7 @@ function renderMultiTFTable(){
     const isR=lv.startsWith('R'),isPP=lv==='PP';
     const rowBg=isPP?'rgba(232,185,49,.04)':'transparent';
     html+=`<tr style="border-bottom:1px solid var(--border);background:${rowBg}">
-      <td style="padding:7px 10px;font-weight:700;color:${isR?'var(--red)':isPP?'var(--gold)':'var(--emerald)'};font-size:.72rem;letter-spacing:.8px;">${lv}</td>`;
+      <td style="padding:7px 10px;font-weight:700;color:${isR?'var(--red)':isPP?'var(--gold)':'var(--emerald)'};font-size:.85rem;letter-spacing:.8px;">${lv}</td>`;
     ['H4','D1','W1'].forEach(tf=>{
       const p=PIVOT_ALL[tf];
       if(p){
@@ -943,7 +1102,7 @@ function renderMultiTFTable(){
     </div>`;
   }
 
-  let srcHtml='<div style="display:flex;gap:16px;margin-top:8px;font-size:.68rem;color:var(--text3);">';
+  let srcHtml='<div style="display:flex;gap:16px;margin-top:8px;font-size:.82rem;color:var(--text3);">';
   ['H4','D1','W1'].forEach(tf=>{
     if(PIVOT_ALL[tf]) srcHtml+=`<span style="color:${tfLabels[tf].color};">${tf}: H/L/C from ${PIVOT_ALL[tf].date}</span>`;
   });
@@ -980,11 +1139,11 @@ function renderConfluenceZones(){
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span style="font-size:1.1rem;">${zIcon}</span>
         <span style="font-family:var(--font-h);font-size:.95rem;color:${zColor};">~${fp(c.avg)}</span>
-        <span style="font-size:.72rem;color:var(--text3);font-weight:600;letter-spacing:.5px;">${c.type.toUpperCase()}</span>
-        <span style="font-size:.72rem;color:var(--orange);margin-left:auto;">${distStr} (${distDir})</span>
+        <span style="font-size:.85rem;color:var(--text3);font-weight:600;letter-spacing:.5px;">${c.type.toUpperCase()}</span>
+        <span style="font-size:.85rem;color:var(--orange);margin-left:auto;">${distStr} (${distDir})</span>
       </div>
-      <div style="font-size:.75rem;color:var(--text2);margin-top:4px;">${tags}</div>
-      <div style="font-size:.68rem;color:var(--text3);margin-top:3px;">
+      <div style="font-size:.88rem;color:var(--text2);margin-top:4px;">${tags}</div>
+      <div style="font-size:.82rem;color:var(--text3);margin-top:3px;">
         ${isR?'แนวต้านที่ PP ของหลาย TF ซ้อนกัน — แนวต้านแข็งแรงเป็นพิเศษ':'แนวรับที่ PP ของหลาย TF ซ้อนกัน — แนวรับแข็งแรงเป็นพิเศษ'}
       </div>
     </div>`;
@@ -1026,19 +1185,19 @@ function renderHero(){
   document.getElementById('heroSection').innerHTML=`
     <div class="hero-score"><div class="ring"><canvas id="ringCanvas" width="200" height="200"></canvas>
       <div class="center"><div class="v" style="color:${scoreColor(n)}">${n.toFixed(1)}</div><div class="l">Buy Score</div></div></div>
-      <div style="margin-top:8px;font-size:.75rem;color:var(--text3);text-align:center">prev: <span style="color:${scoreColor(buyPrev)}">${buyPrev.toFixed(1)}</span> <span style="color:${buyDelta>=0?'var(--emerald)':'var(--red)'}">(${buyDelta>=0?'+':''}${buyDelta.toFixed(1)})</span></div>
+      <div style="margin-top:8px;font-size:.88rem;color:var(--text3);text-align:center">prev: <span style="color:${scoreColor(buyPrev)}">${buyPrev.toFixed(1)}</span> <span style="color:${buyDelta>=0?'var(--emerald)':'var(--red)'}">(${buyDelta>=0?'+':''}${buyDelta.toFixed(1)})</span></div>
     </div>
     <div class="hero-tier">
       <div style="font-size:.85rem;color:${comboColor2};font-weight:700;margin-bottom:6px">${comboName}</div>
       <div class="price hero-price-glow" style="font-size:2.8rem">$${p.toLocaleString('en-US',{minimumFractionDigits:1})}</div><div class="price-label">Gold Spot Price</div>
       ${scenSignal?`<div style="margin-top:14px;padding:10px 20px;background:rgba(0,0,0,.03);border:1px solid var(--border2);border-radius:12px">
         <div style="font-size:1rem;font-weight:700">${scenIcon} ${scenSignal}</div>
-        <span class="sc-action ${actionCls}" style="margin-top:4px;display:inline-block;padding:4px 14px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:1.5px">${scenAction}</span>
+        <span class="sc-action ${actionCls}" style="margin-top:4px;display:inline-block;padding:4px 14px;border-radius:6px;font-size:.85rem;font-weight:800;letter-spacing:1.5px">${scenAction}</span>
       </div>`:''}
     </div>
     <div class="hero-score"><div class="ring"><canvas id="ringSellCanvas" width="200" height="200"></canvas>
       <div class="center"><div class="v" style="color:${sellScore>=60?'var(--red)':sellScore>=45?'var(--orange)':'var(--text3)'}">${sellScore.toFixed(1)}</div><div class="l">Sell Score</div></div></div>
-      <div style="margin-top:8px;font-size:.75rem;color:var(--text3);text-align:center">prev: <span style="color:${sellPrev>=60?'var(--red)':sellPrev>=45?'var(--orange)':'var(--text3)'}">${sellPrev.toFixed(1)}</span> <span style="color:${sellDelta>=0?'var(--red)':'var(--emerald)'}">(${sellDelta>=0?'+':''}${sellDelta.toFixed(1)})</span></div>
+      <div style="margin-top:8px;font-size:.88rem;color:var(--text3);text-align:center">prev: <span style="color:${sellPrev>=60?'var(--red)':sellPrev>=45?'var(--orange)':'var(--text3)'}">${sellPrev.toFixed(1)}</span> <span style="color:${sellDelta>=0?'var(--red)':'var(--emerald)'}">(${sellDelta>=0?'+':''}${sellDelta.toFixed(1)})</span></div>
     </div>`;
   setTimeout(()=>{
     const c=document.getElementById('ringCanvas');if(c){const x=c.getContext('2d');
@@ -1066,7 +1225,7 @@ function renderDimensions(){
     {key:'D2_VolumeRank',name:'Volume Rank',color:dimColors[1],max:100},
     {key:'D3_RSI',name:'RSI',color:dimColors[2],max:100},
     {key:'D4_MA',name:'MA Trend',color:dimColors[3],max:100},
-    {key:'D5_DirVol',name:'Dir. Volatility',color:dimColors[4],max:100},
+    {key:'D5_Volatility',name:'Dir. Volatility',color:dimColors[4],max:100},
     {key:'D6_External',name:'Macro (DXY+VIX)',color:dimColors[5],max:100},
   ];
   document.getElementById('dimGrid').innerHTML=dims.map(d=>{
@@ -1084,21 +1243,22 @@ function renderMacro(){
   const vb=vs.includes('🔵'),vg=vs.includes('🟢');
   const vc=vg?'var(--emerald)':vb?'var(--blue)':vs.includes('🟡')?'var(--gold)':'var(--red)';
   const vbg=vg?'var(--emerald-dim)':vb?'var(--blue-dim)':vs.includes('🟡')?'var(--gold-dim)':'var(--red-dim)';
-  const dsc=ds.replace(/^[🟢🟡🔴🔵]\s*/,''),vsc=vs.replace(/^[🟢🟡🔴🔵]\s*/,'');
+  const dEmoji=Array.from(ds)[0]||'',vEmoji=Array.from(vs)[0]||'';
+  const dsc=Array.from(ds).slice(1).join('').trim(),vsc=Array.from(vs).slice(1).join('').trim();
   document.getElementById('macroGrid').innerHTML=`
     <div class="macro-card dxy"><div class="macro-header"><span class="macro-label">DXY (US Dollar Index) — 1M Change</span></div>
       <div class="macro-value" style="color:${dp>=0?'var(--emerald)':'var(--red)'}">${dp>=0?'+':''}${dp.toFixed(2)}%</div>
-      <div class="macro-signal" style="color:${dc};background:${dbg}">${ds.charAt(0)} ${dsc}</div>
+      <div class="macro-signal" style="color:${dc};background:${dbg}">${dEmoji} ${dsc}</div>
       <div class="macro-note">DXY ↑ = dollar strong → typically bearish gold | DXY ↓ = dollar weak → typically bullish gold</div></div>
     <div class="macro-card vix"><div class="macro-header"><span class="macro-label">VIX (CBOE Volatility Index) — Current Level</span></div>
       <div class="macro-value" style="color:${vl<=15?'var(--emerald)':vl<=20?'var(--gold)':vl<=30?'var(--orange)':'var(--red)'}">${vl.toFixed(2)}</div>
-      <div class="macro-signal" style="color:${vc};background:${vbg}">${vs.charAt(0)} ${vsc}</div>
+      <div class="macro-signal" style="color:${vc};background:${vbg}">${vEmoji} ${vsc}</div>
       <div class="macro-note">VIX &lt;15 calm | 15-20 normal | 20-30 elevated fear → gold safe haven | &gt;30 panic</div></div>`;
 }
 
 // ── Returns ──
 function renderReturns(){
-  const ps=[{key:'Ret_4H_Pct',name:'4 Hours'},{key:'Ret_1D_Pct',name:'1 Day'},{key:'Ret_1W_Pct',name:'1 Week'},{key:'Ret_2W_Pct',name:'2 Weeks'},{key:'Ret_1M_Pct',name:'1 Month'}];
+  const ps=[{key:'Ret_1W_Pct',name:'1 Week'},{key:'Ret_1M_Pct',name:'1 Month'},{key:'Ret_3M_Pct',name:'3 Month'},{key:'Ret_6M_Pct',name:'6 Month'},{key:'Ret_1Y_Pct',name:'1 Year'}];
   document.getElementById('retGrid').innerHTML=ps.map(p=>{const v=fi(p.key);
     return`<div class="ret-card"><div class="period">${p.name}</div><div class="val" style="color:${retColor(v)}">${v>=0?'+':''}${v.toFixed(2)}%</div><div class="pctl">Rolling Pctl</div></div>`;}).join('');
 }
@@ -1106,19 +1266,20 @@ function renderReturns(){
 // ── Z-Score Regime Filter ──
 function renderZScore(){
   const el=document.getElementById('zscoreContent');
-  if(!el)return;
   const z50=D.Z_Score_50d?parseFloat(D.Z_Score_50d):null;
   const z100=D.Z_Score_100d?parseFloat(D.Z_Score_100d):null;
   const z200=D.Z_Score_200d?parseFloat(D.Z_Score_200d):null;
   const zone=D.Z_Zone||'N/A';
+  const signal=D.Z_Signal||'';
   const regime=D.Z_Regime||'';
   const zDelta=D.Z_Delta_5d?parseFloat(D.Z_Delta_5d):null;
 
   if(z50===null){
-    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Z-Score data not available — run updated H1 scoring script</div>';
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Z-Score data not available — run updated scoring script</div>';
     return;
   }
 
+  // Zone colors
   const zoneColors={
     'Extreme Extended':{color:'var(--red)',bg:'var(--red-dim)',border:'rgba(248,113,113,.3)',icon:'🔴'},
     'Extended':{color:'var(--gold)',bg:'var(--gold-dim)',border:'rgba(232,185,49,.3)',icon:'🟡'},
@@ -1127,27 +1288,41 @@ function renderZScore(){
     'Extreme Depressed':{color:'var(--emerald)',bg:'var(--emerald-dim)',border:'rgba(52,211,153,.3)',icon:'🟢'},
   };
   const zc=zoneColors[zone]||{color:'var(--text3)',bg:'rgba(0,0,0,.03)',border:'var(--border2)',icon:'⚪'};
+
+  // Z-Score value color — asymmetric thresholds for gold
   const zColor=v=>{
     if(v===null)return'var(--text3)';
-    if(v>=2.5)return'var(--red)';if(v>=2.0)return'var(--gold)';
-    if(v<=-2.0)return'var(--emerald)';if(v<=-1.5)return'var(--blue)';
+    if(v>=2.5)return'var(--red)';
+    if(v>=2.0)return'var(--gold)';
+    if(v<=-2.0)return'var(--emerald)';
+    if(v<=-1.5)return'var(--blue)';
     return'var(--emerald)';
   };
-  const zToPct=z=>{const c=Math.max(-3,Math.min(4,z));return((c+3)/7)*100;};
+
+  // Map Z-Score to percentage on the bar (-3 to +4 → 0% to 100%) — asymmetric range
+  const zToPct=z=>{
+    const clamped=Math.max(-3,Math.min(4,z));
+    return((clamped+3)/7)*100;
+  };
+
+  // Z Delta interpretation
   let deltaText='',deltaColor='var(--text3)';
   if(zDelta!==null){
-    if(zDelta>0.1){deltaText='Z rising — extending';deltaColor='var(--orange)';}
-    else if(zDelta<-0.1){deltaText='Z falling — reverting';deltaColor='var(--blue)';}
+    if(zDelta>0.1){deltaText='Z rising — extending further';deltaColor='var(--orange)';}
+    else if(zDelta<-0.1){deltaText='Z falling — mean-reverting';deltaColor='var(--blue)';}
     else{deltaText='Z stable';deltaColor='var(--text3)';}
   }
+
+  // Bar gradient: Extreme Dep | Dep | Normal | Extended | Extreme Ext
+  // Positions on -3 to +4 scale: -2.0=14.3%, -1.5=21.4%, +2.0=71.4%, +2.5=78.6%
   const barGrad='linear-gradient(90deg,var(--emerald) 0%,var(--emerald) 14.3%,var(--blue) 14.3%,var(--blue) 21.4%,rgba(0,0,0,.06) 21.4%,rgba(0,0,0,.06) 71.4%,var(--gold) 71.4%,var(--gold) 78.6%,var(--red) 78.6%,var(--red) 100%)';
 
   el.innerHTML=`
     <div class="zscore-wrap">
       <div class="zscore-gauge">
-        <div class="zg-label">Z-Score (50-Day Equiv.)</div>
+        <div class="zg-label">Z-Score (50-Day)</div>
         <div class="zg-value" style="color:${zColor(z50)}">${z50>=0?'+':''}${z50.toFixed(3)}</div>
-        <div class="zg-sub">H1 price ${Math.abs(z50).toFixed(2)}σ ${z50>=0?'above':'below'} 1200-bar mean</div>
+        <div class="zg-sub">ราคาอยู่ ${Math.abs(z50).toFixed(2)}σ ${z50>=0?'เหนือ':'ต่ำกว่า'}ค่าเฉลี่ย 50 วัน</div>
         <div class="zscore-bar-wrap" style="background:${barGrad}">
           <div class="zscore-bar-marker" style="left:${zToPct(z50)}%;background:${zColor(z50)}"></div>
         </div>
@@ -1161,30 +1336,50 @@ function renderZScore(){
             <span style="font-size:1.1rem">${zc.icon}</span> ${zone.toUpperCase()} ZONE
           </div>
           <div style="font-size:.78rem;color:var(--text2);margin-top:10px;line-height:1.6">${regime}</div>
-          ${zDelta!==null?`<div style="font-size:.72rem;color:${deltaColor};margin-top:6px;font-weight:600">Δ5d: ${zDelta>=0?'+':''}${zDelta.toFixed(3)} — ${deltaText}</div>`:''}
+          ${zDelta!==null?`<div style="font-size:.85rem;color:${deltaColor};margin-top:6px;font-weight:600">Δ5d: ${zDelta>=0?'+':''}${zDelta.toFixed(3)} — ${deltaText}</div>`:''}
         </div>
       </div>
     </div>
     <div class="zscore-detail-grid">
-      <div class="zscore-detail-card"><div class="zd-label">Z-Score 50d</div><div class="zd-value" style="color:${zColor(z50)}">${z50>=0?'+':''}${z50.toFixed(3)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:2px">Short-term</div></div>
-      <div class="zscore-detail-card"><div class="zd-label">Z-Score 100d</div><div class="zd-value" style="color:${zColor(z100)}">${z100!==null?(z100>=0?'+':'')+z100.toFixed(3):'N/A'}</div><div style="font-size:.64rem;color:var(--text3);margin-top:2px">Medium-term</div></div>
-      <div class="zscore-detail-card"><div class="zd-label">Z-Score 200d</div><div class="zd-value" style="color:${zColor(z200)}">${z200!==null?(z200>=0?'+':'')+z200.toFixed(3):'N/A'}</div><div style="font-size:.64rem;color:var(--text3);margin-top:2px">Long-term</div></div>
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 50d</div>
+        <div class="zd-value" style="color:${zColor(z50)}">${z50>=0?'+':''}${z50.toFixed(3)}</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:2px">Short-term regime</div>
+      </div>
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 100d</div>
+        <div class="zd-value" style="color:${zColor(z100)}">${z100!==null?(z100>=0?'+':'')+z100.toFixed(3):'N/A'}</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:2px">Medium-term regime</div>
+      </div>
+      <div class="zscore-detail-card">
+        <div class="zd-label">Z-Score 200d</div>
+        <div class="zd-value" style="color:${zColor(z200)}">${z200!==null?(z200>=0?'+':'')+z200.toFixed(3):'N/A'}</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:2px">Long-term regime</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.85rem;color:var(--text3);line-height:1.6">
+      <strong style="color:var(--gold)">วิธีอ่าน Z-Score (Asymmetric — calibrated for gold):</strong>
+      Threshold ปรับแบบไม่สมมาตร เพราะทองมี positive drift bias (ค่าเฉลี่ย Z ≈ +0.5 ถึง +1.4 ในช่วงขาขึ้น) —
+      <span style="color:var(--emerald)">Normal (-1.5σ ถึง +2.0σ)</span> ราคาอยู่ในกรอบปกติ ~77% ของเวลา |
+      <span style="color:var(--gold)">Extended (≥+2.0σ)</span> ราคาวิ่งขึ้นเกินค่าเฉลี่ย pullback risk สูงขึ้น ~9% |
+      <span style="color:var(--red)">Extreme Extended (≥+2.5σ)</span> ราคาแพงผิดปกติ ระวังเปิด Long ใหม่ ~6% |
+      <span style="color:var(--blue)">Depressed (≤-1.5σ)</span> ราคาตกไกล bounce potential ~3% |
+      <span style="color:var(--emerald)">Extreme Depressed (≤-2.0σ)</span> oversold สุดโต่ง ~4%.
+      <strong>ใช้เป็น context filter ไม่ใช่สัญญาณ Buy/Sell โดยตรง</strong> — ประกอบกับ Momentum Score + Pivot + Net Bias เสมอ
     </div>`;
 }
 
-// ── Exhaustion Detection (Buy + Sell) ──
+// ── Exhaustion Detection (Buy + Sell badges + metrics → combined section) ──
 function renderExhaustion(){
-  const el1=document.getElementById('exhaustStatusBadge');
-  const el2=document.getElementById('exhaustMetrics');
-  if(!el1||!el2)return;
   const exBuy=D.Exhaust_Scenario||'None',exBuyAct=D.Exhaust_Action||'';
-  const net5d=D.Net_5d_Change!==''&&D.Net_5d_Change!==undefined?parseFloat(D.Net_5d_Change):null;
-  const max10d=D.Max_10d!==''&&D.Max_10d!==undefined?parseFloat(D.Max_10d):null;
-  const d5shift=D.D5_Shift_5d!==''&&D.D5_Shift_5d!==undefined?parseFloat(D.D5_Shift_5d):null;
+  const net5d=D.Net_5d_Change!==''?parseFloat(D.Net_5d_Change):null;
+  const max10d=D.Max_10d!==''?parseFloat(D.Max_10d):null;
+  const min10d=D.Min_10d!==''?parseFloat(D.Min_10d):null;
+  const d5shift=D.D5_Shift_5d!==''?parseFloat(D.D5_Shift_5d):null;
   const volRatio=D.Vol_Ratio?parseFloat(D.Vol_Ratio):null;
   const exSell=DS?DS.Exhaust_Scenario||'None':'None',exSellAct=DS?DS.Exhaust_Action||'':'';
-  const sNet5d=DS&&DS.Net_5d_Change!==''&&DS.Net_5d_Change!==undefined?parseFloat(DS.Net_5d_Change):null;
-  const sMax10d=DS&&DS.Max_10d!==''&&DS.Max_10d!==undefined?parseFloat(DS.Max_10d):null;
+  const sNet5d=DS&&DS.Net_5d_Change!==''?parseFloat(DS.Net_5d_Change):null;
+  const sMax10d=DS&&DS.Max_10d!==''?parseFloat(DS.Max_10d):null;
 
   const eIcons={'Bull Exhaustion':'🔥','Bear Exhaustion':'🔋','Topping':'🏔️','Vol Shift':'⚡','Sell Exhaustion':'🔥','Sell Recovery':'🔋','Sell Topping':'🏔️'};
   const eColors={'Bull Exhaustion':'var(--orange)','Bear Exhaustion':'var(--emerald)','Topping':'var(--gold)','Vol Shift':'var(--purple)','Sell Exhaustion':'var(--emerald)','Sell Recovery':'var(--red)','Sell Topping':'var(--gold)'};
@@ -1194,24 +1389,24 @@ function renderExhaustion(){
   function badge(sc,act,side){
     const on=sc&&sc!=='None',ic=eIcons[sc]||'⚠️',col=eColors[sc]||'var(--gold)',bg=eBgs[sc]||'var(--gold-dim)',desc=eDescs[sc]||'',acl=act==='BUY'?'buy':act==='SELL'?'sell':'hold';
     if(on) return`<div style="padding:12px 16px;border-radius:10px;background:${bg};border:1px solid ${col}30;flex:1;min-width:280px">
-      <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">${side} EXHAUSTION</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:1.2rem">${ic}</span><span style="font-weight:700;font-size:.88rem;color:${col}">${sc}</span><span class="action-badge ${acl}" style="font-size:.62rem;padding:2px 10px">${act}</span></div>
-      <div style="font-size:.75rem;color:var(--text2);line-height:1.5">${desc}</div></div>`;
+      <div style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">${side} EXHAUSTION</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:1.2rem">${ic}</span><span style="font-weight:700;font-size:.88rem;color:${col}">${sc}</span><span class="action-badge ${acl}" style="font-size:.78rem;padding:2px 10px">${act}</span></div>
+      <div style="font-size:.88rem;color:var(--text2);line-height:1.5">${desc}</div></div>`;
     return`<div style="padding:12px 16px;border-radius:10px;background:var(--emerald-dim);border:1px solid rgba(52,211,153,.15);flex:1;min-width:280px">
-      <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
+      <div style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${side} EXHAUSTION</div>
       <span style="font-weight:700;font-size:.78rem;color:var(--emerald)">✅ No Signal</span></div>`;
   }
-  el1.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${badge(exBuy,exBuyAct,'BUY')}${badge(exSell,exSellAct,'SELL')}</div>`;
+  document.getElementById('exhaustStatusBadge').innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${badge(exBuy,exBuyAct,'BUY')}${badge(exSell,exSellAct,'SELL')}</div>`;
 
   const metrics=[
-    {label:'Buy Net Δ',value:net5d!==null?(net5d>=0?'+':'')+net5d.toFixed(2):'N/A',color:net5d!==null?(net5d>=0?'var(--emerald)':'var(--red)'):'var(--text3)'},
-    {label:'Sell Net Δ',value:sNet5d!==null?(sNet5d>=0?'+':'')+sNet5d.toFixed(2):'N/A',color:sNet5d!==null?(sNet5d>=0?'var(--red)':'var(--emerald)'):'var(--text3)'},
-    {label:'Buy Max',value:max10d!==null?max10d.toFixed(2):'N/A',color:'var(--text)'},
-    {label:'Sell Max',value:sMax10d!==null?sMax10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'Buy Net 5d Δ',value:net5d!==null?(net5d>=0?'+':'')+net5d.toFixed(2):'N/A',color:net5d!==null?(net5d>=0?'var(--emerald)':'var(--red)'):'var(--text3)'},
+    {label:'Sell Net 5d Δ',value:sNet5d!==null?(sNet5d>=0?'+':'')+sNet5d.toFixed(2):'N/A',color:sNet5d!==null?(sNet5d>=0?'var(--red)':'var(--emerald)'):'var(--text3)'},
+    {label:'Buy Max 10d',value:max10d!==null?max10d.toFixed(2):'N/A',color:'var(--text)'},
+    {label:'Sell Max 10d',value:sMax10d!==null?sMax10d.toFixed(2):'N/A',color:'var(--text)'},
     {label:'Buy D5 Shift',value:d5shift!==null?(d5shift>=0?'+':'')+d5shift.toFixed(0)+' pts':'N/A',color:d5shift!==null?(Math.abs(d5shift)>=50?'var(--purple)':'var(--text)'):'var(--text3)'},
-    {label:'Vol Ratio',value:volRatio!==null?volRatio.toFixed(3):'N/A',color:volRatio!==null?(volRatio<=1?'var(--emerald)':'var(--red)'):'var(--text3)'},
+    {label:'Vol Ratio (D/U)',value:volRatio!==null?volRatio.toFixed(3):'N/A',color:volRatio!==null?(volRatio<=1?'var(--emerald)':'var(--red)'):'var(--text3)'},
   ];
-  el2.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:16px">${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div><div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div></div>`).join('')}</div>`;
+  document.getElementById('exhaustMetrics').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">${metrics.map(m=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600">${m.label}</div><div style="font-family:var(--font-h);font-size:1.2rem;color:${m.color};margin-top:2px">${m.value}</div></div>`).join('')}</div>`;
 }
 
 // ── Penalty ──
@@ -1219,9 +1414,9 @@ function renderPenalty(){
   // Buy penalty
   const t=fi('Penalty_Scaled'),r=fi('Penalty_Reversal'),d=fi('Penalty_DeathCross'),fl=D.Warning_Flags||'',cl=t===0;
   let hb=`<div class="penalty-box ${cl?'clean':'warn'}" style="padding:10px 14px;margin-bottom:8px"><div class="title" style="font-size:.78rem">${cl?'✅ No Warning Flags':'🚨 Warning Flags Detected'}</div>
-    <div class="desc" style="font-size:.72rem">${cl?'No reversal or death cross signals.'
+    <div class="desc" style="font-size:.85rem">${cl?'No reversal or death cross signals.'
     :`Penalty: ${t.toFixed(1)} | Reversal: ${r} | Death Cross: ${d}${fl&&fl!=='None'?' | '+fl:''}`}</div></div>`;
-  hb+=`<div class="info-grid" style="font-size:.72rem">
+  hb+=`<div class="info-grid" style="font-size:.85rem">
     <div class="info-item"><span class="k">Reversal</span><span class="v" style="color:${r<0?'var(--red)':'var(--emerald)'}">${r===0?'✅ None':r+' pts'}</span></div>
     <div class="info-item"><span class="k">Death Cross</span><span class="v" style="color:${d<0?'var(--red)':'var(--emerald)'}">${d===0?'✅ None':d+' pts'}</span></div>
     <div class="info-item"><span class="k">Penalty (scaled)</span><span class="v" style="color:${t<0?'var(--red)':'var(--emerald)'}">${t.toFixed(1)}</span></div>
@@ -1233,9 +1428,9 @@ function renderPenalty(){
     const sf=k=>DS[k]?parseFloat(DS[k]):0;
     const st=sf('Penalty_Scaled'),sr=sf('Penalty_Reversal'),sd2=sf('Penalty_GoldenCross')||sf('Penalty_DeathCross'),sfl=DS.Warning_Flags||'',scl=st===0;
     let hs=`<div class="penalty-box ${scl?'clean':'warn'}" style="padding:10px 14px;margin-bottom:8px"><div class="title" style="font-size:.78rem">${scl?'✅ No Warning Flags':'🚨 Warning Flags Detected'}</div>
-      <div class="desc" style="font-size:.72rem">${scl?'No reversal or golden cross signals.'
+      <div class="desc" style="font-size:.85rem">${scl?'No reversal or golden cross signals.'
       :`Penalty: ${st.toFixed(1)} | Reversal: ${sr} | Golden Cross: ${sd2}${sfl&&sfl!=='None'?' | '+sfl:''}`}</div></div>`;
-    hs+=`<div class="info-grid" style="font-size:.72rem">
+    hs+=`<div class="info-grid" style="font-size:.85rem">
       <div class="info-item"><span class="k">Reversal</span><span class="v" style="color:${sr<0?'var(--red)':'var(--emerald)'}">${sr===0?'✅ None':sr+' pts'}</span></div>
       <div class="info-item"><span class="k">Golden Cross Pen.</span><span class="v" style="color:${sd2<0?'var(--red)':'var(--emerald)'}">${sd2===0?'✅ None':sd2+' pts'}</span></div>
       <div class="info-item"><span class="k">Penalty (scaled)</span><span class="v" style="color:${st<0?'var(--red)':'var(--emerald)'}">${st.toFixed(1)}</span></div>
@@ -1252,10 +1447,10 @@ function renderInfo(){
   const items=[
     {k:'Price',v:'$'+fi('Price').toLocaleString('en-US',{minimumFractionDigits:2})},
     {k:'Gross Score',v:f('Gross_Score_Avg')},
-    {k:'MA Short',v:'$'+fi('MA_Short').toLocaleString('en-US',{minimumFractionDigits:2})},
-    {k:'MA Long',v:'$'+fi('MA_Long').toLocaleString('en-US',{minimumFractionDigits:2})},
-    {k:'Golden Cross',v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ MA Short > MA Long':'❌ MA Short < MA Long'},
-    {k:'RSI (14-bar H1)',v:fi('RSI_Value').toFixed(1)},
+    {k:'MA50',v:'$'+fi('MA50').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'MA200',v:'$'+fi('MA200').toLocaleString('en-US',{minimumFractionDigits:2})},
+    {k:'Golden Cross',v:String(D.Golden_Cross).toUpperCase()==='TRUE'?'✅ MA50 > MA200':'❌ MA50 < MA200'},
+    {k:'RSI (14-day)',v:fi('RSI_Value').toFixed(1)},
     {k:'Volatility (Ann.)',v:fi('Volatility_Pct').toFixed(1)+'%'},
     {k:'Vol Ratio (D/U)',v:D.Vol_Ratio?parseFloat(D.Vol_Ratio).toFixed(3):'N/A'},
     {k:'WP Return Pctl',v:fi('WP_Return_Pct').toFixed(1)+'%'},
@@ -1270,27 +1465,32 @@ function renderInfo(){
   if(PIVOT){
     items.push({k:'D1 Pivot (PP)',v:fp(PIVOT.PP)},{k:'D1 R1 / R2',v:fp(PIVOT.R1)+' / '+fp(PIVOT.R2)},{k:'D1 S1 / S2',v:fp(PIVOT.S1)+' / '+fp(PIVOT.S2)});
   }
-  if(PIVOT_ALL['H4']){
-    items.push({k:'H4 Pivot (PP)',v:fp(PIVOT_ALL['H4'].PP)},{k:'H4 R1 / S1',v:fp(PIVOT_ALL['H4'].R1)+' / '+fp(PIVOT_ALL['H4'].S1)});
-  }
-  if(PIVOT_ALL['D1']){
-    items.push({k:'D1 Pivot (PP)',v:fp(PIVOT_ALL['D1'].PP)},{k:'D1 R1 / S1',v:fp(PIVOT_ALL['D1'].R1)+' / '+fp(PIVOT_ALL['D1'].S1)});
-  }
   if(PIVOT_ALL['W1']){
     items.push({k:'W1 Pivot (PP)',v:fp(PIVOT_ALL['W1'].PP)},{k:'W1 R1 / S1',v:fp(PIVOT_ALL['W1'].R1)+' / '+fp(PIVOT_ALL['W1'].S1)});
   }
-  items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (H4)',v:D.Pivot_Position||'—'});
-  if(D.ATR_14d) items.push({k:'ATR 14d',v:fp(parseFloat(D.ATR_14d))});
-  if(D.UPZ_Count) items.push({k:'Unified Price Zones',v:D.UPZ_Count+' zones'});
+  if(PIVOT_ALL['H4']){
+    items.push({k:'H4 Pivot (PP)',v:fp(PIVOT_ALL['H4'].PP)},{k:'H4 R1 / S1',v:fp(PIVOT_ALL['H4'].R1)+' / '+fp(PIVOT_ALL['H4'].S1)});
+  }
+  items.push({k:'Confluence Zones',v:CONFLUENCES.length+' found'},{k:'Pivot Position (D1)',v:D.Pivot_Position||'—'});
+  // Z-Score
   if(D.Z_Score_50d){
     const z50=parseFloat(D.Z_Score_50d);
-    items.push({k:'Z-Score 50d',v:(z50>=0?'+':'')+z50.toFixed(3)},
-      {k:'Z-Score Zone',v:D.Z_Zone||'N/A'});
+    items.push(
+      {k:'Z-Score 50d',v:(z50>=0?'+':'')+z50.toFixed(3)},
+      {k:'Z-Score 100d',v:D.Z_Score_100d?(parseFloat(D.Z_Score_100d)>=0?'+':'')+parseFloat(D.Z_Score_100d).toFixed(3):'N/A'},
+      {k:'Z-Score 200d',v:D.Z_Score_200d?(parseFloat(D.Z_Score_200d)>=0?'+':'')+parseFloat(D.Z_Score_200d).toFixed(3):'N/A'},
+      {k:'Z-Score Zone',v:D.Z_Zone||'N/A'}
+    );
   }
+  // Exhaustion Detection
   if(D.Exhaust_Scenario){
     const exSc=D.Exhaust_Scenario||'None';
     const exAc=D.Exhaust_Action||'—';
-    items.push({k:'Exhaust Signal',v:exSc!=='None'?exSc+' → '+exAc:'None (ปกติ)'});
+    items.push(
+      {k:'Exhaust Signal',v:exSc!=='None'?exSc+' → '+exAc:'None (ปกติ)'},
+      {k:'Net 5d Change',v:D.Net_5d_Change!==''?(parseFloat(D.Net_5d_Change)>=0?'+':'')+parseFloat(D.Net_5d_Change).toFixed(2):'N/A'},
+      {k:'D5 Shift 5d',v:D.D5_Shift_5d!==''?parseFloat(D.D5_Shift_5d).toFixed(0)+' pts':'N/A'}
+    );
   }
   document.getElementById('infoGrid').innerHTML=items.map(i=>`<div class="info-item"><span class="k">${i.k}</span><span class="v">${i.v}</span></div>`).join('');
 }
@@ -1357,25 +1557,25 @@ function renderTierLegend(){
   const renderComboChips=()=>comboZones.map(z=>{
     const a=comboName.includes(z.name);
     return`<div class="tier-chip" style="background:${z.bg};color:${z.color};border:1px solid ${z.border};${a?'box-shadow:0 0 12px '+z.border+';transform:scale(1.05)':'opacity:.5'}">
-      ${z.name}${a?' ◀':''}<br><span style="font-size:.55rem;opacity:.7">${z.cond}</span></div>`;
+      ${z.name}${a?' ◀':''}<br><span style="font-size:.78rem;opacity:.7">${z.cond}</span></div>`;
   }).join('');
 
   document.getElementById('tierLegend').innerHTML=`
     <div style="margin-bottom:14px">
-      <div style="font-size:.72rem;color:var(--emerald);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Buy Score: ${buyS.toFixed(1)}</div>
+      <div style="font-size:.85rem;color:var(--emerald);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Buy Score: ${buyS.toFixed(1)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">${renderChips(buyTiers)}</div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-size:.72rem;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Sell Score: ${sellS.toFixed(1)}</div>
+      <div style="font-size:.85rem;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Sell Score: ${sellS.toFixed(1)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">${renderChips(sellTiers)}</div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-size:.72rem;color:${nb>=0?'var(--emerald)':'var(--red)'};text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Net Bias: ${nb>=0?'+':''}${nb.toFixed(1)}</div>
+      <div style="font-size:.85rem;color:${nb>=0?'var(--emerald)':'var(--red)'};text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Net Bias: ${nb>=0?'+':''}${nb.toFixed(1)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">${renderChips(biasTiers)}</div>
     </div>
     <div>
-      <div style="font-size:.72rem;color:${comboColor};text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Combined Signal: ${comboName}</div>
-      <div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">${comboDesc}</div>
+      <div style="font-size:.85rem;color:${comboColor};text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">Combined Signal: ${comboName}</div>
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:8px">${comboDesc}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">${renderComboChips()}</div>
     </div>`;
 }
@@ -1387,24 +1587,22 @@ function renderMethodology(){
     {title:'D2: Volume Rank (0–100)',body:'Rolling percentile of cumulative volume per period. High volume = strong institutional interest = bullish confirmation. Same weight structure as D1.'},
     {title:'D3: RSI (0–100)',body:'14-day RSI. Sweet spot 50–70=100 (bullish but not overbought), 40–49=80, 71–80=70, 30–39=60, &gt;80=50 (overbought risk), &lt;30=30.'},
     {title:'D4: MA Trend (0–100)',body:'Price &gt; MA50 (+35), Price &gt; MA200 (+35), Golden Cross MA50&gt;MA200 (+30). Price above MAs = uptrend confirmed. Max 100.'},
-    {title:'D5: Dir. Volatility (0–100)',body:'Directional Volatility — vol_ratio = downside_vol / upside_vol. Low ratio (upside dominant) = bullish = high score. ≤0.6=100, ≤0.8=85, ≤1.0=70, ≤1.2=55, ≤1.5=40, ≤2.0=20, &gt;2.0=10.'},
+    {title:'D5: Dir. Volatility (0–100)',body:'Directional Volatility — vol_ratio = downside_vol / upside_vol (21-day). Upside dominant = bullish. ≤0.6=100, ≤0.8=85, ≤1.0=70 (balanced), ≤1.2=55, ≤1.5=40, ≤2.0=20, &gt;2.0=10.'},
     {title:'D6: External Macro (0–100)',body:'DXY weak + VIX elevated = bullish gold (safe haven). Raw score ±10 mapped to 0–100. Each dimension weighted equally (1/6).'},
     {title:'Penalty System',body:'Momentum Reversal (bearish): short-term return flips negative while long-term positive → -5 (mild) or -10 (strong). Death Cross (MA50&lt;MA200) → -5. Scaled ×(100/110). Capped ~-13.6.'},
     {title:'Pivot × Score',body:'Multi-TF Classic Pivot Points (D1/W1/MN). Price above PP+R1 with strong Buy = Bullish Breakout. Confluence zones = pivots overlapping within 20 pts.'},
-    {title:'Z-Score Regime Filter',body:'Z = (Price - Mean) / StdDev ใช้ 1200/2400/4800 bar lookback (≈50d/100d/200d). Threshold ไม่สมมาตร. Extreme Ext (Z≥+2.5) 🔴 ระวังเปิด Long ใหม่ | Extended (Z≥+2.0) 🟡 pullback risk | Normal (-1.5σ to +2.0σ) 🟢 ปกติ | Depressed (Z≤-1.5) 🔵 oversold | Extreme Dep (Z≤-2.0) 🟢 bounce potential สูง.'},
-    {title:'Exhaustion Detection',body:'ใช้ score history จับจุดหมดแรง. Bull Exhaustion: Net≥70 + Δ&lt;0 → HOLD. Topping: Max≥80 + Δ&lt;-8 → HOLD. Bear Exhaustion: Min&lt;50 + Δ&gt;+3 → BUY. Vol Shift: |D5 shift|≥50pts → HOLD.'},
+    {title:'Z-Score Regime Filter',body:'Z = (Price - Mean) / StdDev. ใช้ 50d/100d/200d lookback. Threshold ไม่สมมาตร — calibrated จากข้อมูลทอง 2020-2026 ที่มี positive drift bias (Z เฉลี่ย +0.5 ถึง +1.4). Normal (-1.5σ to +2.0σ) ~77% | Extended (≥+2.0σ) ~9% | Extreme Ext (≥+2.5σ) ~6% | Depressed (≤-1.5σ) ~3% | Extreme Dep (≤-2.0σ) ~4%. ไม่ใช่สัญญาณ Buy/Sell โดยตรง — ใช้เป็น context filter.'},
+    {title:'Exhaustion Detection',body:'SC13 Bull Exhaustion: Z≥2.0 + Net≥70 + 5dΔ&lt;0 → HOLD. SC14 Topping: Max10d≥80 + 5dΔ&lt;-8 → HOLD. SC15 Bear Exhaustion: Min10d&lt;50 + 5dΔ&gt;+3 → BUY. SC16 Vol Shift: |D5 shift|≥50pts/5d → HOLD. ใช้ momentum history 5-10 วัน จับจุดหมดแรง.'},
   ];
   const sellCards=[
     {title:'D1s: Return Rank (0–100)',body:'FLIPPED percentile — Low return percentile = price dropping harder than history = strong sell signal. ตรงข้ามกับ Buy: ยิ่งตกแรง ยิ่งได้คะแนนสูง.'},
     {title:'D2s: Volume Rank (0–100)',body:'High volume + negative returns = selling pressure. Volume สูงอย่างเดียวไม่พอ ต้องมี price direction ลงด้วย = institutional selling.'},
     {title:'D3s: RSI (0–100)',body:'FLIPPED — RSI&lt;30=100 (oversold = strong bearish momentum), RSI 30–39=80, RSI 40–49=60, RSI 50–70=30 (healthy = weak sell), RSI&gt;80=50.'},
     {title:'D4s: MA Trend (0–100)',body:'FLIPPED — Price &lt; MA50 (+35), Price &lt; MA200 (+35), Death Cross MA50&lt;MA200 (+30). ราคาต่ำกว่า MA = downtrend confirmed. Max 100.'},
-    {title:'D5s: Dir. Volatility (0–100)',body:'FLIPPED — high vol_ratio = downside dominant = panic/fear = strong sell. ≥2.0=100, ≥1.5=85, ≥1.2=70, ≥1.0=55, ≥0.8=40, ≥0.6=20, &lt;0.6=10.'},
+    {title:'D5s: Dir. Volatility (0–100)',body:'FLIPPED — High vol_ratio = downside dominant = strong sell conditions. ≤0.6=10 (upside dominant, weak sell), ≤0.8=25, ≤1.0=40, ≤1.2=55, ≤1.5=70, ≤2.0=85, &gt;2.0=100 (downside dominant, strong sell).'},
     {title:'D6s: External Macro (0–100)',body:'FLIPPED — DXY strong + VIX low = bearish gold (no safe-haven demand). Dollar แข็ง + ตลาดสงบ = ทองไม่มีแรงซื้อ.'},
     {title:'Penalty System (Sell)',body:'Bullish Reversal: short-term bounce while long-term bearish → punishes sell signal. Golden Cross (MA50&gt;MA200) → penalty. ตรงข้ามกับ Buy penalty.'},
     {title:'Pivot × Score',body:'Price below PP+S1 with strong Sell = Bearish Breakdown. ราคาหลุดแนวรับ + Sell momentum แข็ง = ยืนยันขาลง.'},
-    {title:'Z-Score Regime Filter (Sell)',body:'Z = (Price - Mean) / StdDev. Extreme Ext (Z≥+2.5) 🟢 เสริมสัญญาณ Sell | Extended (Z≥+2.0) 🟡 Sell มีน้ำหนักขึ้น | Normal ⚪ ใช้ sell score ตามปกติ | Depressed (Z≤-1.5) 🟡 ระวัง bounce | Extreme Dep (Z≤-2.0) 🔴 ระวัง bounce ก่อน Short.'},
-    {title:'Exhaustion Detection (Sell)',body:'ใช้ sell score history จับจุด sell หมดแรง. SE1 Sell Exhaustion: Net≥70 + Δ&lt;0 → HOLD. SE2 Sell Topping: Max≥80 + Δ&lt;-8 → HOLD. SE3 Sell Recovery: Min&lt;50 + Δ&gt;+3 → SELL. SE4 Vol Shift: |D5 shift|≥50pts → HOLD.'},
   ];
   const render=cards=>cards.map(c=>`<div class="method-card"><div class="title">${c.title}</div><div class="body">${c.body}</div></div>`).join('');
   document.getElementById('methBuyGrid').innerHTML=render(buyCards);
@@ -1452,23 +1650,23 @@ function renderNetBias(){
   el.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
       <div style="background:var(--emerald-dim);border:1px solid rgba(52,211,153,.2);border-radius:12px;padding:18px;text-align:center">
-        <div style="font-size:.68rem;color:var(--emerald);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Buy Score</div>
+        <div style="font-size:.82rem;color:var(--emerald);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Buy Score</div>
         <div style="font-family:var(--font-h);font-size:2rem;color:var(--emerald)">${buyS.toFixed(1)}</div>
-        <div style="font-size:.72rem;color:var(--text3)">${DN.Buy_Tier} | Δ ${parseFloat(DN.Buy_Delta)>=0?'+':''}${parseFloat(DN.Buy_Delta).toFixed(1)}</div>
+        <div style="font-size:.85rem;color:var(--text3)">${DN.Buy_Tier} | Δ ${parseFloat(DN.Buy_Delta)>=0?'+':''}${parseFloat(DN.Buy_Delta).toFixed(1)}</div>
       </div>
       <div style="background:${zoneBg};border:1px solid ${zoneBorder};border-radius:12px;padding:18px;text-align:center">
-        <div style="font-size:.68rem;color:${comboClr};text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Net Bias</div>
+        <div style="font-size:.82rem;color:${comboClr};text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Net Bias</div>
         <div style="font-family:var(--font-h);font-size:2rem;color:${nb>=0?'var(--emerald)':'var(--red)'}">${nb>=0?'+':''}${nb.toFixed(1)}</div>
-        <div style="font-size:.72rem;color:${comboClr}">${bt}</div>
+        <div style="font-size:.85rem;color:${comboClr}">${bt}</div>
       </div>
       <div style="background:var(--red-dim);border:1px solid rgba(248,113,113,.2);border-radius:12px;padding:18px;text-align:center">
-        <div style="font-size:.68rem;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Sell Score</div>
+        <div style="font-size:.82rem;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Sell Score</div>
         <div style="font-family:var(--font-h);font-size:2rem;color:var(--red)">${sellS.toFixed(1)}</div>
-        <div style="font-size:.72rem;color:var(--text3)">${DN.Sell_Tier} | Δ ${parseFloat(DN.Sell_Delta)>=0?'+':''}${parseFloat(DN.Sell_Delta).toFixed(1)}</div>
+        <div style="font-size:.85rem;color:var(--text3)">${DN.Sell_Tier} | Δ ${parseFloat(DN.Sell_Delta)>=0?'+':''}${parseFloat(DN.Sell_Delta).toFixed(1)}</div>
       </div>
     </div>
     <div style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">
         <span style="color:var(--emerald)">BUY ${buyPct.toFixed(0)}%</span><span style="color:var(--red)">SELL ${sellPct.toFixed(0)}%</span>
       </div>
       <div style="height:12px;background:rgba(0,0,0,.04);border-radius:6px;overflow:hidden;display:flex">
@@ -1481,10 +1679,10 @@ function renderNetBias(){
         <span style="font-size:1.3rem">${si}</span>
         <span style="font-weight:700;font-size:.92rem">${ss}</span>
         <span style="font-size:.78rem;color:var(--text2)">${sth}</span>
-        <span class="sc-action ${actionCls}" style="margin-left:auto;padding:5px 16px;border-radius:6px;font-size:.72rem;font-weight:800;letter-spacing:1.5px">${sa}</span>
+        <span class="sc-action ${actionCls}" style="margin-left:auto;padding:5px 16px;border-radius:6px;font-size:.85rem;font-weight:800;letter-spacing:1.5px">${sa}</span>
       </div>
       <div style="font-size:.78rem;color:var(--text2);margin-top:8px;line-height:1.6">${sd}</div>
-      <div style="font-size:.68rem;color:var(--text3);margin-top:6px"><strong style="color:${comboClr}">${comboLabel}</strong> | ${DN.Scenario_Cond}</div>
+      <div style="font-size:.82rem;color:var(--text3);margin-top:6px"><strong style="color:${comboClr}">${comboLabel}</strong> | ${DN.Scenario_Cond}</div>
     </div>`;
 }
 
@@ -1493,14 +1691,14 @@ function renderDimCompare(){
   const el=document.getElementById('dimCompareGrid');
   if(!DN||!DS){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">Comparison data not available</div>';return;}
   const dims=['D1','D2','D3','D4','D5','D6'];
-  const names=['Return Rank','Volume Rank','RSI','MA Trend','Volatility','Macro'];
+  const names=['Return Rank','Volume Rank','RSI','MA Trend','Dir. Volatility','Macro'];
   const colors=dimColors;
   let html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
   dims.forEach((d,i)=>{
     const bv=parseFloat(DN['Buy_'+d]||0),sv=parseFloat(DN['Sell_'+d]||0);
     const diff=bv-sv;
     html+=`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 12px">
-      <div style="font-size:.68rem;color:${colors[i]};text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">${names[i]}</div>
+      <div style="font-size:.82rem;color:${colors[i]};text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">${names[i]}</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
         <span style="font-size:.78rem;color:var(--emerald);font-weight:600">${bv.toFixed(0)}</span>
         <span style="font-family:var(--font-h);font-size:.92rem;color:${diff>=0?'var(--emerald)':'var(--red)'}"> ${diff>=0?'+':''}${diff.toFixed(0)}</span>
@@ -1514,7 +1712,7 @@ function renderDimCompare(){
           <div style="width:${Math.max(5,sv)}%;background:var(--red);border-radius:3px;min-width:4px"></div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text3);margin-top:2px"><span>Buy</span><span>Sell</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--text3);margin-top:2px"><span>Buy</span><span>Sell</span></div>
     </div>`;
   });
   html+='</div>';
@@ -1524,81 +1722,85 @@ function renderDimCompare(){
 // ── Scenario Reference Table (NEW: Buy+Sell based) ──
 function renderScenarioTable(){
   const currentSignal=DN?DN.Scenario_Signal:'';
+  const exBuySignal=D.Exhaust_Scenario||'None';const exBuyOn=exBuySignal&&exBuySignal!=='None';
+  const exSellSignal=DS?DS.Exhaust_Scenario||'None':'None';const exSellOn=exSellSignal&&exSellSignal!=='None';
+  const eBuyMap={'Bull Exhaustion':'E1','Topping':'E2','Bear Exhaustion':'E3','Vol Shift':'E4'};
+  const eSellMap={'Sell Exhaustion':'SE1','Sell Topping':'SE2','Sell Recovery':'SE3','Vol Shift':'SE4'};
+
   const scenarios=[
-    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',
-     cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ &gt; 0',zone:'BULLISH',combo:'Full Bullish Confirmed',
-     meaning:'ราคาทะลุ R1 + Buy momentum แข็ง + Sell ไม่มีแรง + ยังเร่งตัว → Breakout ยืนยัน ดู R2/R3 เป็นเป้าถัดไป',action:'BUY',actionCls:'buy'},
-    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',
-     cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ ≤ 0',zone:'BULLISH',combo:'Full Bullish Confirmed',
-     meaning:'ทะลุ R1 + Buy ยังแข็ง + Sell อ่อน แต่ delta เริ่มชะลอ → พิจารณา take-profit บางส่วน',action:'HOLD',actionCls:'hold'},
-    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',
-     cond:'PP ≤ Price &lt; R1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาเหนือ PP กำลังวิ่งหา R1 + Buy แข็ง Sell อ่อน → สะสมแรงเพื่อ breakout',action:'BUY',actionCls:'buy'},
-    {n:4,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',
-     cond:'S1 ≤ Price &lt; PP &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาย่อใต้ PP แต่ Buy แข็ง Sell อ่อนมาก → มีโอกาสเด้งกลับ',action:'BUY',actionCls:'buy'},
-    {n:5,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',
-     cond:'Price &lt; S1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',zone:'BULLISH',combo:'Bullish Dominant',
-     meaning:'ราคาหลุด S1 แต่ Buy ยังแข็ง + Sell ไม่มีแรง → Divergence อาจ recover',action:'BUY',actionCls:'buy'},
-    {n:6,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ — ยืนยันทั้ง Buy+Sell',
-     cond:'Price &lt; S1 &amp; Sell ≥ 75 &amp; Buy &lt; 45 &amp; Net ≤ -20 &amp; SellΔ &gt; 0',zone:'BEARISH',combo:'Full Bearish Confirmed',
-     meaning:'ราคาหลุด S1 + Sell แข็ง Buy หมดแรง + Sell ยังเร่ง → เสี่ยงลงต่อถึง S2/S3',action:'SELL',actionCls:'sell'},
-    {n:7,icon:'🔻',signal:'Bearish Continuation',thai:'ขาลงต่อเนื่อง',
-     cond:'Price &lt; S1 &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาใต้ S1 + Sell แข็ง Buy อ่อน → ขาลงยังไม่จบ',action:'SELL',actionCls:'sell'},
-    {n:8,icon:'📊',signal:'Bearish Distribution',thai:'กระจายของขาลง',
-     cond:'S1 ≤ Price &lt; PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาระหว่าง S1-PP + Sell แข็ง Buy อ่อน → กำลังกระจายก่อนลงต่อ',action:'SELL',actionCls:'sell'},
-    {n:9,icon:'⚠️',signal:'Resistance Rejection',thai:'โดนแนวต้านตีกลับ',
-     cond:'Price ≥ PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',zone:'BEARISH',combo:'Bearish Dominant',
-     meaning:'ราคาเหนือ PP แต่ Sell แข็งกว่า Buy มาก → เสี่ยงโดนตีกลับ',action:'SELL',actionCls:'sell'},
-    {n:10,icon:'🌪️',signal:'Volatile Breakout',thai:'ทะลุแต่ผันผวนสูง',
-     cond:'Price ≥ R1 &amp; Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',zone:'CONFLICT',combo:'Tug of War',
-     meaning:'ราคาเหนือ R1 แต่ทั้ง Buy+Sell มีแรง → ผันผวนสูง อาจทะลุหรือถูก reject รอยืนยัน',action:'HOLD',actionCls:'hold'},
-    {n:11,icon:'⚔️',signal:'Tug of War',thai:'ชักเย่อ — ทั้งสองฝั่งมีแรง',
-     cond:'Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',zone:'CONFLICT',combo:'Tug of War',
-     meaning:'ทั้ง Buy+Sell momentum สูงพอกัน → ตลาดกำลังตัดสินใจ รอฝั่งใดฝั่งหนึ่งชนะก่อน',action:'HOLD',actionCls:'hold'},
-    {n:12,icon:'💤',signal:'Dead Zone',thai:'ไม่มีทิศทาง — รอสัญญาณ',
-     cond:'Buy &lt; 55 &amp; Sell &lt; 55',zone:'NEUTRAL',combo:'Dead Zone',
-     meaning:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',action:'HOLD',actionCls:'hold'},
-    {n:13,icon:'📊',signal:'Cautious Bullish',thai:'เอียง bullish แต่ยังไม่ชัด',
-     cond:'Buy ≥ 55 &amp; Sell &lt; 55 &amp; Net &gt; 0 &amp; (Buy &lt; 60 หรือ Net &lt; +20)',zone:'LEAN BULLISH',combo:'Lean Bullish',
-     meaning:'Buy แข็งกว่า Sell แต่ยังไม่ถึง Bullish Zone → ถือรอ ถ้า Buy เพิ่มจะเข้า Bullish Zone',action:'HOLD',actionCls:'hold'},
-    {n:14,icon:'📉',signal:'Cautious Bearish',thai:'เอียง bearish แต่ยังไม่ชัด',
-     cond:'Sell ≥ 55 &amp; Buy &lt; 55 &amp; Net &lt; 0 &amp; (Sell &lt; 60 หรือ Net &gt; -20)',zone:'LEAN BEARISH',combo:'Lean Bearish',
-     meaning:'Sell แข็งกว่า Buy แต่ยังไม่ถึง Bearish Zone → ระวัง ถ้า Sell เพิ่มจะเข้า Bearish Zone',action:'HOLD',actionCls:'hold'},
+    {n:1,icon:'🚀',signal:'Bullish Breakout',thai:'ทะลุแนวต้าน — ยืนยันทั้ง Buy+Sell',cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ &gt; 0',combo:'Full Bullish Confirmed',meaning:'ราคาทะลุ R1 + Buy momentum แข็ง + Sell ไม่มีแรง + ยังเร่งตัว → Breakout ยืนยัน',action:'BUY',actionCls:'buy'},
+    {n:2,icon:'📈',signal:'Bullish but Cooling',thai:'ขาขึ้นแต่ชะลอตัว',cond:'Price ≥ R1 &amp; Buy ≥ 75 &amp; Sell &lt; 45 &amp; Net ≥ +20 &amp; BuyΔ ≤ 0',combo:'Full Bullish Confirmed',meaning:'ทะลุ R1 + Buy ยังแข็ง + Sell อ่อน แต่ delta เริ่มชะลอ → take-profit บางส่วน',action:'HOLD',actionCls:'hold'},
+    {n:3,icon:'💪',signal:'Bullish Accumulation',thai:'สะสมแรงขาขึ้น',cond:'PP ≤ Price &lt; R1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาเหนือ PP กำลังวิ่งหา R1 + Buy แข็ง Sell อ่อน → สะสมแรงเพื่อ breakout',action:'BUY',actionCls:'buy'},
+    {n:4,icon:'🔄',signal:'Support Bounce',thai:'เด้งจากแนวรับ',cond:'S1 ≤ Price &lt; PP &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาย่อใต้ PP แต่ Buy แข็ง Sell อ่อนมาก → มีโอกาสเด้งกลับ',action:'BUY',actionCls:'buy'},
+    {n:5,icon:'⚡',signal:'Oversold Recovery',thai:'ร่วงแรงแต่มีแรงฟื้น',cond:'Price &lt; S1 &amp; Buy ≥ 60 &amp; Sell &lt; 45 &amp; Net ≥ +20',combo:'Bullish Dominant',meaning:'ราคาหลุด S1 แต่ Buy ยังแข็ง + Sell ไม่มีแรง → Divergence อาจ recover',action:'BUY',actionCls:'buy'},
+    {n:6,icon:'📉',signal:'Bearish Breakdown',thai:'หลุดแนวรับ — ยืนยันทั้ง Buy+Sell',cond:'Price &lt; S1 &amp; Sell ≥ 75 &amp; Buy &lt; 45 &amp; Net ≤ -20 &amp; SellΔ &gt; 0',combo:'Full Bearish Confirmed',meaning:'ราคาหลุด S1 + Sell แข็ง Buy หมดแรง + Sell ยังเร่ง → เสี่ยงลงต่อถึง S2/S3',action:'SELL',actionCls:'sell'},
+    {n:7,icon:'🔻',signal:'Bearish Continuation',thai:'ขาลงต่อเนื่อง',cond:'Price &lt; S1 &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาใต้ S1 + Sell แข็ง Buy อ่อน → ขาลงยังไม่จบ',action:'SELL',actionCls:'sell'},
+    {n:8,icon:'📊',signal:'Bearish Distribution',thai:'กระจายของขาลง',cond:'S1 ≤ Price &lt; PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาระหว่าง S1-PP + Sell แข็ง Buy อ่อน → กำลังกระจายก่อนลงต่อ',action:'SELL',actionCls:'sell'},
+    {n:9,icon:'⚠️',signal:'Resistance Rejection',thai:'โดนแนวต้านตีกลับ',cond:'Price ≥ PP &amp; Sell ≥ 60 &amp; Buy &lt; 45 &amp; Net ≤ -20',combo:'Bearish Dominant',meaning:'ราคาเหนือ PP แต่ Sell แข็งกว่า Buy มาก → เสี่ยงโดนตีกลับ',action:'SELL',actionCls:'sell'},
+    {n:10,icon:'🌪️',signal:'Volatile Breakout',thai:'ทะลุแต่ผันผวนสูง',cond:'Price ≥ R1 &amp; Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',combo:'Tug of War',meaning:'ราคาเหนือ R1 แต่ทั้ง Buy+Sell มีแรง → ผันผวนสูง รอยืนยัน',action:'HOLD',actionCls:'hold'},
+    {n:11,icon:'⚔️',signal:'Tug of War',thai:'ชักเย่อ — ทั้งสองฝั่งมีแรง',cond:'Buy ≥ 55 &amp; Sell ≥ 55 &amp; |Net| &lt; 20',combo:'Tug of War',meaning:'ทั้ง Buy+Sell momentum สูงพอกัน → รอฝั่งใดชนะก่อน',action:'HOLD',actionCls:'hold'},
+    {n:12,icon:'💤',signal:'Dead Zone',thai:'ไม่มีทิศทาง — รอสัญญาณ',cond:'Buy &lt; 55 &amp; Sell &lt; 55',combo:'Dead Zone',meaning:'ทั้ง Buy+Sell ไม่มีแรง → ตลาดไม่มีทิศทาง รอ breakout',action:'HOLD',actionCls:'hold'},
+    {n:13,icon:'📊',signal:'Cautious Bullish',thai:'เอียง bullish แต่ยังไม่ชัด',cond:'Buy ≥ 55 &amp; Sell &lt; 55 &amp; Net &gt; 0 &amp; (Buy &lt; 60 หรือ Net &lt; +20)',combo:'Lean Bullish',meaning:'Buy แข็งกว่า Sell แต่ยังไม่ถึง Bullish Zone → ถือรอ',action:'HOLD',actionCls:'hold'},
+    {n:14,icon:'📉',signal:'Cautious Bearish',thai:'เอียง bearish แต่ยังไม่ชัด',cond:'Sell ≥ 55 &amp; Buy &lt; 55 &amp; Net &lt; 0 &amp; (Sell &lt; 60 หรือ Net &gt; -20)',combo:'Lean Bearish',meaning:'Sell แข็งกว่า Buy แต่ยังไม่ถึง Bearish Zone → ระวัง',action:'HOLD',actionCls:'hold'},
+  ];
+  const buyExhaust=[
+    {id:'E1',icon:'🔥',signal:'Bull Exhaustion',thai:'Buy momentum หมดแรง',cond:'Z≥2.0 + BuyNet≥70 + 5dΔ&lt;0',meaning:'Z สูง + Buy score ดี แต่เริ่มลด → ขาขึ้นอ่อนล้า',action:'HOLD',cls:'hold'},
+    {id:'E2',icon:'🏔️',signal:'Topping',thai:'Buy score หล่นจากพีค',cond:'BuyMax10d≥80 + 5dΔ&lt;-8',meaning:'Buy score เพิ่งพีค + หล่นแรง → อาจถึงยอด',action:'HOLD',cls:'hold'},
+    {id:'E3',icon:'🔋',signal:'Bear Exhaustion',thai:'ขาลงหมดแรง — Buy เริ่มฟื้น',cond:'BuyMin10d&lt;50 + 5dΔ&gt;+3',meaning:'Buy score เคยต่ำ + เริ่มฟื้น → ขาลงหมดแรง',action:'BUY',cls:'buy'},
+    {id:'E4',icon:'⚡',signal:'Buy Vol Shift',thai:'D5 เปลี่ยนแรง',cond:'|D5 shift|≥50pts / 5d',meaning:'D5 Directional Volatility เปลี่ยนแรง → โครงสร้างเปลี่ยน',action:'HOLD',cls:'hold'},
+  ];
+  const sellExhaust=[
+    {id:'SE1',icon:'🔥',signal:'Sell Exhaustion',thai:'Sell momentum หมดแรง',cond:'SellNet≥70 + 5dΔ&lt;0',meaning:'Sell score สูง + เริ่มลด → selling pressure หมดแรง',action:'HOLD',cls:'hold'},
+    {id:'SE2',icon:'🏔️',signal:'Sell Topping',thai:'Sell score หล่นจากพีค',cond:'SellMax10d≥80 + 5dΔ&lt;-8',meaning:'Sell score เพิ่งพีค + หล่นแรง → panic selling อาจจบ',action:'HOLD',cls:'hold'},
+    {id:'SE3',icon:'🔋',signal:'Sell Recovery',thai:'Sell pressure กำลังก่อตัว',cond:'SellMin10d&lt;50 + 5dΔ&gt;+3',meaning:'Sell score เคยต่ำ + เริ่มเพิ่ม → sell pressure กำลังมา',action:'SELL',cls:'sell'},
+    {id:'SE4',icon:'⚡',signal:'Sell Vol Shift',thai:'D5s เปลี่ยนแรง',cond:'|D5s shift|≥50pts / 5d',meaning:'D5s Volatility เปลี่ยนแรง → โครงสร้างเปลี่ยน',action:'HOLD',cls:'hold'},
   ];
 
-  const comboColor=c=>c.includes('Full Bullish')?'var(--emerald)':c.includes('Bullish Dominant')?'#8BD4B0':c.includes('Lean Bullish')?'#8BD4B0':c.includes('Full Bearish')?'var(--red)':c.includes('Bearish Dominant')?'#F87171':c.includes('Lean Bearish')?'#F87171':c.includes('Tug')?'var(--gold)':c.includes('Dead')?'var(--text3)':'var(--text3)';
+  const comboColor=c=>c.includes('Full Bullish')?'var(--emerald)':c.includes('Bullish')?'#8BD4B0':c.includes('Full Bearish')?'var(--red)':c.includes('Bearish')?'#F87171':c.includes('Tug')?'var(--gold)':'var(--text3)';
 
-  let html=`<table class="scenario-table">
-    <thead><tr>
-      <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Combined Signal</th><th>เงื่อนไข (Conditions)</th><th>ความหมาย (Interpretation)</th><th>Bias</th>
-    </tr></thead><tbody>`;
+  let html=`<table class="scenario-table"><thead><tr>
+    <th>#</th><th></th><th>Signal / สัญญาณ</th><th>Combined Signal</th><th>เงื่อนไข</th><th>ความหมาย</th><th>Bias</th>
+  </tr></thead><tbody>`;
 
   scenarios.forEach(s=>{
-    const isCurrent=s.signal===currentSignal;
-    const zc=s.zone==='BULLISH'?'var(--emerald)':s.zone==='BEARISH'?'var(--red)':s.zone==='CONFLICT'?'var(--orange)':s.zone.includes('LEAN')?'var(--gold)':'var(--text3)';
-    const cc=comboColor(s.combo);
-    html+=`<tr class="${isCurrent?'current-scenario':''}">
-      <td class="sc-num">${s.n}</td>
-      <td class="sc-icon">${s.icon}</td>
-      <td><div class="sc-signal">${s.signal}${isCurrent?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
-      <td style="text-align:center"><span style="color:${cc};font-size:.68rem;font-weight:700">${s.combo}</span></td>
-      <td><div class="sc-cond">${s.cond}</div></td>
-      <td class="sc-meaning">${s.meaning}</td>
-      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td>
-    </tr>`;
+    const cur=s.signal===currentSignal;const cc=comboColor(s.combo);
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.n}</td><td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</div><div class="sc-thai">${s.thai}</div></td>
+      <td style="text-align:center"><span style="color:${cc};font-size:.82rem;font-weight:700">${s.combo}</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.actionCls}">${s.action}</span></td></tr>`;
+  });
+
+  // Buy Exhaustion separator + rows
+  html+=`<tr><td colspan="7" style="padding:10px;text-align:center;font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase;background:var(--orange-dim);border-top:2px solid rgba(251,146,60,.3)">🔥 Buy Exhaustion Layer (จาก Buy history 5-10 วัน)</td></tr>`;
+  buyExhaust.forEach(s=>{
+    const cur=exBuyOn&&eBuyMap[exBuySignal]===s.id;
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.id}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</td><td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}</div><div class="sc-thai">${s.thai}</div></td>
+      <td style="text-align:center"><span style="color:var(--orange);font-size:.82rem;font-weight:700">—</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td></tr>`;
+  });
+
+  // Sell Exhaustion separator + rows
+  html+=`<tr><td colspan="7" style="padding:10px;text-align:center;font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--red);text-transform:uppercase;background:var(--red-dim);border-top:2px solid rgba(248,113,113,.3)">🔥 Sell Exhaustion Layer (จาก Sell history 5-10 วัน)</td></tr>`;
+  sellExhaust.forEach(s=>{
+    const cur=exSellOn&&eSellMap[exSellSignal]===s.id;
+    html+=`<tr class="${cur?'current-scenario':''}"><td class="sc-num">${s.id}${cur?'<span class="sc-current-tag">◀ NOW</span>':''}</td><td class="sc-icon">${s.icon}</td>
+      <td><div class="sc-signal">${s.signal}</div><div class="sc-thai">${s.thai}</div></td>
+      <td style="text-align:center"><span style="color:var(--red);font-size:.82rem;font-weight:700">—</span></td>
+      <td><div class="sc-cond">${s.cond}</div></td><td class="sc-meaning">${s.meaning}</td>
+      <td style="text-align:center"><span class="sc-action ${s.cls}">${s.action}</span></td></tr>`;
   });
 
   html+=`</tbody></table>
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.72rem;color:var(--text3);line-height:1.6">
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,.02);border-radius:8px;font-size:.85rem;color:var(--text3);line-height:1.6">
       <strong style="color:var(--gold)">หมายเหตุ:</strong>
-      Scenario ใช้ Buy Score + Sell Score + Net Bias + Pivot Position ร่วมกัน
-      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่แค่ Buy อ่อน — ครอบคลุมกว่าระบบเดิมที่ใช้แค่ Buy Score ตัวเดียว
-      ไม่ใช่คำแนะนำการลงทุน — ควรใช้ประกอบกับปัจจัยอื่นเสมอ
+      SC1-SC14 ใช้ Buy+Sell Score + Net Bias + Pivot Position.
+      E1-E4 ใช้ Buy momentum history จับสัญญาณขาขึ้นหมดแรง.
+      SE1-SE4 ใช้ Sell momentum history จับสัญญาณขาลงหมดแรง.
+      <strong>SELL ต้องมี Sell Score ยืนยัน</strong> ไม่ใช่คำแนะนำการลงทุน
     </div>`;
-
   document.getElementById('scenarioTable').innerHTML=html;
 }
 // ── Charts ──
@@ -1606,16 +1808,20 @@ function renderRadarChart(){
   const ctx=document.getElementById('radarChart').getContext('2d');
   const radarOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
     tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+' / 100'}}},
-    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:tc('text3'),backdropColor:'transparent',font:{size:10}},grid:{color:tc('gridLine')},angleLines:{color:tc('gridLine')},pointLabels:{color:tc('text2'),font:{size:11,family:'Instrument Sans',weight:'600'}}}}};
-  new Chart(ctx,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Volatility','Macro'],
-    datasets:[{label:'Buy',data:[fi('D1_ReturnRank'),fi('D2_VolumeRank'),fi('D3_RSI'),fi('D4_MA'),fi('D5_DirVol'),fi('D6_External')],
+    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:tc('text3'),backdropColor:'transparent',font:{size:10}},grid:{color:tc('gridLine')},angleLines:{color:tc('gridLine')},pointLabels:{color:tc('text2'),font:{size:11,family:'Anuphan',weight:'600'}}}}};
+  // Use /100 scores from DN if available, otherwise scale D1-D6 (/20) × 5
+  const buyData=DN?[parseFloat(DN.Buy_D1||0),parseFloat(DN.Buy_D2||0),parseFloat(DN.Buy_D3||0),parseFloat(DN.Buy_D4||0),parseFloat(DN.Buy_D5||0),parseFloat(DN.Buy_D6||0)]
+    :[fi('D1_ReturnRank')*5,fi('D2_VolumeRank')*5,fi('D3_RSI')*5,fi('D4_MA')*5,fi('D5_Volatility')*5,fi('D6_External')*5];
+  new Chart(ctx,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
+    datasets:[{label:'Buy',data:buyData,
       backgroundColor:tc('radarBuy'),borderColor:tc('radarBuyBorder'),borderWidth:2,pointBackgroundColor:tc('radarBuyBorder'),pointBorderColor:tc('radarBuyBorder'),pointRadius:5,pointHoverRadius:8}]},
     options:radarOpts});
   if(DS){
     const ctx2=document.getElementById('radarSellChart').getContext('2d');
-    const sf=k=>DS[k]?parseFloat(DS[k]):0;
-    new Chart(ctx2,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Volatility','Macro'],
-      datasets:[{label:'Sell',data:[sf('D1_ReturnRank'),sf('D2_VolumeRank'),sf('D3_RSI'),sf('D4_MA'),sf('D5_DirVol'),sf('D6_External')],
+    const sellData=DN?[parseFloat(DN.Sell_D1||0),parseFloat(DN.Sell_D2||0),parseFloat(DN.Sell_D3||0),parseFloat(DN.Sell_D4||0),parseFloat(DN.Sell_D5||0),parseFloat(DN.Sell_D6||0)]
+      :[parseFloat(DS.D1_ReturnRank||0)*5,parseFloat(DS.D2_VolumeRank||0)*5,parseFloat(DS.D3_RSI||0)*5,parseFloat(DS.D4_MA||0)*5,parseFloat(DS.D5_Volatility||0)*5,parseFloat(DS.D6_External||0)*5];
+    new Chart(ctx2,{type:'radar',data:{labels:['Return','Volume','RSI','MA','Dir.Vol','Macro'],
+      datasets:[{label:'Sell',data:sellData,
         backgroundColor:tc('radarSell'),borderColor:tc('radarSellBorder'),borderWidth:2,pointBackgroundColor:tc('radarSellBorder'),pointBorderColor:tc('radarSellBorder'),pointRadius:5,pointHoverRadius:8}]},
       options:radarOpts});
   }
@@ -1643,7 +1849,7 @@ const THEME_COLORS = {
     confR:'rgba(234,67,53,', confS:'rgba(52,168,83,', confN:'rgba(26,115,232,',
     headerGrad:'linear-gradient(135deg,#1A73E8,#4285F4,#1A73E8,#1565C0)',
     glowColor:'rgba(26,115,232,',
-    tfH4:'#E8710A', tfD1:'#1A73E8', tfW1:'#4285F4',
+    tfD1:'#1A73E8', tfW1:'#4285F4', tfMN:'#9334E6',
     actionBadgeText:'#FFFFFF',
   },
   dark: {
@@ -1665,7 +1871,7 @@ const THEME_COLORS = {
     confR:'rgba(248,113,113,', confS:'rgba(52,211,153,', confN:'rgba(232,185,49,',
     headerGrad:'linear-gradient(135deg,#E8B931,#F5D76E,#E8B931,#D4A72C)',
     glowColor:'rgba(232,185,49,',
-    tfH4:'#FB923C', tfD1:'#E8B931', tfW1:'#60A5FA',
+    tfD1:'#E8B931', tfW1:'#60A5FA', tfMN:'#A78BFA',
     actionBadgeText:'#0B0E11',
   }
 };
