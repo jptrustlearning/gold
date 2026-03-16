@@ -570,17 +570,24 @@ function renderUPZ(){
     'DEEP MEAN':'#a78bfa','CURRENT':'var(--gold)'
   };
 
-  // Insert NOW marker in the sorted zones
+  // Insert NOW marker and PP marker in the sorted zones
+  const d1pp=PIVOT_ALL['D1']?PIVOT_ALL['D1'].PP:null;
   let items=[];
   let nowInserted=false;
+  let ppInserted=false;
   for(const z of UPZ_ZONES){
     if(!nowInserted&&z.price<price){
       items.push({isNow:true,price:price});
       nowInserted=true;
     }
+    if(d1pp&&!ppInserted&&z.price<d1pp){
+      items.push({isPP:true,price:d1pp});
+      ppInserted=true;
+    }
     items.push(z);
   }
   if(!nowInserted) items.push({isNow:true,price:price});
+  if(d1pp&&!ppInserted) items.push({isPP:true,price:d1pp});
 
   let html=`<div class="upz-header">
     <div style="font-weight:700;font-size:.82rem;color:var(--text)">Price Zones (high → low)</div>
@@ -595,6 +602,18 @@ function renderUPZ(){
         <div class="upz-dist" style="color:var(--text3)">—</div>
         <div class="upz-conf"></div>
         <div class="upz-sources" style="color:var(--gold)">Current price</div>
+      </div>`;
+      return;
+    }
+    if(item.isPP){
+      const ppDist=item.price-price;
+      const ppPct=(ppDist/price*100);
+      html+=`<div class="upz-zone" style="border-bottom:1px dashed #1A73E840">
+        <div class="upz-label" style="color:#1A73E8;font-size:.68rem">⊙ D1 PP</div>
+        <div class="upz-price" style="color:#1A73E8">${fp(item.price)}</div>
+        <div class="upz-dist" style="color:#1A73E8;font-size:.68rem">${ppDist>=0?'▲':'▼'} ${ppDist>=0?'+':''}${ppDist.toFixed(0)} (${ppPct>=0?'+':''}${ppPct.toFixed(2)}%)</div>
+        <div class="upz-conf"></div>
+        <div class="upz-sources" style="color:#1A73E8;font-size:.68rem">Pivot Point center</div>
       </div>`;
       return;
     }
