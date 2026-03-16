@@ -185,6 +185,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .pivot-tab.active[data-tab="D1"]{background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.3)}
 .pivot-tab.active[data-tab="W1"]{background:var(--blue);box-shadow:0 0 12px rgba(96,165,250,.3)}
 .pivot-tab.active[data-tab="MN"]{background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,.3)}
+.pivot-tab.active[data-tab="upz"]{background:#14b8a6;box-shadow:0 0 12px rgba(20,184,166,.3)}
 .pivot-tab .tab-count{display:inline-block;font-size:.62rem;background:rgba(0,0,0,.2);padding:1px 6px;border-radius:4px;margin-left:4px}
 .bias-signal{text-align:center;width:100%}
 .bias-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:.88rem;letter-spacing:.6px;border:1px solid}
@@ -627,9 +628,10 @@ function renderPivotZone(){
     return;
   }
 
-  // Build tabs: Confluence / D1 / W1 / MN
+  // Build tabs: Confluence / D1 / W1 / MN / UPZ
   const tabs=[{id:'conf',label:'⚡ Confluence',count:CONFLUENCES.length}];
   ['D1','W1','MN'].forEach(tf=>{if(PIVOT_ALL[tf])tabs.push({id:tf,label:tf});});
+  if(UPZ_ZONES.length) tabs.push({id:'upz',label:'🎯 UPZ',count:UPZ_ZONES.length});
   
   const tabsEl=document.getElementById('pivotTabs');
   tabsEl.innerHTML=tabs.map(t=>{
@@ -668,8 +670,12 @@ function drawPivotChart(tab){
   // Determine which TF levels to show
   let showTFs=[];
   let confLevels=[];  // extra confluence-only levels from other TFs
+  let upzMode=false;
   
-  if(tab==='conf'){
+  if(tab==='upz'){
+    upzMode=true;
+    // UPZ mode: no pivot datasets, handled by UPZ plugin
+  }else if(tab==='conf'){
     // Show D1 as base + only confluence-matching levels from W1/MN
     showTFs=['D1'];
     // Gather confluence level labels
@@ -687,6 +693,13 @@ function drawPivotChart(tab){
     showTFs=[tab];
   }
 
+  // UPZ color map
+  const upzColorMap={
+    'BREAKOUT':'#f97316','BULL TARGET':'#34d399','RESISTANCE':'#ea4335',
+    'SUPPORT':'#34a853','PULLBACK':'#60a5fa','BEAR TARGET':'#f87171',
+    'DEEP MEAN':'#a78bfa','CURRENT':'var(--gold)'
+  };
+
   // Colors per TF
   const tfColorMap={
     D1:{R:'#EA4335',S:'#34A853',PP:'#1A73E8'},
@@ -698,22 +711,42 @@ function drawPivotChart(tab){
   const pivotDatasets=[];
   const labelAnnotations=[];
 
-  showTFs.forEach(tf=>{
-    if(!PIVOT_ALL[tf])return;
-    const cols=tfColorMap[tf];
-    PIVOT_ALL[tf].levels.forEach(lv=>{
-      const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
+  if(upzMode){
+    // UPZ zones as label annotations
+    UPZ_ZONES.forEach(z=>{
+      const color=upzColorMap[z.label]||'#888';
       const data=Array(totalSlots).fill(null);
-      for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+      for(let i=chartDays-2;i<totalSlots;i++) data[i]=z.price;
       pivotDatasets.push({
-        label:tf+' '+lv.label+' '+fp(lv.value),
-        data,borderColor:'transparent',
-        borderWidth:0,
+        label:z.label+' '+fp(z.price),
+        data,borderColor:'transparent',borderWidth:0,
         pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:2,
       });
-      labelAnnotations.push({tf,label:lv.label,value:lv.value,color});
+      // Build star string
+      const stars='★'.repeat(Math.min(z.confluence,5))+'☆'.repeat(Math.max(0,5-z.confluence));
+      labelAnnotations.push({
+        tf:z.label, label:stars, value:z.price, color,
+        sources:z.sources, confluence:z.confluence, isUPZ:true
+      });
     });
-  });
+  }else{
+    showTFs.forEach(tf=>{
+      if(!PIVOT_ALL[tf])return;
+      const cols=tfColorMap[tf];
+      PIVOT_ALL[tf].levels.forEach(lv=>{
+        const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
+        const data=Array(totalSlots).fill(null);
+        for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+        pivotDatasets.push({
+          label:tf+' '+lv.label+' '+fp(lv.value),
+          data,borderColor:'transparent',
+          borderWidth:0,
+          pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:2,
+        });
+        labelAnnotations.push({tf,label:lv.label,value:lv.value,color});
+      });
+    });
+  }
 
   // Add confluence extra levels (dashed, semi-transparent)
   confLevels.forEach(lv=>{
@@ -731,7 +764,12 @@ function drawPivotChart(tab){
   });
 
   // Y-axis range from visible levels
-  const allVals=labelAnnotations.map(l=>l.value);
+  let allVals=labelAnnotations.map(l=>l.value);
+  // In UPZ mode, focus on zones within 10% of price to avoid extreme squishing
+  if(upzMode&&allVals.length>4){
+    const nearVals=allVals.filter(v=>Math.abs(v-price)/price<0.10);
+    if(nearVals.length>=3) allVals=nearVals;
+  }
   const lvMin=allVals.length?Math.min(...allVals):dataMin;
   const lvMax=allVals.length?Math.max(...allVals):dataMax;
   const lvRange=lvMax-lvMin||100;
@@ -748,13 +786,63 @@ function drawPivotChart(tab){
       labelAnnotations.forEach(lv=>{
         const y=yScale.getPixelForValue(lv.value);
         if(y<area.top-5||y>area.bottom+5)return;
-        if(drawn.some(d=>Math.abs(d-y)<10))return;
+        const minGap=lv.isUPZ?22:10;
+        if(drawn.some(d=>Math.abs(d-y)<minGap))return;
         drawn.push(y);
-        const text=lv.tf+' '+lv.label+' '+fp(lv.value);
-        ctx.font='bold 9px Instrument Sans, sans-serif';
-        const w=ctx.measureText(text).width+10;
-        ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-8,w+4,16,4);ctx.fill();
-        ctx.fillStyle=lv.color;ctx.fillText(text,x,y);
+
+        if(lv.isUPZ){
+          // UPZ label: zone type + price (line 1), stars + sources (line 2)
+          const line1=lv.tf+' '+fp(lv.value);
+          const line2=lv.label+' '+lv.sources;
+          ctx.font='bold 9px Instrument Sans, sans-serif';
+          const w1=ctx.measureText(line1).width;
+          ctx.font='600 7.5px Instrument Sans, sans-serif';
+          const w2=ctx.measureText(line2).width;
+          const w=Math.max(w1,w2)+12;
+          // Background pill
+          ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-14,w+4,28,4);ctx.fill();
+          // Line 1: zone type + price
+          ctx.font='bold 9px Instrument Sans, sans-serif';
+          ctx.fillStyle=lv.color;ctx.fillText(line1,x,y-5);
+          // Line 2: stars + sources
+          ctx.font='600 7.5px Instrument Sans, sans-serif';
+          ctx.fillStyle=lv.color+'cc';ctx.fillText(line2,x,y+7);
+        }else{
+          const text=lv.tf+' '+lv.label+' '+fp(lv.value);
+          ctx.font='bold 9px Instrument Sans, sans-serif';
+          const w=ctx.measureText(text).width+10;
+          ctx.fillStyle=lv.color+'18';ctx.beginPath();ctx.roundRect(x-w-2,y-8,w+4,16,4);ctx.fill();
+          ctx.fillStyle=lv.color;ctx.fillText(text,x,y);
+        }
+      });
+      ctx.restore();
+    }
+  };
+
+  // UPZ zone band plugin — draw horizontal bands for each UPZ zone
+  const upzBandPlugin={
+    id:'upzBands',
+    beforeDatasetsDraw(chart){
+      if(!upzMode||!UPZ_ZONES.length)return;
+      const ctx=chart.ctx,yScale=chart.scales.y,area=chart.chartArea;
+      const atr=parseFloat(D.ATR_14d)||80;
+      const halfBand=atr*0.12; // band thickness based on ATR
+      ctx.save();
+      UPZ_ZONES.forEach(z=>{
+        const color=upzColorMap[z.label]||'#888';
+        const yCenter=yScale.getPixelForValue(z.price);
+        const yTop=yScale.getPixelForValue(z.price+halfBand);
+        const yBot=yScale.getPixelForValue(z.price-halfBand);
+        if(yTop>area.bottom||yBot<area.top)return;
+        const top=Math.max(yTop,area.top),bot=Math.min(yBot,area.bottom);
+        // Band opacity scales with confluence
+        const alpha=Math.min(0.04+z.confluence*0.025, 0.18);
+        ctx.fillStyle=color+Math.round(alpha*255).toString(16).padStart(2,'0');
+        ctx.fillRect(area.left,top,area.right-area.left,bot-top);
+        // Dashed line at center
+        ctx.setLineDash([4,4]);ctx.strokeStyle=color+'60';ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.moveTo(area.left,yCenter);ctx.lineTo(area.right-100,yCenter);ctx.stroke();
+        ctx.setLineDash([]);
       });
       ctx.restore();
     }
@@ -823,7 +911,7 @@ function drawPivotChart(tab){
         ...pivotDatasets
       ]
     },
-    plugins:[confPlugin,pivotLabelPlugin,priceMarkerPlugin],
+    plugins:[confPlugin,upzBandPlugin,pivotLabelPlugin,priceMarkerPlugin],
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
