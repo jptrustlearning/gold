@@ -258,6 +258,27 @@ jobs:
           echo "✅ Net Bias complete"
 
       # ════════════════════════════════════════════════════════════
+      # STEP 3H: H1 Timeframe Pipeline (BUY + SELL + NET)
+      # ════════════════════════════════════════════════════════════
+      - name: "Step 3h-a: Run H1 Momentum Scoring — BUY side"
+        run: |
+          echo "📊 Running H1 Buy Momentum..."
+          python3 gold_momentum_h1.py
+          echo "✅ H1 Buy complete"
+
+      - name: "Step 3h-b: Run H1 Momentum Scoring — SELL side"
+        run: |
+          echo "📊 Running H1 Sell Momentum..."
+          python3 gold_momentum_h1_sell.py
+          echo "✅ H1 Sell complete"
+
+      - name: "Step 3h-c: Calculate H1 Net Bias (BUY vs SELL)"
+        run: |
+          echo "🎯 Calculating H1 Net Bias..."
+          python3 gold_momentum_h1_net.py
+          echo "✅ H1 Net Bias complete"
+
+      # ════════════════════════════════════════════════════════════
       # STEP 4: Commit & Push ทุกอย่างพร้อมกัน
       # ════════════════════════════════════════════════════════════
       - name: "Step 4: Commit and push all outputs"
