@@ -340,15 +340,19 @@ def calc_penalties(df, idx):
 # ══════════════════════════════════════════════════════
 
 def find_closest_daily_idx(daily_df, target_datetime, max_gap_days=5):
-    """Find closest date in daily data to H1 target datetime."""
+    """Find closest date in daily data that is ON or BEFORE the target datetime.
+    No look-ahead: never returns a date after the target."""
     if daily_df is None:
         return None
     target_date = target_datetime.normalize() if hasattr(target_datetime, 'normalize') else pd.Timestamp(target_datetime.date())
-    diffs = (daily_df['Date'] - target_date).abs()
-    min_diff = diffs.min()
-    if min_diff.days > max_gap_days:
+    mask = daily_df['Date'] <= target_date
+    if mask.sum() == 0:
         return None
-    return diffs.idxmin()
+    candidate_idx = daily_df.loc[mask, 'Date'].idxmax()
+    gap = (target_date - daily_df.loc[candidate_idx, 'Date']).days
+    if gap > max_gap_days:
+        return None
+    return candidate_idx
 
 
 def calc_external_return(ext_df, end_idx, period_days):

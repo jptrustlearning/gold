@@ -195,11 +195,15 @@ def d4_sell(price, ma_s, ma_l):
     return min(pts, 100)
 
 def find_closest_daily_idx(daily_df, target_dt, max_gap=5):
+    """Find closest date ON or BEFORE the target — no look-ahead."""
     if daily_df is None: return None
     target_date = pd.Timestamp(target_dt.date()) if hasattr(target_dt, 'date') else pd.Timestamp(target_dt)
-    diffs = (daily_df['Date'] - target_date).abs()
-    if diffs.min().days > max_gap: return None
-    return diffs.idxmin()
+    mask = daily_df['Date'] <= target_date
+    if mask.sum() == 0: return None
+    candidate_idx = daily_df.loc[mask, 'Date'].idxmax()
+    gap = (target_date - daily_df.loc[candidate_idx, 'Date']).days
+    if gap > max_gap: return None
+    return candidate_idx
 
 def calc_ext_return(ext_df, end_idx, period):
     if ext_df is None or end_idx is None: return None
