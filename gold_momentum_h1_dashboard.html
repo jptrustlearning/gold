@@ -184,7 +184,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 .pivot-tab.active[data-tab="conf"]{background:var(--orange);box-shadow:0 0 12px rgba(251,146,60,.3)}
 .pivot-tab.active[data-tab="D1"]{background:var(--gold);box-shadow:0 0 12px rgba(232,185,49,.3)}
 .pivot-tab.active[data-tab="W1"]{background:var(--blue);box-shadow:0 0 12px rgba(96,165,250,.3)}
-.pivot-tab.active[data-tab="MN"]{background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,.3)}
+.pivot-tab.active[data-tab="H4"]{background:#E8710A;box-shadow:0 0 12px rgba(232,113,10,.3)}
 .pivot-tab.active[data-tab="upz"]{background:#14b8a6;box-shadow:0 0 12px rgba(20,184,166,.3)}
 .pivot-tab .tab-count{display:inline-block;font-size:.78rem;background:rgba(0,0,0,.2);padding:1px 6px;border-radius:4px;margin-left:4px}
 .bias-signal{text-align:center;width:100%}
@@ -710,7 +710,7 @@ function drawPivotChart(tab){
   const price=PIVOT.price;
   const chartBars=Math.min(72,PRICE_DATA.length);
   const chartData=PRICE_DATA.slice(-chartBars);
-  const zoneSlots=18;
+  const zoneSlots=28;
   const totalSlots=chartBars+zoneSlots;
   // Labels: show only every 6th bar (6h intervals) for readability
   const labels=[...chartData.map((d,i)=>{
