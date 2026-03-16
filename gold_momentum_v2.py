@@ -728,13 +728,13 @@ def calc_unified_price_zones(df, pivots, confluences):
     # Sort high→low
     zones.sort(key=lambda z: z['price'], reverse=True)
 
-    # Limit: keep max 7 most meaningful zones (top conf_score or closest to price)
-    if len(zones) > 7:
+    # Limit: keep max 10 most meaningful zones (top conf_score or closest to price)
+    if len(zones) > 10:
         # Always keep zones closest to price and highest confluence
         for z in zones:
             z['_priority'] = z['confluence_score'] * 10 + max(0, 5 - abs(z['distance_pct']))
         zones.sort(key=lambda z: z['_priority'], reverse=True)
-        zones = zones[:7]
+        zones = zones[:10]
         for z in zones:
             del z['_priority']
         zones.sort(key=lambda z: z['price'], reverse=True)
@@ -748,7 +748,7 @@ def flatten_zones_for_csv(zones, atr14, current_price):
         'ATR_14d': atr14,
         'UPZ_Count': len(zones),
     }
-    # Store up to 7 zones
+    # Store up to 10 zones
     for i, z in enumerate(zones):
         flat[f'UPZ_{i+1}_Label'] = z['label']
         flat[f'UPZ_{i+1}_Price'] = z['price']
@@ -757,7 +757,7 @@ def flatten_zones_for_csv(zones, atr14, current_price):
         flat[f'UPZ_{i+1}_DistPts'] = z['distance_pts']
         flat[f'UPZ_{i+1}_DistPct'] = z['distance_pct']
     # Pad remaining slots
-    for i in range(len(zones), 7):
+    for i in range(len(zones), 10):
         flat[f'UPZ_{i+1}_Label'] = ''
         flat[f'UPZ_{i+1}_Price'] = ''
         flat[f'UPZ_{i+1}_Sources'] = ''

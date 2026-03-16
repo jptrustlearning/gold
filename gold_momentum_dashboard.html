@@ -490,7 +490,7 @@ function parseConfluences(str){
 function parseUPZ(d){
   const zones=[];
   const count=parseInt(d.UPZ_Count)||0;
-  for(let i=1;i<=Math.min(count,7);i++){
+  for(let i=1;i<=Math.min(count,10);i++){
     const label=d['UPZ_'+i+'_Label'];
     if(!label)continue;
     zones.push({
