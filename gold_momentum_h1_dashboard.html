@@ -438,7 +438,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);min-height
 const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1.csv';
 const SELL_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_sell.csv';
 const NET_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/output_momentum_gold_h1_net.csv';
-const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices.csv';
+const PRICE_CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/gold_prices_h1.csv';
 let D=null,DS=null,DN=null,PIVOT=null,PIVOT_ALL=null,CONFLUENCES=[],UPZ_ZONES=[],PRICE_DATA=null;
 
 document.addEventListener('DOMContentLoaded',loadData);
@@ -708,14 +708,26 @@ function drawPivotChart(tab){
   if(pivotChartInstance){pivotChartInstance.destroy();pivotChartInstance=null;}
 
   const price=PIVOT.price;
-  const chartDays=Math.min(10,PRICE_DATA.length);
-  const chartData=PRICE_DATA.slice(-chartDays);
+  const chartBars=Math.min(72,PRICE_DATA.length);
+  const chartData=PRICE_DATA.slice(-chartBars);
   const zoneSlots=5;
-  const totalSlots=chartDays+zoneSlots;
-  const labels=[...chartData.map(d=>d.date),...Array(zoneSlots).fill('')];
+  const totalSlots=chartBars+zoneSlots;
+  // Labels: show only every 6th bar (6h intervals) for readability
+  const labels=[...chartData.map((d,i)=>{
+    const dt=d.date.trim();
+    // Show date+hour every ~6 bars, else empty
+    if(i%6===0){
+      const parts=dt.split(' ');
+      if(parts.length>=2) return parts[0].slice(5)+' '+parts[1].slice(0,5);
+      return dt.slice(5);
+    }
+    return '';
+  }),...Array(zoneSlots).fill('')];
   const closes=[...chartData.map(d=>d.close),...Array(zoneSlots).fill(null)];
   const priceCloses=chartData.map(d=>d.close);
-  const dataMin=Math.min(...priceCloses),dataMax=Math.max(...priceCloses);
+  const priceHighs=chartData.map(d=>d.high);
+  const priceLows=chartData.map(d=>d.low);
+  const dataMin=Math.min(...priceLows),dataMax=Math.max(...priceHighs);
 
   // Determine which TF levels to show
   let showTFs=[];
@@ -766,7 +778,7 @@ function drawPivotChart(tab){
     UPZ_ZONES.forEach(z=>{
       const color=upzColorMap[z.label]||'#888';
       const data=Array(totalSlots).fill(null);
-      for(let i=chartDays-2;i<totalSlots;i++) data[i]=z.price;
+      for(let i=chartBars-2;i<totalSlots;i++) data[i]=z.price;
       pivotDatasets.push({
         label:z.label+' '+fp(z.price),
         data,borderColor:'transparent',borderWidth:0,
@@ -786,7 +798,7 @@ function drawPivotChart(tab){
       PIVOT_ALL[tf].levels.forEach(lv=>{
         const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
         const data=Array(totalSlots).fill(null);
-        for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+        for(let i=chartBars-2;i<totalSlots;i++) data[i]=lv.value;
         pivotDatasets.push({
           label:tf+' '+lv.label+' '+fp(lv.value),
           data,borderColor:'transparent',
@@ -803,7 +815,7 @@ function drawPivotChart(tab){
     const cols=tfColorMap[lv.tf];
     const color=lv.type==='resistance'?cols.R:lv.type==='pivot'?cols.PP:cols.S;
     const data=Array(totalSlots).fill(null);
-    for(let i=chartDays-2;i<totalSlots;i++) data[i]=lv.value;
+    for(let i=chartBars-2;i<totalSlots;i++) data[i]=lv.value;
     pivotDatasets.push({
       label:lv.tf+' '+lv.label+' '+fp(lv.value),
       data,borderColor:'transparent',
@@ -949,6 +961,41 @@ function drawPivotChart(tab){
     }
   };
 
+  // Candlestick plugin — draws OHLC bars on the canvas
+  const candlestickPlugin={
+    id:'candlestick',
+    afterDatasetsDraw(chart){
+      const {ctx}=chart;
+      const meta=chart.getDatasetMeta(0);
+      if(!meta||!meta.data)return;
+      const yScale=chart.scales.y;
+      ctx.save();
+      for(let i=0;i<chartData.length;i++){
+        const bar=chartData[i];
+        const pt=meta.data[i];
+        if(!pt)continue;
+        const x=pt.x;
+        const oY=yScale.getPixelForValue(bar.open);
+        const cY=yScale.getPixelForValue(bar.close);
+        const hY=yScale.getPixelForValue(bar.high);
+        const lY=yScale.getPixelForValue(bar.low);
+        const bull=bar.close>=bar.open;
+        const color=bull?'#34d399':'#f87171';
+        const bw=Math.max(2,Math.min(6,(chart.chartArea.right-chart.chartArea.left)/chartData.length*0.6));
+        // Wick
+        ctx.strokeStyle=color;ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(x,hY);ctx.lineTo(x,lY);ctx.stroke();
+        // Body
+        const top=Math.min(oY,cY),bodyH=Math.max(Math.abs(cY-oY),1);
+        ctx.fillStyle=bull?color+'40':color;
+        ctx.fillRect(x-bw/2,top,bw,bodyH);
+        ctx.strokeStyle=color;ctx.lineWidth=0.5;
+        ctx.strokeRect(x-bw/2,top,bw,bodyH);
+      }
+      ctx.restore();
+    }
+  };
+
   const ctx=document.getElementById('pivotChart').getContext('2d');
 
   pivotChartInstance=new Chart(ctx,{
@@ -957,16 +1004,15 @@ function drawPivotChart(tab){
       labels,
       datasets:[
         {
-          label:'Gold Close Price',data:closes,
-          borderColor:tc('priceLine'),backgroundColor:tc('priceFill'),
-          borderWidth:1.5,pointRadius:3,pointHoverRadius:6,
-          pointBackgroundColor:tc('priceLine'),pointBorderColor:tc('priceLine')+'80',pointBorderWidth:1,
-          fill:true,tension:.35,order:1,
+          label:'Gold H1 Price',data:closes,
+          borderColor:'transparent',backgroundColor:'transparent',
+          borderWidth:0,pointRadius:0,pointHoverRadius:0,
+          fill:false,tension:0,order:1,
         },
         ...pivotDatasets
       ]
     },
-    plugins:[confPlugin,upzBandPlugin,pivotLabelPlugin,priceMarkerPlugin],
+    plugins:[confPlugin,upzBandPlugin,pivotLabelPlugin,priceMarkerPlugin,candlestickPlugin],
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -987,12 +1033,20 @@ function drawPivotChart(tab){
           filter:function(item){return item.raw!==null;},
           callbacks:{
             title:function(items){return items[0]?items[0].label:'';},
-            label:function(c){if(c.raw===null)return '';if(c.datasetIndex===0)return 'Close: '+fp(c.raw);return c.dataset.label;}
+            label:function(c){
+              if(c.raw===null)return '';
+              if(c.datasetIndex===0){
+                const bar=chartData[c.dataIndex];
+                if(!bar)return 'Close: '+fp(c.raw);
+                return ['O: '+fp(bar.open),'H: '+fp(bar.high),'L: '+fp(bar.low),'C: '+fp(bar.close)];
+              }
+              return c.dataset.label;
+            }
           }
         }
       },
       scales:{
-        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:9,family:'Anuphan'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
+        x:{grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:8,family:'Anuphan'},maxRotation:45,callback:function(v){const l=this.getLabelForValue(v);return l===''?'':l;}}},
         y:{min:yMin,max:yMax,grid:{color:tc('gridLine')},ticks:{color:tc('text3'),font:{size:10,family:'Anuphan'},callback:function(v){return '$'+v.toLocaleString('en-US',{maximumFractionDigits:0});}}}
       }
     }
