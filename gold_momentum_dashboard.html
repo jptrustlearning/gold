@@ -842,10 +842,11 @@ function drawPivotChart(tab){
           ctx.setLineDash([6,3]);ctx.strokeStyle='#1A73E880';ctx.lineWidth=1;
           ctx.beginPath();ctx.moveTo(area.left,yPP);ctx.lineTo(area.right,yPP);ctx.stroke();
           ctx.setLineDash([]);
-          // Small PP label below the line on left edge
-          ctx.font='bold 7.5px Instrument Sans, sans-serif';
+          // PP label in the zone area (right portion of chart)
+          const zoneX=area.left+(area.right-area.left)*0.72;
+          ctx.font='bold 8px Instrument Sans, sans-serif';
           ctx.fillStyle='#1A73E8';ctx.textAlign='left';
-          ctx.fillText('PP '+fp(d1pp),area.left+4,yPP+12);
+          ctx.fillText('PP '+fp(d1pp),zoneX,yPP+12);
         }
       }
       ctx.restore();
