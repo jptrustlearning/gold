@@ -253,4 +253,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-03-12,5102.2,27.33,31.87,26.03,25.21,40,0,85,15.0,1.988,50.92,30.65,-4.55,0.73,1.97,21.29,True,0.705,Normal,-0.069,✨ Golden Cross (sell penalty),No Sell Signal,backfill,
 2026-03-13,5061.7,57.7,62.25,33.35,100.13,65,0,85,90.0,1.884,43.38,28.89,-4.55,-1.64,-0.2,20.62,True,0.534,Normal,-0.465,✨✨ Golden Cross + Above MAs (bad for sell),Neutral →,16/03/2026 18:26 UTC,Sell Recovery
 2026-03-15,4987.3,36.92,41.47,38.88,19.93,65,0,85,40.0,1.719,42.38,28.59,-4.55,-2.05,1.29,16.38,True,0.231,Normal,-0.554,✨✨ Golden Cross + Above MAs (bad for sell),Weak Sell,16/03/2026 07:01 UTC,Sell Recovery
-2026-03-16,5018.4,36.38,40.93,35.64,19.93,65,0,85,40.0,1.747,43.61,28.28,-4.55,-1.44,1.92,17.1,True,0.346,Normal,-0.44,✨✨ Golden Cross + Above MAs (bad for sell),Weak Sell,17/03/2026 05:38 UTC,Sell Recovery
+2026-03-16,5018.4,36.38,40.93,35.64,19.93,65,0,85,40.0,1.747,43.61,28.28,-4.55,-1.44,1.92,17.1,True,0.346,Normal,-0.44,✨✨ Golden Cross + Above MAs (bad for sell),Weak Sell,17/03/2026 05:46 UTC,Sell Recovery
