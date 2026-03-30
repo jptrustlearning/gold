@@ -12653,3 +12653,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-03-27 15:00,4549.1,55.36,55.36,54.96,92.2,20,65,10,90.0,0.518,68.79,42.14,0.0,-0.35,-12.18,True,False,-1.504,Depressed,-0.058,,Strong Sell ↓,27/03/2026 19:45 UTC,Sell Topping
 2026-03-27 16:00,4521.3,54.42,54.42,60.57,90.95,20,65,10,80.0,0.495,61.93,41.39,0.0,-0.75,-13.11,True,False,-1.608,Depressed,-0.124,,Moderate Sell ↓,29/03/2026 23:57 UTC,Sell Topping
 2026-03-29 23:00,4535.1,47.67,52.21,49.17,89.1,20,65,10,80.0,0.512,60.53,42.4,-4.55,0.82,-12.95,True,False,-1.557,Depressed,0.15,⚠️ Mild Bullish Reversal (bad for sell),Moderate Sell ↓,30/03/2026 05:09 UTC,Sell Topping
+2026-03-30 01:00,4551.2,45.62,54.71,44.76,88.52,40,65,10,80.0,0.534,52.12,42.65,-9.09,4.47,-12.41,True,False,-1.498,Normal,0.74,🟢 Strong Bullish Reversal (bad for sell),Moderate Sell ↓,30/03/2026 06:01 UTC,Sell Topping
