@@ -12692,4 +12692,5 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-04-01 16:00,4784.6,47.42,56.51,42.57,81.5,40,65,20,90.0,0.695,56.32,28.87,-9.09,4.99,-10.81,True,False,-0.645,Normal,0.828,🟢 Strong Bullish Reversal (bad for sell),Neutral →,01/04/2026 21:50 UTC,Sell Topping
 2026-04-01 18:00,4804.8,36.22,45.31,36.85,40.01,20,65,20,90.0,0.753,65.04,28.8,-9.09,5.52,-10.24,True,False,-0.57,Normal,0.919,🟢 Strong Bullish Reversal (bad for sell),Weak Sell,01/04/2026 22:45 UTC,Sell Topping
 2026-04-01 19:00,4821.8,35.38,44.47,31.21,40.6,20,65,20,90.0,0.764,65.14,29.03,-9.09,6.02,-10.38,True,False,-0.507,Normal,1.002,🟢 Strong Bullish Reversal (bad for sell),Weak Sell,01/04/2026 23:57 UTC,Sell Topping
-2026-04-01 22:00,4689.6,76.74,76.74,52.43,83.0,85,65,85,90.0,1.907,34.51,41.4,0.0,4.14,-12.05,True,False,-1.006,Normal,0.672,None,Moderate Sell ↓,02/04/2026 04:40 UTC,Sell Exhaustion
+2026-04-01 22:00,4689.6,76.74,76.74,52.43,83.0,85,65,85,90.0,1.907,34.51,41.4,0.0,4.14,-12.05,True,False,-1.006,Normal,0.672,,Moderate Sell ↓,02/04/2026 04:40 UTC,Sell Exhaustion
+2026-04-02 00:00,4697.7,76.49,76.49,51.44,82.49,85,65,85,90.0,1.867,36.06,40.03,0.0,4.5,-12.04,True,False,-0.977,Normal,0.732,None,Moderate Sell ↓,02/04/2026 05:08 UTC,Sell Exhaustion
