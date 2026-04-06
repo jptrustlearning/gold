@@ -75,6 +75,7 @@ canvas{width:100%!important;max-height:250px}
   <div class="ctrl-group"><label>Min Days</label><input type="number" id="p_days" value="4" min="1" step="1"></div>
   <div class="ctrl-group"><label>Max Positions</label><input type="number" id="p_maxpos" value="10" min="1" step="1"></div>
   <div class="ctrl-group"><label>Confirm Days</label><input type="number" id="p_confirm" value="1" min="1" step="1" title="สัญญาณซ้ำกี่วันถึงจะเปิด/ปิด"></div>
+  <div class="ctrl-group"><label>HOLD Mode</label><select id="p_holdmode"><option value="keep" selected>ถือต่อ</option><option value="close">ปิดทั้งหมด</option></select></div>
   <div class="ctrl-group"><button class="btn-run" id="btnRun" onclick="runBacktest()" disabled>🔄 Run Backtest</button></div>
 </div>
 
@@ -128,7 +129,7 @@ function runBacktest(){
   const el=id=>document.getElementById(id);
   const P={balance:+el('p_balance').value,lot:+el('p_lot').value,leverage:+el('p_leverage').value,
     spread:+el('p_spread').value/100,dist:+el('p_dist').value/100,days:+el('p_days').value,
-    maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value};
+    maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value,holdmode:el('p_holdmode').value};
   const startDate=el('p_start').value,endDate=el('p_end').value;
   const filtered=ALL_DATA.filter(r=>r.d>=startDate&&r.d<=endDate);
   if(filtered.length<2){el('stats').innerHTML='<div class="stat red"><div class="val">ข้อมูลไม่พอ</div></div>';return;}
@@ -177,14 +178,17 @@ function runBacktest(){
       }
     }
 
-    // Close on flip
+    // Close on flip (or HOLD if holdmode=close)
     if(conf){
       let rem=[];
       positions.forEach(pos=>{
-        if((pos.ty==='B'&&a==='S')||(pos.ty==='S'&&a==='B')){
+        let shouldClose=false;
+        if((pos.ty==='B'&&a==='S')||(pos.ty==='S'&&a==='B')) shouldClose=true;
+        if(a==='H'&&P.holdmode==='close') shouldClose=true;
+        if(shouldClose){
           let raw=pos.ty==='B'?(p-pos.ep)*pv:(pos.ep-p)*pv;
           let pnl=raw-spreadPerSide;bal+=pnl;totalSpread+=spreadPerSide;
-          closed.push({...pos,xp:p,xd:d,pnl:+(pnl).toFixed(2),xr:'SIGNAL',spd:+(spreadPerSide*2).toFixed(2)});
+          closed.push({...pos,xp:p,xd:d,pnl:+(pnl).toFixed(2),xr:a==='H'?'HOLD_EXIT':'SIGNAL',spd:+(spreadPerSide*2).toFixed(2)});
           dayEv.push({type:'EXIT',side:pos.ty==='B'?'BUY':'SELL',price:p,entry:pos.ep,pnl:+(pnl).toFixed(2)});
         }else rem.push(pos);
       });
@@ -235,7 +239,7 @@ function runBacktest(){
   el('tradeCount').textContent=closed.length;
   let h='<table class="log-table"><thead><tr><th>#</th><th>Type</th><th>Entry</th><th>Entry$</th><th>Exit</th><th>Exit$</th><th>Days</th><th>PnL</th><th>Spread</th><th>Reason</th></tr></thead><tbody>';
   closed.forEach((t,i)=>{const days=Math.round((new Date(t.xd)-new Date(t.ed))/864e5);
-    h+=`<tr><td>${i+1}</td><td><span class="badge ${t.ty==='B'?'badge-buy':'badge-sell'}">${t.ty==='B'?'BUY':'SELL'}</span></td><td>${t.ed}</td><td>${t.ep.toFixed(1)}</td><td>${t.xd}</td><td>${t.xp.toFixed(1)}</td><td>${days}d</td><td class="${t.pnl>=0?'pnl-pos':'pnl-neg'}">$${t.pnl.toFixed(2)}</td><td style="color:var(--text3)">$${(t.spd||0).toFixed(2)}</td><td>${t.xr==='STOP_OUT'?'🔴 StopOut':'Signal'}</td></tr>`;});
+    h+=`<tr><td>${i+1}</td><td><span class="badge ${t.ty==='B'?'badge-buy':'badge-sell'}">${t.ty==='B'?'BUY':'SELL'}</span></td><td>${t.ed}</td><td>${t.ep.toFixed(1)}</td><td>${t.xd}</td><td>${t.xp.toFixed(1)}</td><td>${days}d</td><td class="${t.pnl>=0?'pnl-pos':'pnl-neg'}">$${t.pnl.toFixed(2)}</td><td style="color:var(--text3)">$${(t.spd||0).toFixed(2)}</td><td>${t.xr==='STOP_OUT'?'🔴 StopOut':t.xr==='HOLD_EXIT'?'⏸ Hold Exit':'Signal'}</td></tr>`;});
   if(positions.length){h+='<tr><td colspan="10" style="text-align:center;color:var(--orange);padding:8px">── Open ──</td></tr>';
     const lp=exec[exec.length-1].p;positions.forEach(pos=>{const fp=pos.ty==='B'?(lp-pos.ep)*pv:(pos.ep-lp)*pv;
     h+=`<tr style="opacity:.7"><td>⏳</td><td><span class="badge ${pos.ty==='B'?'badge-buy':'badge-sell'}">${pos.ty==='B'?'BUY':'SELL'}</span></td><td>${pos.ed}</td><td>${pos.ep.toFixed(1)}</td><td>—</td><td>—</td><td>—</td><td class="${fp>=0?'pnl-pos':'pnl-neg'}">$${fp.toFixed(2)}</td><td>—</td><td>Open</td></tr>`;});}
