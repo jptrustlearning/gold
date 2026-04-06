@@ -89,6 +89,8 @@ canvas{width:100%!important;max-height:250px}
 </div>
 <div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--blue)"></span>Open Positions & Gold Price</div><canvas id="chartPos"></canvas></div>
 
+<div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--green)"></span>Yearly Return %</div><canvas id="chartYearly"></canvas></div>
+
 <div class="tabs">
   <div class="tab active" onclick="switchTab(0)">📋 Trade Log (<span id="tradeCount">0</span>)</div>
   <div class="tab" onclick="switchTab(1)">📅 Daily Signal Log</div>
@@ -256,6 +258,20 @@ function runBacktest(){
   charts.dd=new Chart(el('chartDD'),{type:'line',data:{labels,datasets:[{label:'DD%',data:curve.map(c=>c.dd),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.12)',fill:true,borderWidth:1.5,pointRadius:0,tension:.3}]},options:{...bO,scales:{...bO.scales,y:{...bO.scales.y,reverse:true,ticks:{...bO.scales.y.ticks,callback:v=>v+'%'}}}}});
   charts.mg=new Chart(el('chartMargin'),{type:'line',data:{labels,datasets:[{label:'ML%',data:curve.map(c=>c.ml||null),borderColor:'#06b6d4',borderWidth:1.5,pointRadius:0,tension:.3,spanGaps:true}]},options:{...bO,scales:{...bO.scales,y:{...bO.scales.y,type:'logarithmic',ticks:{...bO.scales.y.ticks,callback:v=>[10,50,100,500,1000,5000,10000,100000].includes(v)?v.toLocaleString()+'%':''}}}}});
   charts.pos=new Chart(el('chartPos'),{type:'line',data:{labels,datasets:[{label:'Gold',data:curve.map(c=>c.p),borderColor:'#d4a843',borderWidth:1.5,pointRadius:0,tension:.3,yAxisID:'y'},{label:'Positions',data:curve.map(c=>c.pos),borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.12)',fill:true,borderWidth:2,pointRadius:0,stepped:true,yAxisID:'y1'}]},options:{...bO,scales:{...bO.scales,y:{position:'left',ticks:{color:'#d4a843',font:{family:'JetBrains Mono',size:10}},grid:{color:'#1e2230'}},y1:{position:'right',min:0,max:P.maxpos+2,ticks:{color:'#a78bfa',font:{family:'JetBrains Mono',size:10},stepSize:2},grid:{drawOnChartArea:false}}}}});
+
+  // Yearly return chart
+  const yearly={};
+  curve.forEach(c=>{const y=c.d.substring(0,4);if(!yearly[y])yearly[y]={first:null,last:null};if(!yearly[y].first)yearly[y].first=c.eq;yearly[y].last=c.eq;});
+  // First year uses initial balance as start
+  const yKeys=Object.keys(yearly).sort();
+  const yLabels=[],yReturns=[],yColors=[];
+  yKeys.forEach((y,i)=>{
+    const startEq=i===0?P.balance:yearly[yKeys[i-1]].last;
+    const endEq=yearly[y].last;
+    const ret=(endEq/startEq-1)*100;
+    yLabels.push(y);yReturns.push(+ret.toFixed(1));yColors.push(ret>=0?'rgba(34,197,94,0.8)':'rgba(239,68,68,0.8)');
+  });
+  charts.yr=new Chart(el('chartYearly'),{type:'bar',data:{labels:yLabels,datasets:[{label:'Return %',data:yReturns,backgroundColor:yColors,borderRadius:6,barPercentage:0.6}]},options:{...bO,plugins:{...bO.plugins,tooltip:{...bO.plugins.tooltip,callbacks:{label:ctx=>ctx.parsed.y.toFixed(1)+'%'}},legend:{display:false}},scales:{...bO.scales,y:{...bO.scales.y,ticks:{...bO.scales.y.ticks,callback:v=>v+'%'},grid:{color:'#1e2230'}}}}});
 
   // Trade Log
   el('tradeCount').textContent=closed.length;
