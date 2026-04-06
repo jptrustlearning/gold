@@ -76,6 +76,7 @@ canvas{width:100%!important;max-height:250px}
   <div class="ctrl-group"><label>Max Positions</label><input type="number" id="p_maxpos" value="10" min="1" step="1"></div>
   <div class="ctrl-group"><label>Confirm Days</label><input type="number" id="p_confirm" value="1" min="1" step="1" title="สัญญาณซ้ำกี่วันถึงจะเปิด/ปิด"></div>
   <div class="ctrl-group"><label>HOLD Mode</label><select id="p_holdmode"><option value="keep" selected>ถือต่อ</option><option value="close">ปิดทั้งหมด</option></select></div>
+  <div class="ctrl-group"><label>Signal Source</label><select id="p_sigmode"><option value="exhaust" selected>Exhaust Override</option><option value="scenario">Scenario Only</option></select></div>
   <div class="ctrl-group"><button class="btn-run" id="btnRun" onclick="runBacktest()" disabled>🔄 Run Backtest</button></div>
 </div>
 
@@ -113,7 +114,13 @@ async function loadData(){
     for(let i=1;i<lines.length;i++){
       const v=lines[i].split(',');if(v.length<hdr.length)continue;
       const r={};hdr.forEach((h,j)=>r[h.trim()]=v[j]?.trim());
-      ALL_DATA.push({d:r.Date,p:parseFloat(r.Price),a:r.Scenario_Action?r.Scenario_Action[0]:'H',act:r.Scenario_Action||'HOLD',sig:r.Scenario_Signal||'',zone:r.Scenario_Zone||'',buy:parseFloat(r.Buy_Score)||0,sell:parseFloat(r.Sell_Score)||0,net:parseFloat(r.Net_Bias)||0});
+      ALL_DATA.push({d:r.Date,p:parseFloat(r.Price),
+        a:r.Scenario_Action?r.Scenario_Action[0]:'H',act:r.Scenario_Action||'HOLD',
+        fa:r.Final_Action?r.Final_Action[0]:'H',fact:r.Final_Action||'HOLD',
+        sig:r.Scenario_Signal||'',
+        buy:parseFloat(r.Buy_Score)||0,sell:parseFloat(r.Sell_Score)||0,net:parseFloat(r.Net_Bias)||0,
+        bex:r.Buy_Exhaust||'None',sex:r.Sell_Exhaust||'None',
+        exActive:r.Exhaust_Active||'None',exOver:r.Exhaust_Override||''});
     }
     if(ALL_DATA.length){
       ['p_start','p_end'].forEach(id=>{const el=document.getElementById(id);el.min=ALL_DATA[0].d;el.max=ALL_DATA[ALL_DATA.length-1].d;});
@@ -129,7 +136,7 @@ function runBacktest(){
   const el=id=>document.getElementById(id);
   const P={balance:+el('p_balance').value,lot:+el('p_lot').value,leverage:+el('p_leverage').value,
     spread:+el('p_spread').value/100,dist:+el('p_dist').value/100,days:+el('p_days').value,
-    maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value,holdmode:el('p_holdmode').value};
+    maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value,holdmode:el('p_holdmode').value,sigmode:el('p_sigmode').value};
   const startDate=el('p_start').value,endDate=el('p_end').value;
   const filtered=ALL_DATA.filter(r=>r.d>=startDate&&r.d<=endDate);
   if(filtered.length<2){el('stats').innerHTML='<div class="stat red"><div class="val">ข้อมูลไม่พอ</div></div>';return;}
@@ -142,8 +149,14 @@ function runBacktest(){
 
   const exec=[];
   for(let i=0;i<filtered.length-1;i++){
-    exec.push({d:filtered[i+1].d,p:filtered[i+1].p,a:filtered[i].a,act:filtered[i].act,sig:filtered[i].sig,zone:filtered[i].zone,
-      buy_sc:filtered[i].buy,sell_sc:filtered[i].sell,net_b:filtered[i].net});
+    const r=filtered[i];
+    // Pick action based on signal mode
+    const useA=P.sigmode==='exhaust'?r.fa:r.a;
+    const useAct=P.sigmode==='exhaust'?r.fact:r.act;
+    exec.push({d:filtered[i+1].d,p:filtered[i+1].p,a:useA,act:useAct,
+      sig:r.sig,origAct:r.act,
+      buy_sc:r.buy,sell_sc:r.sell,net_b:r.net,
+      bex:r.bex,sex:r.sex,exActive:r.exActive,exOver:r.exOver});
   }
 
   let bal=P.balance,positions=[],closed=[],curve=[],dailyEvents=[],totalSpread=0;
@@ -199,7 +212,8 @@ function runBacktest(){
     eq=bal+fp;mu=positions.reduce((s,pos)=>s+P.lot*100*pos.ep/P.leverage,0);ml=mu>0?eq/mu*100:0;
 
     curve.push({d,p,a,sig,eq:+eq.toFixed(2),bal:+bal.toFixed(2),fp:+fp.toFixed(2),pos:positions.length,mu:+mu.toFixed(2),ml:+(ml).toFixed(1)});
-    dailyEvents.push({d,p,act,sig,zone,buy_sc,sell_sc,net_b:+net_b.toFixed(2),eq:+eq.toFixed(2),pos:positions.length,events:dayEv});
+    dailyEvents.push({d,p,act,sig,origAct:exec[i].origAct,buy_sc,sell_sc,net_b:+net_b.toFixed(2),eq:+eq.toFixed(2),pos:positions.length,events:dayEv,
+      bex:exec[i].bex,sex:exec[i].sex,exActive:exec[i].exActive});
   }
 
   let peak=P.balance;curve.forEach(c=>{if(c.eq>peak)peak=c.eq;c.dd=+((peak-c.eq)/peak*100).toFixed(2);});
@@ -246,14 +260,22 @@ function runBacktest(){
   h+='</tbody></table>';el('tradeLog').innerHTML=h;
 
   // Daily Signal Log
-  let dh='<table class="log-table"><thead><tr><th>Date</th><th>Price</th><th>Signal</th><th>Action</th><th>Buy</th><th>Sell</th><th>Net</th><th>Pos</th><th>Equity</th><th>Events</th></tr></thead><tbody>';
+  let dh='<table class="log-table"><thead><tr><th>Date</th><th>Price</th><th>Signal</th><th>Scenario</th><th>Exhaustion</th><th>Final</th><th>Buy</th><th>Sell</th><th>Net</th><th>Pos</th><th>Equity</th><th>Events</th></tr></thead><tbody>';
   dailyEvents.forEach(day=>{
     const hasEv=day.events.length>0;
+    const hasEx=day.exActive&&day.exActive!=='None';
     const ab=day.act==='BUY'?'badge-buy':day.act==='SELL'?'badge-sell':'badge-hold';
+    const ob=day.origAct==='BUY'?'badge-buy':day.origAct==='SELL'?'badge-sell':'badge-hold';
+    const overridden=hasEx&&day.act!==day.origAct;
     let ev='—';
     if(hasEv) ev=day.events.map(e=>e.type==='ENTRY'?`<span class="badge badge-entry">▶ ${e.side} @${e.price.toFixed(1)}</span>`:
       `<span class="badge badge-exit">◼ ${e.side} @${e.price.toFixed(1)} <span class="${e.pnl>=0?'pnl-pos':'pnl-neg'}">$${e.pnl.toFixed(0)}</span></span>`).join(' ');
-    dh+=`<tr class="${hasEv?'highlight-row':''}"><td>${day.d}</td><td>${day.p.toFixed(1)}</td><td style="font-size:.7rem">${day.sig}</td><td><span class="badge ${ab}">${day.act}</span></td><td>${day.buy_sc.toFixed(1)}</td><td>${day.sell_sc.toFixed(1)}</td><td class="${day.net_b>=0?'pnl-pos':'pnl-neg'}">${day.net_b.toFixed(1)}</td><td>${day.pos}</td><td>${day.eq.toLocaleString()}</td><td>${ev}</td></tr>`;
+    let exTxt='—';
+    if(hasEx){
+      const exIcon=day.exActive.includes('Bull')?'🔥':day.exActive.includes('Bear')?'🔋':day.exActive.includes('Topping')?'🏔️':day.exActive.includes('Recovery')?'🔋':'⚡';
+      exTxt=`<span style="font-size:.68rem">${exIcon} ${day.exActive}</span>`;
+    }
+    dh+=`<tr class="${hasEv?'highlight-row':overridden?'highlight-row':''}"><td>${day.d}</td><td>${day.p.toFixed(1)}</td><td style="font-size:.68rem">${day.sig}</td><td><span class="badge ${ob}"${overridden?' style="opacity:.5;text-decoration:line-through"':''}>${day.origAct}</span></td><td>${exTxt}</td><td><span class="badge ${ab}">${day.act}</span></td><td>${day.buy_sc.toFixed(1)}</td><td>${day.sell_sc.toFixed(1)}</td><td class="${day.net_b>=0?'pnl-pos':'pnl-neg'}">${day.net_b.toFixed(1)}</td><td>${day.pos}</td><td>${day.eq.toLocaleString()}</td><td>${ev}</td></tr>`;
   });
   dh+='</tbody></table>';el('dailyLog').innerHTML=dh;
 }
