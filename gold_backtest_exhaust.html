@@ -50,6 +50,9 @@ canvas{width:100%!important;max-height:240px}
 .scroll-box::-webkit-scrollbar{width:5px}.scroll-box::-webkit-scrollbar-track{background:var(--bg3)}.scroll-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .highlight-row{background:#fffbeb!important}
+.yr-btn{padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:var(--mono);font-size:.8rem;cursor:pointer;font-weight:600;transition:.15s}
+.yr-btn:hover{border-color:var(--blue);color:var(--blue)}
+.yr-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 @media(max-width:768px){.controls{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}h1{font-size:1.3rem}.tab{padding:8px 10px;font-size:.72rem}}
 </style>
 </head>
@@ -63,6 +66,10 @@ canvas{width:100%!important;max-height:240px}
   🔋 <b>Bear Exhaustion</b> → BUY &nbsp;|&nbsp; 🔋 <b>Sell Recovery</b> → SELL &nbsp;|&nbsp; 🔥🏔️⚡ อื่นๆ → HOLD &nbsp;|&nbsp; ไม่มี signal → HOLD
 </div>
 <div class="controls">
+  <div class="ctrl-group" style="grid-column:1/-1">
+    <label>Quick Select ปี</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="yearBtns"></div>
+  </div>
   <div class="ctrl-group"><label>เริ่มวันที่</label><input type="date" id="p_start" value="2021-12-31"></div>
   <div class="ctrl-group"><label>ถึงวันที่</label><input type="date" id="p_end" value="2026-04-05"></div>
   <div class="ctrl-group"><label>เงินทุน ($)</label><input type="number" id="p_balance" value="50000" min="50" step="100"></div>
@@ -110,9 +117,18 @@ async function loadData(){
         bex:r.Buy_Exhaust||'',sex:r.Sell_Exhaust||'',exActive:r.Exhaust_Active||'',exOver:exOv,
         gc:String(r.Golden_Cross||'').trim().toLowerCase()==='true'});}
     if(ALL_DATA.length){['p_start','p_end'].forEach(id=>{const el=document.getElementById(id);el.min=ALL_DATA[0].d;el.max=ALL_DATA[ALL_DATA.length-1].d;});}
+    const years=[...new Set(ALL_DATA.map(r=>r.d.substring(0,4)))].sort();
+    const ybDiv=document.getElementById('yearBtns');
+    ybDiv.innerHTML='<button class="yr-btn active" onclick="selectYear(\'all\',this)">ALL</button>'+years.map(y=>`<button class="yr-btn" onclick="selectYear('${y}',this)">${y}</button>`).join('');
     st.className='data-status ok';st.textContent=`● ${ALL_DATA.length} days loaded`;
     document.getElementById('btnRun').disabled=false;runBacktest();
   }catch(e){st.className='data-status err';st.textContent='❌ '+e.message;}}
+function selectYear(y,btn){
+  document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  if(y==='all'){document.getElementById('p_start').value=ALL_DATA[0].d;document.getElementById('p_end').value=ALL_DATA[ALL_DATA.length-1].d;}
+  else{const inY=ALL_DATA.filter(r=>r.d.startsWith(y));if(inY.length){document.getElementById('p_start').value=inY[0].d;document.getElementById('p_end').value=inY[inY.length-1].d;}}
+  runBacktest();
+}
 function runBacktest(){
   const el=id=>document.getElementById(id);
   const P={balance:+el('p_balance').value,lot:+el('p_lot').value,leverage:+el('p_leverage').value,spread:+el('p_spread').value/100,dist:+el('p_dist').value/100,days:+el('p_days').value,maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value,holdmode:el('p_holdmode').value,crossfilter:el('p_crossfilter').value};
