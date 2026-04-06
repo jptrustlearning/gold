@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exhaust-Only Backtest | JP Trust Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#181b25;--bg3:#1e2230;--border:#2a2f3f;--text:#e8eaed;--text2:#a0a6b8;--text3:#6b7280;--gold:#d4a843;--gold2:#b8922e;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--orange:#f59e0b;--cyan:#06b6d4;--font:'Anuphan',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:16px}
+h1{font-size:1.7rem;font-weight:700;text-align:center;margin-bottom:4px;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{text-align:center;color:var(--text3);font-size:.8rem;margin-bottom:6px;letter-spacing:1px}
+.center-wrap{text-align:center}
+.data-status{font-size:.78rem;margin-bottom:16px;padding:6px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;display:inline-block}
+.data-status.ok{color:var(--green);border-color:#064e3b}.data-status.loading{color:var(--orange);border-color:#78350f}.data-status.err{color:var(--red);border-color:#7f1d1d}
+.info-banner{background:linear-gradient(135deg,#1e3a5f,#1e2230);border:1px solid #3b82f6;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.82rem;line-height:1.6}
+.info-banner b{color:#93c5fd}
+.controls{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.ctrl-group{display:flex;flex-direction:column;gap:3px}
+.ctrl-group label{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.ctrl-group input,.ctrl-group select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:7px;font-family:var(--mono);font-size:.83rem}
+.ctrl-group input:focus,.ctrl-group select:focus{outline:none;border-color:var(--gold)}
+.btn-run{background:linear-gradient(135deg,var(--orange),#d97706);color:#000;border:none;padding:10px 18px;border-radius:8px;font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s;align-self:end}
+.btn-run:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(245,158,11,.3)}
+.btn-run:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:16px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.stat .val{font-family:var(--mono);font-size:1.15rem;font-weight:700;margin:3px 0}
+.stat .lbl{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.stat.green .val{color:var(--green)}.stat.red .val{color:var(--red)}.stat.gold .val{color:var(--gold)}.stat.blue .val{color:var(--blue)}
+.chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+.chart-title{font-size:.83rem;font-weight:600;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.chart-title .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+canvas{width:100%!important;max-height:250px}
+.tabs{display:flex;gap:0}.tab{padding:10px 20px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);cursor:pointer;font-size:.82rem;font-weight:600;border-bottom:none}
+.tab:first-child{border-radius:10px 0 0 0}.tab:last-child{border-radius:0 10px 0 0}.tab.active{background:var(--bg2);color:var(--orange);border-bottom-color:var(--bg2)}
+.tab-content{display:none}.tab-content.active{display:block}
+.log-wrap{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden}
+.log-table{width:100%;border-collapse:collapse;font-size:.74rem}
+.log-table th{background:var(--bg3);color:var(--text3);padding:7px 5px;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:.66rem;position:sticky;top:0;z-index:1}
+.log-table td{padding:5px 5px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.74rem}
+.log-table tr:hover{background:var(--bg3)}
+.pnl-pos{color:var(--green)}.pnl-neg{color:var(--red)}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.66rem;font-weight:600}
+.badge-buy{background:#064e3b;color:#6ee7b7}.badge-sell{background:#7f1d1d;color:#fca5a5}.badge-hold{background:#1e2230;color:#6b7280}
+.badge-entry{background:#1e3a5f;color:#93c5fd;font-size:.62rem}.badge-exit{background:#5b2126;color:#fca5a5;font-size:.62rem}
+.scroll-box{max-height:450px;overflow-y:auto}
+.scroll-box::-webkit-scrollbar{width:6px}.scroll-box::-webkit-scrollbar-track{background:var(--bg2)}.scroll-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.highlight-row{background:rgba(245,158,11,.06)!important}
+@media(max-width:768px){.controls{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}h1{font-size:1.4rem}.tab{padding:8px 12px;font-size:.75rem}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🔥 Exhaust-Only Backtest</h1>
+<p class="subtitle">JP TRUST LEARNING • EXHAUSTION SIGNALS ONLY • NO SCENARIO</p>
+<div class="center-wrap"><span class="data-status loading" id="dataStatus">⏳ Loading from GitHub...</span></div>
+
+<div class="info-banner">
+  <b>กลยุทธ์ Exhaust-Only:</b> ใช้เฉพาะ Exhaustion Layer เท่านั้น ไม่สนใจ Scenario (SC1-SC14)<br>
+  🔋 <b>Bear Exhaustion</b> → BUY &nbsp;|&nbsp; 🔋 <b>Sell Recovery</b> → SELL &nbsp;|&nbsp; 🔥🏔️⚡ อื่นๆ → HOLD<br>
+  วันที่ไม่มี Exhaust signal = <b>HOLD</b> (ไม่เข้า ไม่ออก หรือ ปิด ตาม HOLD Mode)
+</div>
+
+<div class="controls">
+  <div class="ctrl-group"><label>เริ่มวันที่</label><input type="date" id="p_start" value="2022-01-03"></div>
+  <div class="ctrl-group"><label>ถึงวันที่</label><input type="date" id="p_end" value="2026-04-05"></div>
+  <div class="ctrl-group"><label>เงินทุน ($)</label><input type="number" id="p_balance" value="500" min="50" step="50"></div>
+  <div class="ctrl-group"><label>Lot Size</label><input type="number" id="p_lot" value="0.01" min="0.01" step="0.01"></div>
+  <div class="ctrl-group"><label>Leverage</label><select id="p_leverage"><option value="100">1:100</option><option value="200">1:200</option><option value="500" selected>1:500</option><option value="1000">1:1000</option></select></div>
+  <div class="ctrl-group"><label>Spread (pts)</label><input type="number" id="p_spread" value="30" min="0" step="5"></div>
+  <div class="ctrl-group"><label>Min Dist (pts)</label><input type="number" id="p_dist" value="3000" min="0" step="500"></div>
+  <div class="ctrl-group"><label>Min Days</label><input type="number" id="p_days" value="4" min="1" step="1"></div>
+  <div class="ctrl-group"><label>Max Positions</label><input type="number" id="p_maxpos" value="10" min="1" step="1"></div>
+  <div class="ctrl-group"><label>Confirm Days</label><input type="number" id="p_confirm" value="1" min="1" step="1"></div>
+  <div class="ctrl-group"><label>HOLD Mode</label><select id="p_holdmode"><option value="keep" selected>ถือต่อ</option><option value="close">ปิดทั้งหมด</option></select></div>
+  <div class="ctrl-group"><label>Cross Filter</label><select id="p_crossfilter"><option value="on" selected>GC/DC ON</option><option value="off">OFF</option></select></div>
+  <div class="ctrl-group"><button class="btn-run" id="btnRun" onclick="runBacktest()" disabled>🔄 Run</button></div>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--orange)"></span>Equity Curve & Balance</div><canvas id="chartEquity"></canvas></div>
+<div class="grid-2">
+  <div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--red)"></span>Drawdown %</div><canvas id="chartDD"></canvas></div>
+  <div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--cyan)"></span>Margin Level % (log)</div><canvas id="chartMargin"></canvas></div>
+</div>
+<div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--blue)"></span>Open Positions & Gold Price</div><canvas id="chartPos"></canvas></div>
+<div class="chart-box"><div class="chart-title"><span class="dot" style="background:var(--green)"></span>Yearly Return %</div><canvas id="chartYearly"></canvas></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">📋 Trade Log (<span id="tradeCount">0</span>)</div>
+  <div class="tab" onclick="switchTab(1)">📅 Daily Signal Log</div>
+</div>
+<div class="log-wrap">
+  <div class="tab-content active" id="tabTrades"><div class="scroll-box" id="tradeLog"></div></div>
+  <div class="tab-content" id="tabDaily"><div class="scroll-box" id="dailyLog"></div></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const CSV_URL='https://raw.githubusercontent.com/jptrustlearning/gold/main/score_history_net.csv';
+let ALL_DATA=[],charts={};
+function switchTab(n){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));document.querySelectorAll('.tab-content').forEach((t,i)=>t.classList.toggle('active',i===n));}
+
+async function loadData(){
+  const st=document.getElementById('dataStatus');
+  try{
+    const res=await fetch(CSV_URL);if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text(),lines=txt.trim().split('\n'),hdr=lines[0].split(',');
+    ALL_DATA=[];
+    for(let i=1;i<lines.length;i++){
+      const v=lines[i].split(',');if(v.length<hdr.length)continue;
+      const r={};hdr.forEach((h,j)=>r[h.trim()]=v[j]?.trim());
+      // Exhaust-only: action = Exhaust_Override, fallback HOLD
+      const exOv=r.Exhaust_Override||'';
+      const exAct=exOv==='BUY'||exOv==='SELL'||exOv==='HOLD'?exOv:'HOLD';
+      ALL_DATA.push({d:r.Date,p:parseFloat(r.Price),
+        a:exAct[0],act:exAct,
+        sig:r.Scenario_Signal||'',
+        buy:parseFloat(r.Buy_Score)||0,sell:parseFloat(r.Sell_Score)||0,net:parseFloat(r.Net_Bias)||0,
+        bex:r.Buy_Exhaust||'',sex:r.Sell_Exhaust||'',
+        exActive:r.Exhaust_Active||'',exOver:exOv,
+        origAct:r.Scenario_Action||'HOLD',
+        gc:String(r.Golden_Cross||'').trim().toLowerCase()==='true'});
+    }
+    if(ALL_DATA.length){
+      ['p_start','p_end'].forEach(id=>{const el=document.getElementById(id);el.min=ALL_DATA[0].d;el.max=ALL_DATA[ALL_DATA.length-1].d;});
+      document.getElementById('p_start').value=ALL_DATA[0].d;document.getElementById('p_end').value=ALL_DATA[ALL_DATA.length-1].d;
+    }
+    st.className='data-status ok';st.textContent=`● ${ALL_DATA.length} days loaded`;
+    document.getElementById('btnRun').disabled=false;runBacktest();
+  }catch(e){st.className='data-status err';st.textContent='❌ '+e.message;}
+}
+
+function runBacktest(){
+  const el=id=>document.getElementById(id);
+  const P={balance:+el('p_balance').value,lot:+el('p_lot').value,leverage:+el('p_leverage').value,
+    spread:+el('p_spread').value/100,dist:+el('p_dist').value/100,days:+el('p_days').value,
+    maxpos:+el('p_maxpos').value,confirm:+el('p_confirm').value,holdmode:el('p_holdmode').value,crossfilter:el('p_crossfilter').value};
+  const filtered=ALL_DATA.filter(r=>r.d>=el('p_start').value&&r.d<=el('p_end').value);
+  if(filtered.length<2){el('stats').innerHTML='<div class="stat red"><div class="val">ข้อมูลไม่พอ</div></div>';return;}
+
+  const pv=P.lot*100,spreadPerSide=P.spread*pv;
+
+  const exec=[];
+  for(let i=0;i<filtered.length-1;i++){
+    const r=filtered[i];
+    exec.push({d:filtered[i+1].d,p:filtered[i+1].p,a:r.a,act:r.act,sig:r.sig,origAct:r.origAct,
+      buy_sc:r.buy,sell_sc:r.sell,net_b:r.net,bex:r.bex,sex:r.sex,exActive:r.exActive,exOver:r.exOver,gc:r.gc});
+  }
+
+  let bal=P.balance,positions=[],closed=[],curve=[],dailyEvents=[],totalSpread=0;
+  let prevA='H',consCnt=0;
+
+  for(let i=0;i<exec.length;i++){
+    const{d,p,a,act,sig,origAct,buy_sc,sell_sc,net_b,bex,sex,exActive,exOver,gc}=exec[i];
+    if(a===prevA)consCnt++;else{consCnt=1;prevA=a;}
+    const conf=consCnt>=P.confirm;
+
+    let fp=0;positions.forEach(pos=>{fp+=pos.ty==='B'?(p-pos.ep)*pv:(pos.ep-p)*pv;});
+    let eq=bal+fp,mu=positions.reduce((s,pos)=>s+P.lot*100*pos.ep/P.leverage,0),ml=mu>0?eq/mu*100:0;
+
+    if(mu>0&&ml<=20&&positions.length){
+      positions.forEach(pos=>{let pnl=pos.ty==='B'?(p-pos.ep)*pv:(pos.ep-p)*pv;pnl-=spreadPerSide;bal+=pnl;totalSpread+=spreadPerSide;
+        closed.push({...pos,xp:p,xd:d,pnl:+(pnl).toFixed(2),xr:'STOP_OUT',spd:+(spreadPerSide*2).toFixed(2)});});
+      positions=[];fp=0;eq=bal;mu=0;ml=0;
+    }
+
+    let dayEv=[];
+
+    if(conf&&positions.length<P.maxpos&&(a==='B'||a==='S')){
+      let crossOk=true;
+      if(P.crossfilter==='on'){
+        if(a==='B'&&!gc)crossOk=false;
+        if(a==='S'&&gc)crossOk=false;
+      }
+      let distOk=positions.every(pos=>Math.abs(p-pos.ep)>=P.dist);
+      let lastIdx=positions.length?Math.max(...positions.map(pos=>pos.idx)):-999;
+      let timeOk=(i-lastIdx)>=P.days;
+      let newMu=P.lot*100*p/P.leverage;
+      if(crossOk&&distOk&&timeOk&&(eq-mu-newMu-spreadPerSide)>0){
+        bal-=spreadPerSide;totalSpread+=spreadPerSide;
+        positions.push({ty:a==='B'?'B':'S',ep:p,ed:d,idx:i,ex:exActive});
+        dayEv.push({type:'ENTRY',side:a==='B'?'BUY':'SELL',price:p,ex:exActive});
+      }
+    }
+
+    if(conf){
+      let rem=[];
+      positions.forEach(pos=>{
+        let shouldClose=(pos.ty==='B'&&a==='S')||(pos.ty==='S'&&a==='B');
+        if(a==='H'&&P.holdmode==='close')shouldClose=true;
+        if(shouldClose){
+          let raw=pos.ty==='B'?(p-pos.ep)*pv:(pos.ep-p)*pv;
+          let pnl=raw-spreadPerSide;bal+=pnl;totalSpread+=spreadPerSide;
+          closed.push({...pos,xp:p,xd:d,pnl:+(pnl).toFixed(2),xr:a==='H'?'HOLD_EXIT':'SIGNAL',spd:+(spreadPerSide*2).toFixed(2)});
+          dayEv.push({type:'EXIT',side:pos.ty==='B'?'BUY':'SELL',price:p,entry:pos.ep,pnl:+(pnl).toFixed(2)});
+        }else rem.push(pos);
+      });
+      positions=rem;
+    }
+
+    fp=0;positions.forEach(pos=>{fp+=pos.ty==='B'?(p-pos.ep)*pv:(pos.ep-p)*pv;});
+    eq=bal+fp;mu=positions.reduce((s,pos)=>s+P.lot*100*pos.ep/P.leverage,0);ml=mu>0?eq/mu*100:0;
+
+    curve.push({d,p,a,sig,eq:+eq.toFixed(2),bal:+bal.toFixed(2),fp:+fp.toFixed(2),pos:positions.length,mu:+mu.toFixed(2),ml:+(ml).toFixed(1)});
+    dailyEvents.push({d,p,act,sig,origAct,buy_sc,sell_sc,net_b:+net_b.toFixed(2),eq:+eq.toFixed(2),pos:positions.length,events:dayEv,
+      bex,sex,exActive,exOver,gc});
+  }
+
+  let peak=P.balance;curve.forEach(c=>{if(c.eq>peak)peak=c.eq;c.dd=+((peak-c.eq)/peak*100).toFixed(2);});
+
+  const wins=closed.filter(t=>t.pnl>0),losses=closed.filter(t=>t.pnl<=0);
+  const maxDD=Math.max(...curve.map(c=>c.dd),0),maxEq=Math.max(...curve.map(c=>c.eq)),minEq=Math.min(...curve.map(c=>c.eq)),finalEq=curve[curve.length-1].eq;
+  const buyT=closed.filter(t=>t.ty==='B'),sellT=closed.filter(t=>t.ty==='S');
+  const buyW=buyT.filter(t=>t.pnl>0),sellW=sellT.filter(t=>t.pnl>0);
+  const gW=wins.reduce((s,t)=>s+t.pnl,0),gL=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const pf=gL>0?gW/gL:wins.length?999:0;
+  const stopOuts=closed.filter(t=>t.xr==='STOP_OUT').length;
+
+  el('stats').innerHTML=`
+    <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Final Equity</div><div class="val">$${finalEq.toLocaleString()}</div></div>
+    <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Return</div><div class="val">${((finalEq/P.balance-1)*100).toFixed(1)}%</div></div>
+    <div class="stat red"><div class="lbl">Max DD</div><div class="val">${maxDD.toFixed(1)}%</div></div>
+    <div class="stat ${minEq<P.balance*.3?'red':''}"><div class="lbl">Min Equity</div><div class="val">$${minEq.toFixed(0)}</div></div>
+    <div class="stat gold"><div class="lbl">Peak</div><div class="val">$${maxEq.toLocaleString()}</div></div>
+    <div class="stat blue"><div class="lbl">Trades</div><div class="val">${closed.length}</div></div>
+    <div class="stat green"><div class="lbl">Win Rate</div><div class="val">${closed.length?(wins.length/closed.length*100).toFixed(0)+'%':'—'}</div></div>
+    <div class="stat"><div class="lbl">PF</div><div class="val">${pf>=999?'∞':pf.toFixed(2)}</div></div>
+    <div class="stat"><div class="lbl">BUY W/L</div><div class="val" style="font-size:1rem">${buyW.length}/${buyT.length-buyW.length}</div></div>
+    <div class="stat"><div class="lbl">SELL W/L</div><div class="val" style="font-size:1rem">${sellW.length}/${sellT.length-sellW.length}</div></div>
+    <div class="stat ${stopOuts>0?'red':'green'}"><div class="lbl">Stop Outs</div><div class="val">${stopOuts}</div></div>
+    <div class="stat"><div class="lbl">Spread</div><div class="val" style="color:var(--red)">$${totalSpread.toFixed(2)}</div></div>`;
+
+  const labels=curve.map(c=>c.d);
+  const bO={responsive:true,animation:{duration:300},plugins:{legend:{display:true,labels:{color:'#a0a6b8',font:{family:'Anuphan',size:10}}},tooltip:{backgroundColor:'#1e2230',borderColor:'#2a2f3f',borderWidth:1,titleFont:{family:'Anuphan'},bodyFont:{family:'JetBrains Mono',size:11}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxTicksLimit:10},grid:{color:'#1e2230'}},y:{ticks:{color:'#6b7280',font:{family:'JetBrains Mono',size:10}},grid:{color:'#1e2230'}}}};
+  Object.values(charts).forEach(c=>c.destroy());
+
+  charts.eq=new Chart(el('chartEquity'),{type:'line',data:{labels,datasets:[{label:'Equity',data:curve.map(c=>c.eq),borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.06)',fill:true,borderWidth:2,pointRadius:0,tension:.3},{label:'Balance',data:curve.map(c=>c.bal),borderColor:'#3b82f6',borderWidth:1.5,pointRadius:0,borderDash:[4,4],tension:.3}]},options:bO});
+  charts.dd=new Chart(el('chartDD'),{type:'line',data:{labels,datasets:[{label:'DD%',data:curve.map(c=>c.dd),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.12)',fill:true,borderWidth:1.5,pointRadius:0,tension:.3}]},options:{...bO,scales:{...bO.scales,y:{...bO.scales.y,reverse:true,ticks:{...bO.scales.y.ticks,callback:v=>v+'%'}}}}});
+  charts.mg=new Chart(el('chartMargin'),{type:'line',data:{labels,datasets:[{label:'ML%',data:curve.map(c=>c.ml||null),borderColor:'#06b6d4',borderWidth:1.5,pointRadius:0,tension:.3,spanGaps:true}]},options:{...bO,scales:{...bO.scales,y:{...bO.scales.y,type:'logarithmic',ticks:{...bO.scales.y.ticks,callback:v=>[10,50,100,500,1000,5000,10000,100000].includes(v)?v.toLocaleString()+'%':''}}}}});
+  charts.pos=new Chart(el('chartPos'),{type:'line',data:{labels,datasets:[{label:'Gold',data:curve.map(c=>c.p),borderColor:'#f59e0b',borderWidth:1.5,pointRadius:0,tension:.3,yAxisID:'y'},{label:'Positions',data:curve.map(c=>c.pos),borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.12)',fill:true,borderWidth:2,pointRadius:0,stepped:true,yAxisID:'y1'}]},options:{...bO,scales:{...bO.scales,y:{position:'left',ticks:{color:'#f59e0b',font:{family:'JetBrains Mono',size:10}},grid:{color:'#1e2230'}},y1:{position:'right',min:0,max:P.maxpos+2,ticks:{color:'#a78bfa',font:{family:'JetBrains Mono',size:10},stepSize:2},grid:{drawOnChartArea:false}}}}});
+
+  // Yearly
+  const yearly={};curve.forEach(c=>{const y=c.d.substring(0,4);if(!yearly[y])yearly[y]={first:null,last:null};if(!yearly[y].first)yearly[y].first=c.eq;yearly[y].last=c.eq;});
+  const yK=Object.keys(yearly).sort(),yL=[],yR=[],yC=[];
+  yK.forEach((y,i)=>{const s=i===0?P.balance:yearly[yK[i-1]].last;const ret=(yearly[y].last/s-1)*100;yL.push(y);yR.push(+ret.toFixed(1));yC.push(ret>=0?'rgba(34,197,94,0.8)':'rgba(239,68,68,0.8)');});
+  charts.yr=new Chart(el('chartYearly'),{type:'bar',data:{labels:yL,datasets:[{label:'Return %',data:yR,backgroundColor:yC,borderRadius:6,barPercentage:0.6}]},options:{...bO,plugins:{...bO.plugins,legend:{display:false}},scales:{...bO.scales,y:{...bO.scales.y,ticks:{...bO.scales.y.ticks,callback:v=>v+'%'}}}}});
+
+  // Trade Log
+  el('tradeCount').textContent=closed.length;
+  let h='<table class="log-table"><thead><tr><th>#</th><th>Type</th><th>Exhaust</th><th>Entry</th><th>Entry$</th><th>Exit</th><th>Exit$</th><th>Days</th><th>PnL</th><th>Spread</th><th>Reason</th></tr></thead><tbody>';
+  closed.forEach((t,i)=>{const days=Math.round((new Date(t.xd)-new Date(t.ed))/864e5);
+    const exIcon=t.ex?((t.ex.includes('Bear')||t.ex.includes('Recovery'))?'🔋':t.ex.includes('Bull')?'🔥':'⚡'):'';
+    h+=`<tr><td>${i+1}</td><td><span class="badge ${t.ty==='B'?'badge-buy':'badge-sell'}">${t.ty==='B'?'BUY':'SELL'}</span></td><td style="font-size:.68rem">${exIcon} ${t.ex||'—'}</td><td>${t.ed}</td><td>${t.ep.toFixed(1)}</td><td>${t.xd}</td><td>${t.xp.toFixed(1)}</td><td>${days}d</td><td class="${t.pnl>=0?'pnl-pos':'pnl-neg'}">$${t.pnl.toFixed(2)}</td><td style="color:var(--text3)">$${(t.spd||0).toFixed(2)}</td><td>${t.xr==='STOP_OUT'?'🔴 StopOut':t.xr==='HOLD_EXIT'?'⏸ Hold':'Signal'}</td></tr>`;});
+  if(positions.length){h+='<tr><td colspan="11" style="text-align:center;color:var(--orange);padding:8px">── Open ──</td></tr>';
+    const lp=exec[exec.length-1].p;positions.forEach(pos=>{const fp=pos.ty==='B'?(lp-pos.ep)*pv:(pos.ep-lp)*pv;
+    h+=`<tr style="opacity:.7"><td>⏳</td><td><span class="badge ${pos.ty==='B'?'badge-buy':'badge-sell'}">${pos.ty==='B'?'BUY':'SELL'}</span></td><td style="font-size:.68rem">${pos.ex||'—'}</td><td>${pos.ed}</td><td>${pos.ep.toFixed(1)}</td><td>—</td><td>—</td><td>—</td><td class="${fp>=0?'pnl-pos':'pnl-neg'}">$${fp.toFixed(2)}</td><td>—</td><td>Open</td></tr>`;});}
+  h+='</tbody></table>';el('tradeLog').innerHTML=h;
+
+  // Daily Log
+  let dh='<table class="log-table"><thead><tr><th>Date</th><th>Price</th><th>Cross</th><th>Buy Exhaust</th><th>Sell Exhaust</th><th>Action</th><th>Scenario</th><th>Buy</th><th>Sell</th><th>Net</th><th>Pos</th><th>Equity</th><th>Events</th></tr></thead><tbody>';
+  dailyEvents.forEach(day=>{
+    const hasEv=day.events.length>0;
+    const ab=day.act==='BUY'?'badge-buy':day.act==='SELL'?'badge-sell':'badge-hold';
+    const crossTxt=day.gc?'<span style="color:var(--green);font-size:.68rem">✨GC</span>':'<span style="color:var(--red);font-size:.68rem">💀DC</span>';
+    const bexTxt=day.bex&&day.bex!=='None'&&day.bex!==''?`<span style="font-size:.66rem">${day.bex.includes('Bull')?'🔥':day.bex.includes('Bear')?'🔋':day.bex.includes('Top')?'🏔️':'⚡'} ${day.bex}</span>`:'—';
+    const sexTxt=day.sex&&day.sex!=='None'&&day.sex!==''?`<span style="font-size:.66rem">${day.sex.includes('Exh')?'🔥':day.sex.includes('Rec')?'🔋':day.sex.includes('Top')?'🏔️':'⚡'} ${day.sex}</span>`:'—';
+    let ev='—';
+    if(hasEv) ev=day.events.map(e=>e.type==='ENTRY'?`<span class="badge badge-entry">▶ ${e.side} @${e.price.toFixed(1)}</span>`:
+      `<span class="badge badge-exit">◼ ${e.side} <span class="${e.pnl>=0?'pnl-pos':'pnl-neg'}">$${e.pnl.toFixed(0)}</span></span>`).join(' ');
+    dh+=`<tr class="${hasEv?'highlight-row':''}"><td>${day.d}</td><td>${day.p.toFixed(1)}</td><td>${crossTxt}</td><td>${bexTxt}</td><td>${sexTxt}</td><td><span class="badge ${ab}">${day.act}</span></td><td style="font-size:.66rem;color:var(--text3)">${day.origAct}</td><td>${day.buy_sc.toFixed(1)}</td><td>${day.sell_sc.toFixed(1)}</td><td class="${day.net_b>=0?'pnl-pos':'pnl-neg'}">${day.net_b.toFixed(1)}</td><td>${day.pos}</td><td>${day.eq.toLocaleString()}</td><td>${ev}</td></tr>`;
+  });
+  dh+='</tbody></table>';el('dailyLog').innerHTML=dh;
+}
+loadData();
+</script>
+</body>
+</html>
