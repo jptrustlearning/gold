@@ -171,10 +171,16 @@ function runBacktest(){
   const gW=wins.reduce((s,t)=>s+t.pnl,0),gL=Math.abs(losses.reduce((s,t)=>s+t.pnl,0)),pf=gL>0?gW/gL:wins.length?999:0,stopOuts=closed.filter(t=>t.xr==='STOP_OUT').length;
   // Annualized return
   const totalDays=curve.length;const years=totalDays/252;const totalRet=finalEq/P.balance;const annRet=(Math.pow(totalRet,1/years)-1)*100;
+  // Gold benchmark: buy & hold from first to last price
+  const goldStart=exec[0].p,goldEnd=exec[exec.length-1].p;
+  const goldTotalRet=(goldEnd/goldStart-1)*100;
+  const goldAnnRet=(Math.pow(goldEnd/goldStart,1/years)-1)*100;
+  const beatTotal=((finalEq/P.balance-1)*100)-goldTotalRet;
   el('stats').innerHTML=`
     <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Final Equity</div><div class="val">$${finalEq.toLocaleString()}</div></div>
-    <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Total Return</div><div class="val">${((finalEq/P.balance-1)*100).toFixed(1)}%</div></div>
-    <div class="stat blue"><div class="lbl">Return/Year</div><div class="val">${annRet.toFixed(1)}%</div></div>
+    <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Total Return</div><div class="val">${((finalEq/P.balance-1)*100).toFixed(1)}%<div style="font-size:.6rem;color:var(--text3);margin-top:2px">Gold: ${goldTotalRet.toFixed(1)}%</div></div></div>
+    <div class="stat blue"><div class="lbl">Return/Year</div><div class="val">${annRet.toFixed(1)}%<div style="font-size:.6rem;color:var(--text3);margin-top:2px">Gold: ${goldAnnRet.toFixed(1)}%</div></div></div>
+    <div class="stat ${beatTotal>=0?'green':'red'}"><div class="lbl">vs Gold (Alpha)</div><div class="val">${beatTotal>=0?'+':''}${beatTotal.toFixed(1)}%</div></div>
     <div class="stat red"><div class="lbl">Max DD</div><div class="val">${maxDD.toFixed(1)}%</div></div>
     <div class="stat"><div class="lbl">Min Equity</div><div class="val">$${minEq.toFixed(0)}</div></div>
     <div class="stat maroon"><div class="lbl">Peak</div><div class="val">$${maxEq.toLocaleString()}</div></div>
