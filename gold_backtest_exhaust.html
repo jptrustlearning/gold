@@ -166,12 +166,22 @@ function runBacktest(){
   const goldLevFinal=P.balance+goldLevPnl;
   const goldLevAnn=(Math.pow(goldLevFinal/P.balance,1/years)-1)*100;
   const beatLev=((finalEq/P.balance-1)*100)-goldLevRet;
+  let spotPeak=goldStart,spotMaxDD=0,levPeak=P.balance,levMaxDD=0;
+  exec.forEach(e=>{
+    if(e.p>spotPeak)spotPeak=e.p;
+    const spotDD=(spotPeak-e.p)/spotPeak*100;
+    if(spotDD>spotMaxDD)spotMaxDD=spotDD;
+    const levEq=P.balance+(e.p-goldStart)*pv;
+    if(levEq>levPeak)levPeak=levEq;
+    const levDD=(levPeak-levEq)/levPeak*100;
+    if(levDD>levMaxDD)levMaxDD=levDD;
+  });
   el('stats').innerHTML=`
     <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Final Equity</div><div class="val">$${finalEq.toLocaleString()}</div></div>
     <div class="stat ${finalEq>P.balance?'green':'red'}"><div class="lbl">Total Return</div><div class="val">${((finalEq/P.balance-1)*100).toFixed(1)}%<div style="font-size:.58rem;color:var(--text3);margin-top:1px;line-height:1.4">Spot: ${goldSpotRet.toFixed(1)}%<br>Lev B&H: ${goldLevRet.toFixed(1)}%</div></div></div>
     <div class="stat blue"><div class="lbl">Return/Year</div><div class="val">${annRet.toFixed(1)}%<div style="font-size:.58rem;color:var(--text3);margin-top:1px;line-height:1.4">Spot: ${goldSpotAnn.toFixed(1)}%<br>Lev B&H: ${goldLevAnn.toFixed(1)}%</div></div></div>
     <div class="stat ${beatLev>=0?'green':'red'}"><div class="lbl">vs Lev B&H (Alpha)</div><div class="val">${beatLev>=0?'+':''}${beatLev.toFixed(1)}%</div></div>
-    <div class="stat red"><div class="lbl">Max DD</div><div class="val">${maxDD.toFixed(1)}%</div></div>
+    <div class="stat red"><div class="lbl">Max DD</div><div class="val">${maxDD.toFixed(1)}%<div style="font-size:.58rem;color:var(--text3);margin-top:1px;line-height:1.4">Spot: ${spotMaxDD.toFixed(1)}%<br>Lev B&H: ${levMaxDD.toFixed(1)}%</div></div></div>
     <div class="stat"><div class="lbl">Min Equity</div><div class="val">$${minEq.toFixed(0)}</div></div>
     <div class="stat maroon"><div class="lbl">Peak</div><div class="val">$${maxEq.toLocaleString()}</div></div>
     <div class="stat"><div class="lbl">Trades</div><div class="val">${closed.length}</div></div>
