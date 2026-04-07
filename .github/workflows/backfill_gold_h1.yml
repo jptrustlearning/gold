@@ -1,0 +1,101 @@
+name: "🔙 Backfill Gold H1 Prices (One-Time)"
+
+# ════════════════════════════════════════════════════════════
+# One-time workflow — ดึงราคาทอง GC=F แบบ H1 ย้อนหลัง
+# yfinance มี H1 data จำกัด (~2 ปีย้อนหลัง)
+# ถ้าได้ข้อมูลเพิ่ม → H1 score history จะ rebuild ตามอัตโนมัติ
+# ════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: "ปีเริ่มต้น (เช่น 2013) — จะดึงได้จริงแค่ ~2 ปีย้อนหลัง"
+        required: true
+        default: "2013"
+      rebuild_scores:
+        description: "Rebuild H1 score histories ด้วย?"
+        required: true
+        type: choice
+        options:
+          - "yes"
+          - "no"
+        default: "yes"
+
+jobs:
+  backfill-h1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas numpy openpyxl
+
+      # ── Step 1: Backfill H1 prices ──
+      - name: "Step 1: Backfill H1 prices from ${{ github.event.inputs.start_year }}"
+        run: |
+          echo "📥 Backfilling H1 gold prices..."
+          python3 backfill_gold_h1.py ${{ github.event.inputs.start_year }}
+
+      # ── Step 2: Show what we got ──
+      - name: "Step 2: Report H1 data range"
+        run: |
+          python3 << 'PYEOF'
+          import pandas as pd
+          df = pd.read_csv('gold_prices_h1.csv', encoding='utf-8-sig')
+          df.columns = ['Datetime','Open','High','Low','Close','Volume']
+          print(f'📊 H1 data: {len(df)} bars')
+          print(f'   Range: {df["Datetime"].iloc[0]} → {df["Datetime"].iloc[-1]}')
+          PYEOF
+
+      # ── Step 3: Rebuild H1 score histories (optional) ──
+      - name: "Step 3a: Rebuild H1 BUY score history"
+        if: ${{ github.event.inputs.rebuild_scores == 'yes' }}
+        run: |
+          if [ -f "backfill_score_history_h1.py" ]; then
+            echo "📊 Rebuilding H1 BUY scores..."
+            python3 backfill_score_history_h1.py 9999
+          else
+            echo "⏭️  backfill_score_history_h1.py not found — skipping"
+          fi
+
+      - name: "Step 3b: Rebuild H1 SELL score history"
+        if: ${{ github.event.inputs.rebuild_scores == 'yes' }}
+        run: |
+          if [ -f "backfill_sell_history_h1.py" ]; then
+            echo "📊 Rebuilding H1 SELL scores..."
+            python3 backfill_sell_history_h1.py 9999
+          else
+            echo "⏭️  backfill_sell_history_h1.py not found — skipping"
+          fi
+
+      # ── Step 4: Commit & Push ──
+      - name: "Step 4: Commit and push"
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+
+          git add gold_prices_h1.csv
+          git add gold_prices_h1_tail.csv 2>/dev/null || true
+          git add score_history_h1.csv score_history_h1_sell.csv 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes"
+          else
+            H1_ROWS=$(wc -l < gold_prices_h1.csv)
+            FIRST=$(head -2 gold_prices_h1.csv | tail -1 | cut -d',' -f1)
+            LAST=$(tail -1 gold_prices_h1.csv | cut -d',' -f1)
+            git commit -m "🔙 Backfill H1 prices: ${FIRST} → ${LAST} (${H1_ROWS} rows)"
+            git push
+            echo "✅ Pushed to GitHub"
+          fi
