@@ -1,0 +1,268 @@
+name: "🔙 Backfill Gold Prices (One-Time)"
+
+# ════════════════════════════════════════════════════════════
+# One-time workflow — ดึงราคาทองย้อนหลังตั้งแต่ 2013
+# ไม่กระทบ daily pipeline — รัน manual เท่านั้น
+# หลังรันสำเร็จ ให้รัน backfill_score_history.py ต่อ
+# ════════════════════════════════════════════════════════════
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: "ปีเริ่มต้นที่ต้องการดึง (เช่น 2013)"
+        required: true
+        default: "2013"
+      run_score_backfill:
+        description: "รัน score backfill ต่อเลย?"
+        required: true
+        type: choice
+        options:
+          - "yes"
+          - "no"
+        default: "yes"
+      score_days:
+        description: "จำนวนวัน score backfill (0 = ทั้งหมด)"
+        required: true
+        default: "9999"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas numpy openpyxl
+
+      # ── Step 1: Backfill gold prices ──
+      - name: "Step 1: Backfill gold prices from ${{ github.event.inputs.start_year }}"
+        run: |
+          echo "📥 Backfilling gold prices from ${{ github.event.inputs.start_year }}..."
+          
+          python3 << 'PYEOF'
+          import yfinance as yf
+          import pandas as pd
+          from datetime import datetime, timedelta
+          import os, time
+
+          SYMBOL = 'GC=F'
+          BACKFILL_START = '${{ github.event.inputs.start_year }}-01-01'
+          CSV_FILE = 'gold_prices.csv'
+
+          print(f'🥇 Gold Price Backfill')
+          print(f'{"="*60}')
+
+          # Read existing
+          df_existing = pd.read_csv(CSV_FILE, encoding='utf-8-sig')
+          df_existing.columns = ['Date','Open','High','Low','Close','Volume']
+          df_existing['Date'] = pd.to_datetime(df_existing['Date'])
+          first_date = df_existing['Date'].min()
+          print(f'📂 Existing: {len(df_existing)} rows, starts {first_date.date()}')
+
+          if first_date <= pd.Timestamp(BACKFILL_START) + timedelta(days=7):
+              print(f'✅ Already have data from {first_date.date()} — done')
+              exit(0)
+
+          # Fetch in 2-year chunks
+          all_new = []
+          chunk_start = pd.Timestamp(BACKFILL_START)
+          chunk_size = timedelta(days=365*2)
+
+          while chunk_start < first_date:
+              chunk_end = min(chunk_start + chunk_size, first_date + timedelta(days=1))
+              s, e = chunk_start.strftime('%Y-%m-%d'), chunk_end.strftime('%Y-%m-%d')
+              print(f'  📥 {s} → {e}...', end=' ')
+
+              for attempt in range(3):
+                  try:
+                      df_c = yf.Ticker(SYMBOL).history(start=s, end=e)
+                      break
+                  except:
+                      time.sleep(30*(attempt+1))
+                      df_c = pd.DataFrame()
+
+              if df_c.empty:
+                  print('no data')
+              else:
+                  df_c = df_c[['Open','High','Low','Close','Volume']].reset_index()
+                  df_c.rename(columns={'Date':'Date_raw'}, inplace=True)
+                  if df_c['Date_raw'].dt.tz is not None:
+                      df_c['Date_raw'] = df_c['Date_raw'].dt.tz_localize(None)
+                  df_c['Date'] = df_c['Date_raw']
+                  df_c = df_c[['Date','Open','High','Low','Close','Volume']]
+                  all_new.append(df_c)
+                  print(f'{len(df_c)} rows')
+
+              chunk_start = chunk_end
+              time.sleep(5)
+
+          if not all_new:
+              print('❌ No data fetched')
+              exit(1)
+
+          df_new = pd.concat(all_new, ignore_index=True)
+          for col in ['Open','High','Low','Close']:
+              df_new[col] = df_new[col].round(1)
+          df_new['Volume'] = df_new['Volume'].fillna(0).astype(int)
+
+          df_all = pd.concat([df_new, df_existing], ignore_index=True)
+          df_all['Date'] = pd.to_datetime(df_all['Date'])
+          df_all = df_all.drop_duplicates(subset='Date', keep='last')
+          df_all = df_all.sort_values('Date').reset_index(drop=True)
+
+          df_out = df_all.copy()
+          df_out['Date'] = df_out['Date'].dt.strftime('%Y-%m-%d')
+          df_out.columns = ['วันที่','ราคาเปิด','ราคาสูงสุด','ราคาต่ำสุด','ราคาปิด','ปริมาณซื้อขาย']
+          df_out.to_csv(CSV_FILE, index=False, encoding='utf-8-sig')
+
+          added = len(df_all) - len(df_existing)
+          print(f'\n✅ Updated: {len(df_all)} rows (+{added} new)')
+          print(f'   Range: {df_all["Date"].min().date()} → {df_all["Date"].max().date()}')
+          PYEOF
+
+      # ── Step 2: Backfill score histories (optional) ──
+      - name: "Step 2: Backfill BUY score history"
+        if: ${{ github.event.inputs.run_score_backfill == 'yes' }}
+        run: |
+          echo "📊 Backfilling BUY score history (${{ github.event.inputs.score_days }} days)..."
+          python3 backfill_score_history.py ${{ github.event.inputs.score_days }}
+
+      - name: "Step 2b: Backfill SELL score history"
+        if: ${{ github.event.inputs.run_score_backfill == 'yes' }}
+        run: |
+          echo "📊 Backfilling SELL score history (${{ github.event.inputs.score_days }} days)..."
+          python3 backfill_sell_history.py ${{ github.event.inputs.score_days }}
+
+      # ── Step 3: Rebuild score_history_net.csv ──
+      - name: "Step 3: Rebuild score_history_net.csv"
+        if: ${{ github.event.inputs.run_score_backfill == 'yes' }}
+        run: |
+          echo "📊 Rebuilding score_history_net.csv..."
+          python3 << 'PYEOF'
+          import pandas as pd
+          import numpy as np
+
+          buy = pd.read_csv('score_history.csv')
+          sell = pd.read_csv('score_history_sell.csv')
+          prices = pd.read_csv('gold_prices.csv', encoding='utf-8-sig')
+          prices.columns = ['Date','Open','High','Low','Close','Volume']
+          prices['Date'] = pd.to_datetime(prices['Date'])
+
+          prices['PP'] = (prices['High'].shift(1)+prices['Low'].shift(1)+prices['Close'].shift(1))/3
+          prices['R1'] = 2*prices['PP']-prices['Low'].shift(1)
+          prices['S1'] = 2*prices['PP']-prices['High'].shift(1)
+          prices['DateStr'] = prices['Date'].dt.strftime('%Y-%m-%d')
+          pivot_map = prices.set_index('DateStr')[['PP','R1','S1']].to_dict('index')
+
+          for col in ['Net_Score','D5_DirVol','Z_Score_50d']:
+              buy[col] = pd.to_numeric(buy[col], errors='coerce')
+              sell[col] = pd.to_numeric(sell[col], errors='coerce')
+
+          def assign_scenario(bs,ss,nb,bd,sd,p,pp,r1,s1):
+              iR1=p>=r1 if r1 else False;iPP=p>=pp if pp else False;iS1=p<s1 if s1 else False
+              iPR=(p>=pp and p<r1) if(pp and r1) else False;iSP=(p>=s1 and p<pp) if(s1 and pp) else False
+              if bs>=60 and ss<45 and nb>=20:
+                  if iR1 and bs>=75 and bd>0:return 1,'Bullish Breakout','BUY'
+                  if iR1 and bs>=75:return 2,'Bullish but Cooling','HOLD'
+                  if iPR:return 3,'Bullish Accumulation','BUY'
+                  if iSP:return 4,'Support Bounce','BUY'
+                  if iS1:return 5,'Oversold Recovery','BUY'
+                  return 3,'Bullish Accumulation','BUY'
+              if ss>=60 and bs<45 and nb<=-20:
+                  if iS1 and ss>=75 and sd>0:return 6,'Bearish Breakdown','SELL'
+                  if iS1 and ss>=60:return 7,'Bearish Continuation','SELL'
+                  if iSP:return 8,'Bearish Distribution','SELL'
+                  if iPP:return 9,'Resistance Rejection','SELL'
+                  return 7,'Bearish Continuation','SELL'
+              if bs>=55 and ss>=55 and abs(nb)<20:
+                  if iR1:return 10,'Volatile Breakout','HOLD'
+                  return 11,'Tug of War','HOLD'
+              if bs<55 and ss<55:return 12,'Dead Zone','HOLD'
+              if bs>=55 and ss<55 and nb>0:return 13,'Cautious Bullish','HOLD'
+              if ss>=55 and bs<55 and nb<0:return 14,'Cautious Bearish','HOLD'
+              return 12,'Monitoring','HOLD'
+
+          rows=[]
+          for i in range(len(buy)):
+              d=buy.iloc[i]['Date'];p=buy.iloc[i]['Price']
+              bs=buy.iloc[i]['Net_Score'];ss=sell.iloc[i]['Net_Score'];nb=bs-ss
+              bd=bs-buy.iloc[i-1]['Net_Score'] if i>0 else 0
+              sd=ss-sell.iloc[i-1]['Net_Score'] if i>0 else 0
+              piv=pivot_map.get(d,{});pp=piv.get('PP',0);r1=piv.get('R1',0);s1=piv.get('S1',0)
+              sn,sig,act=assign_scenario(bs,ss,nb,bd,sd,p,pp,r1,s1)
+              
+              bex,bea='',''
+              if i>=5:
+                  bn=bs;b5=buy.iloc[i-5]['Net_Score'];b5d=bn-b5
+                  bd5=buy.iloc[i]['D5_DirVol'];bd55=buy.iloc[i-5]['D5_DirVol'];bds=bd5-bd55
+                  z=buy.iloc[i]['Z_Score_50d'] if pd.notna(buy.iloc[i]['Z_Score_50d']) else 0
+                  bx10=buy['Net_Score'].iloc[max(0,i-9):i+1].max()
+                  bn10=buy['Net_Score'].iloc[max(0,i-9):i+1].min()
+                  e1=z>=2.0 and bn>=70 and b5d<0
+                  e3=bn10<50 and b5d>3
+                  e2=bx10>=80 and b5d<-8 and not e1
+                  e4=abs(bds)>=50 and not e1 and not e2 and not e3
+                  if e1:bex,bea='Bull Exhaustion','HOLD'
+                  elif e3:bex,bea='Bear Exhaustion','BUY'
+                  elif e2:bex,bea='Topping','HOLD'
+                  elif e4:bex,bea='Buy Vol Shift','HOLD'
+              
+              sex,sea='',''
+              if i>=5:
+                  sn2=ss;s5=sell.iloc[i-5]['Net_Score'];s5d=sn2-s5
+                  sd5=sell.iloc[i]['D5_DirVol'];sd55=sell.iloc[i-5]['D5_DirVol'];sds=sd5-sd55
+                  sx10=sell['Net_Score'].iloc[max(0,i-9):i+1].max()
+                  sn10=sell['Net_Score'].iloc[max(0,i-9):i+1].min()
+                  se1=sn2>=70 and s5d<0
+                  se3=sn10<50 and s5d>3
+                  se2=sx10>=80 and s5d<-8 and not se1
+                  se4=abs(sds)>=50 and not se1 and not se2 and not se3
+                  if se1:sex,sea='Sell Exhaustion','HOLD'
+                  elif se3:sex,sea='Sell Recovery','SELL'
+                  elif se2:sex,sea='Sell Topping','HOLD'
+                  elif se4:sex,sea='Sell Vol Shift','HOLD'
+              
+              fa=act;ea='';ex=''
+              if bex:ex=bex;ea=bea;fa=bea
+              elif sex:ex=sex;ea=sea;fa=sea
+              
+              rows.append({'Date':d,'Price':round(p,2),'Buy_Score':round(bs,2),'Sell_Score':round(ss,2),
+                  'Net_Bias':round(nb,2),'Scenario_Num':sn,'Scenario_Signal':sig,'Scenario_Action':act,
+                  'Buy_Exhaust':bex or None,'Buy_Exhaust_Act':bea or None,
+                  'Sell_Exhaust':sex or None,'Sell_Exhaust_Act':sea or None,
+                  'Exhaust_Active':ex or None,'Exhaust_Override':ea or None,
+                  'Final_Action':fa,'Golden_Cross':buy.iloc[i]['Golden_Cross']})
+
+          net=pd.DataFrame(rows)
+          net.to_csv('score_history_net.csv',index=False)
+          print(f'✅ score_history_net.csv: {len(net)} rows ({net["Date"].iloc[0]} → {net["Date"].iloc[-1]})')
+          PYEOF
+
+      # ── Step 4: Commit & Push ──
+      - name: "Step 4: Commit and push"
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+
+          git add gold_prices.csv
+          git add score_history.csv score_history_sell.csv score_history_net.csv 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes"
+          else
+            ROWS=$(wc -l < gold_prices.csv)
+            git commit -m "🔙 Backfill gold prices from ${{ github.event.inputs.start_year }} (${ROWS} rows total)"
+            git push
+            echo "✅ Pushed to GitHub"
+          fi
