@@ -12858,4 +12858,5 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-04-22 05:00,4775.1,26.82,31.37,43.2,10.0,20,35,70,10.0,1.242,66.76,26.31,-4.55,-1.74,1.82,False,True,-0.546,Normal,-0.227,✨ Golden Cross (bad for sell),Weak Sell,22/04/2026 09:45 UTC,Vol Shift
 2026-04-22 07:00,4778.1,31.7,36.25,42.49,10.0,50,35,70,10.0,1.253,75.85,26.26,-4.55,-1.68,1.51,False,True,-0.533,Normal,-0.216,✨ Golden Cross (bad for sell),No Sell Signal,22/04/2026 11:12 UTC,Vol Shift
 2026-04-22 09:00,4775.7,26.61,31.16,41.95,10.0,20,35,70,10.0,1.208,61.56,26.3,-4.55,-1.49,2.3,False,True,-0.542,Normal,-0.181,✨ Golden Cross (bad for sell),Weak Sell,22/04/2026 13:57 UTC,Vol Shift
-2026-04-22 11:00,4753.6,29.81,34.36,46.13,10.0,65,35,40,10.0,0.912,40.6,23.13,-4.55,-1.97,1.72,False,True,-0.63,Normal,-0.276,✨ Golden Cross (bad for sell),Weak Sell,22/04/2026 15:19 UTC,None
+2026-04-22 11:00,4753.6,29.81,34.36,46.13,10.0,65,35,40,10.0,0.912,40.6,23.13,-4.55,-1.97,1.72,False,True,-0.63,Normal,-0.276,✨ Golden Cross (bad for sell),Weak Sell,22/04/2026 15:19 UTC,
+2026-04-22 12:00,4746.7,33.28,37.82,46.93,10.0,85,35,40,10.0,0.876,35.18,23.26,-4.55,-1.99,1.45,False,True,-0.657,Normal,-0.283,✨ Golden Cross (bad for sell),Weak Sell,22/04/2026 17:09 UTC,None
