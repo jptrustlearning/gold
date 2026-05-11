@@ -12992,3 +12992,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-05-11 13:00,4732.3,36.11,40.66,41.04,47.9,20,30,20,85.0,0.703,61.62,24.2,-4.55,3.34,-1.2,True,False,-0.331,Normal,0.75,⚠️ Mild Bullish Reversal (bad for sell),Weak Sell,11/05/2026 17:58 UTC,Sell Recovery
 2026-05-11 15:00,4736.9,41.41,45.95,40.16,50.57,50,30,20,85.0,0.69,72.46,24.08,-4.55,3.59,-1.67,True,False,-0.31,Normal,0.793,⚠️ Mild Bullish Reversal (bad for sell),Weak Sell,11/05/2026 19:55 UTC,Sell Recovery
 2026-05-11 16:00,4745.6,35.48,40.03,34.23,50.92,20,30,20,85.0,0.705,69.16,24.27,-4.55,4.72,-1.4,True,False,-0.274,Normal,0.986,⚠️ Mild Bullish Reversal (bad for sell),Weak Sell,11/05/2026 21:21 UTC,Sell Recovery
+2026-05-11 18:00,4760.5,40.05,44.59,31.17,51.39,50,30,20,85.0,0.733,76.56,24.69,-4.55,5.31,-1.28,True,False,-0.213,Normal,1.089,⚠️ Mild Bullish Reversal (bad for sell),Neutral →,11/05/2026 22:59 UTC,None
