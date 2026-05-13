@@ -13005,3 +13005,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-05-12 18:00,4727.8,50.8,50.8,31.52,48.29,40,30,70,85.0,1.256,58.18,20.3,0.0,3.41,-1.19,True,False,-0.314,Normal,0.744,,Weak Sell,13/05/2026 01:24 UTC,Sell Recovery
 2026-05-12 23:00,4711.6,46.33,46.33,38.0,10.0,65,100,55,10.0,1.063,49.14,17.33,0.0,2.8,0.38,True,False,-0.375,Normal,0.632,,Weak Sell,13/05/2026 06:00 UTC,Sell Recovery
 2026-05-13 02:00,4719.0,44.72,49.26,35.41,55.18,50,0,70,85.0,1.279,74.08,16.86,-4.55,1.78,-0.49,False,True,-0.34,Normal,0.459,✨✨ Golden Cross + Above MAs (bad for sell),Weak Sell,13/05/2026 06:51 UTC,Sell Recovery
+2026-05-13 05:00,4698.0,57.84,62.38,47.03,52.26,65,70,55,85.0,1.043,46.55,15.86,-4.55,0.82,-1.12,False,True,-0.424,Normal,0.282,✨ Golden Cross (bad for sell),Neutral →,13/05/2026 09:47 UTC,Sell Recovery
