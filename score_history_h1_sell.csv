@@ -13203,4 +13203,5 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-06-24 07:00,4065.8,80.34,80.34,86.59,55.45,100,100,40,100.0,0.909,25.84,19.38,0.0,-7.09,-9.92,True,False,-2.442,Extreme Depressed,-1.119,,Strong Sell ↓,24/06/2026 11:48 UTC,Sell Exhaustion
 2026-06-24 10:00,4045.2,73.11,73.11,91.03,42.63,85,100,20,100.0,0.788,35.45,34.67,0.0,-7.13,-10.52,True,False,-2.517,Extreme Depressed,-1.086,,Moderate Sell ↓,24/06/2026 14:43 UTC,Sell Exhaustion
 2026-06-24 12:00,4024.2,75.52,75.52,86.08,42.01,85,100,40,100.0,0.813,38.39,35.76,0.0,-7.73,-11.24,True,False,-2.601,Extreme Depressed,-1.209,,Moderate Sell ↓,24/06/2026 17:08 UTC,Sell Exhaustion
-2026-06-24 15:00,3998.7,76.57,76.57,91.71,42.71,85,100,40,100.0,0.977,30.89,37.84,0.0,-8.14,-12.0,True,False,-2.696,Extreme Depressed,-1.262,None,Moderate Sell ↓,24/06/2026 19:53 UTC,Sell Recovery
+2026-06-24 15:00,3998.7,76.57,76.57,91.71,42.71,85,100,40,100.0,0.977,30.89,37.84,0.0,-8.14,-12.0,True,False,-2.696,Extreme Depressed,-1.262,,Moderate Sell ↓,24/06/2026 19:53 UTC,Sell Recovery
+2026-06-24 16:00,4016.4,78.05,78.05,85.54,42.79,85,100,55,100.0,1.091,32.77,38.62,0.0,-7.77,-11.46,True,False,-2.6,Extreme Depressed,-1.181,None,Strong Sell ↓,24/06/2026 21:26 UTC,Sell Recovery
