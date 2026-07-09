@@ -13279,4 +13279,5 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-07-08 20:00,4089.1,66.32,66.32,21.26,56.66,20,100,100,100.0,2.286,63.78,32.86,0.0,2.46,-6.95,True,False,-1.427,Normal,0.708,,Moderate Sell ↓,09/07/2026 04:34 UTC,Vol Shift
 2026-07-09 00:00,4068.4,70.97,70.97,27.17,58.66,40,100,100,100.0,2.154,51.94,33.18,0.0,1.92,-6.7,True,False,-1.513,Depressed,0.612,,Moderate Sell ↓,09/07/2026 06:25 UTC,Sell Recovery
 2026-07-09 04:00,4124.0,61.36,61.36,10.92,57.24,50,65,85,100.0,1.835,75.98,34.69,0.0,3.15,-5.58,True,False,-1.258,Normal,0.807,,Moderate Sell ↓,09/07/2026 08:37 UTC,Vol Shift
-2026-07-09 08:00,4124.7,46.79,51.33,13.96,59.03,50,65,20,100.0,0.762,72.67,22.99,-4.55,0.5,-4.96,True,False,-1.246,Normal,0.352,⚠️ Mild Bullish Reversal (bad for sell),Moderate Sell ↓,09/07/2026 12:20 UTC,None
+2026-07-09 08:00,4124.7,46.79,51.33,13.96,59.03,50,65,20,100.0,0.762,72.67,22.99,-4.55,0.5,-4.96,True,False,-1.246,Normal,0.352,⚠️ Mild Bullish Reversal (bad for sell),Moderate Sell ↓,09/07/2026 12:20 UTC,
+2026-07-09 11:00,4139.8,43.79,48.34,9.75,55.28,50,65,10,100.0,0.28,79.23,19.36,-4.55,1.34,-4.29,True,False,-1.175,Normal,0.496,⚠️ Mild Bullish Reversal (bad for sell),Moderate Sell ↓,09/07/2026 16:03 UTC,None
