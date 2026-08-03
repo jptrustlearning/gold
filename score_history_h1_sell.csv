@@ -13436,3 +13436,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-08-02 23:00,4122.2,14.01,18.56,31.36,10.0,20,0,40,10.0,0.83,61.36,17.39,-4.55,0.73,1.93,False,True,-0.547,Normal,0.302,✨✨ Golden Cross + Above MAs (bad for sell),No Sell Signal,03/08/2026 05:55 UTC,Sell Topping
 2026-08-03 03:00,4110.4,14.88,19.43,36.58,10.0,40,0,20,10.0,0.774,56.65,17.52,-4.55,0.36,0.37,False,True,-0.603,Normal,0.225,✨✨ Golden Cross + Above MAs (bad for sell),No Sell Signal,03/08/2026 07:32 UTC,Sell Topping
 2026-08-03 07:00,4104.2,18.84,23.38,35.3,10.0,65,0,20,10.0,0.762,48.11,16.69,-4.55,0.14,1.28,False,True,-0.631,Normal,0.18,✨✨ Golden Cross + Above MAs (bad for sell),No Sell Signal,03/08/2026 11:31 UTC,Sell Topping
+2026-08-03 10:00,4088.8,34.93,39.47,37.13,29.7,85,35,40,10.0,0.857,34.77,17.88,-4.55,-0.25,1.02,False,True,-0.708,Normal,0.096,✨ Golden Cross (bad for sell),Weak Sell,03/08/2026 14:50 UTC,Sell Topping
