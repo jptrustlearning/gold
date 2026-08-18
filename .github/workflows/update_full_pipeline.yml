@@ -183,6 +183,9 @@ jobs:
       # STEP 2: ดึงราคาทอง + อัพเดท gold_prices.csv
       # ════════════════════════════════════════════════════════════
       - name: "Step 2: Fetch gold prices"
+        env:
+          OANDA_TOKEN: ${{ secrets.OANDA_TOKEN }}
+          OANDA_HOST: ${{ vars.OANDA_HOST }}
         run: |
           python3 << 'EOF'
           import yfinance as yf
@@ -190,7 +193,9 @@ jobs:
           from datetime import datetime, timedelta
           import os, time
 
-          # ⚠️ เปลี่ยนจาก 'GC=F' (ฟิวเจอร์ส มี premium เหนือ spot ~1%) เป็น spot XAU/USD
+          # ⚠️ เดิมใช้ 'GC=F' = ฟิวเจอร์ส มี premium เหนือ spot ~1% -> เปลี่ยนเป็น spot XAU/USD
+          # แหล่งหลัก: OANDA v3 (feed เดียวกับ OANDA:XAUUSD ที่เห็นใน TradingView)
+          # แหล่งสำรอง: Yahoo XAUUSD=X (spot เหมือนกัน ระดับราคาไม่กระโดด แต่ volume = 0)
           SYMBOL = 'XAUUSD=X'
           CSV_FILE = 'gold_prices.csv'
           FALLBACK_START = '2020-01-01'
@@ -235,34 +240,80 @@ jobs:
           end_date = (datetime.now() + timedelta(days=2)).strftime('%Y-%m-%d')
           print(f'🔄 Fetching {SYMBOL}: {start_date} → {end_date}')
 
-          # Wait before fetching to avoid rate limit from Step 1
-          print('⏳ Waiting 30s to avoid Yahoo Finance rate limit...')
-          time.sleep(30)
-
+          SRC = None
           df_new = pd.DataFrame()
-          for attempt in range(3):
-              try:
-                  gold = yf.Ticker(SYMBOL)
-                  df_new = gold.history(start=start_date, end=end_date)
-                  break
-              except Exception as e:
-                  print(f'⚠️  Attempt {attempt+1}/3 failed: {e}')
-                  if attempt < 2:
-                      wait = 30 * (attempt + 1)
-                      print(f'⏳ Waiting {wait}s before retry...')
-                      time.sleep(wait)
-                  else:
-                      print(f'❌ All retries failed for {SYMBOL}')
-                      raise
+
+          # ══ แหล่งหลัก: OANDA v3 ═══════════════════════════════════════
+          # candles ของ OANDA มี default dailyAlignment=17 / America/New_York
+          # = เส้นปิดแท่งเดียวกับ TradingView -> D1 ตรงกับที่เห็นบนจอทุกแท่ง
+          # และทุกแท่งมีฟิลด์ complete บอกตรงๆ ว่าปิดหรือยัง ไม่ต้องเดาเวลา
+          OANDA_TOKEN = (os.environ.get('OANDA_TOKEN') or '').strip()
+          if OANDA_TOKEN:
+              import urllib.request, urllib.parse, json
+              _h = (os.environ.get('OANDA_HOST') or '').strip().rstrip('/')
+              HOSTS = [_h] if _h else ['https://api-fxpractice.oanda.com',
+                                       'https://api-fxtrade.oanda.com']
+              qs = urllib.parse.urlencode({
+                  'price': 'M',
+                  'granularity': 'D',
+                  'from': f'{start_date}T00:00:00Z',
+                  'includeFirst': 'true',
+              })
+              for host in HOSTS:
+                  url = f'{host}/v3/instruments/XAU_USD/candles?{qs}'
+                  try:
+                      req = urllib.request.Request(
+                          url, headers={'Authorization': f'Bearer {OANDA_TOKEN}',
+                                        'Content-Type': 'application/json'})
+                      with urllib.request.urlopen(req, timeout=60) as r:
+                          payload = json.load(r)
+                      cands = payload.get('candles', [])
+                      done = [c for c in cands if c.get('complete')]
+                      if done:
+                          df_new = pd.DataFrame([{
+                              'Date_raw': c['time'],
+                              'Open':  float(c['mid']['o']),
+                              'High':  float(c['mid']['h']),
+                              'Low':   float(c['mid']['l']),
+                              'Close': float(c['mid']['c']),
+                              'Volume': int(c.get('volume') or 0),
+                          } for c in done])
+                          df_new['Date_raw'] = pd.to_datetime(df_new['Date_raw'], utc=True)
+                          SRC = f'OANDA XAU_USD ({host.split("//")[-1]})'
+                          print(f'✅ OANDA: {len(done)} แท่งที่ปิดแล้ว '
+                                f'(ข้ามแท่งยังไม่ปิด {len(cands) - len(done)})')
+                          break
+                      print(f'⚠️  {host}: ตอบกลับแต่ไม่มีแท่งที่ปิดแล้ว')
+                  except Exception as e:
+                      print(f'⚠️  {host} ล้มเหลว: {e!r}')
+          else:
+              print('ℹ️  ยังไม่มี secret OANDA_TOKEN — ใช้แหล่งสำรอง Yahoo')
+
+          # ══ แหล่งสำรอง: Yahoo XAUUSD=X (spot เหมือนกัน) ════════════════
+          if df_new.empty:
+              print('⏳ Waiting 30s to avoid Yahoo Finance rate limit...')
+              time.sleep(30)
+              for attempt in range(3):
+                  try:
+                      h = yf.Ticker(SYMBOL).history(start=start_date, end=end_date)
+                      if not h.empty:
+                          h = h[['Open','High','Low','Close','Volume']].reset_index()
+                          h.rename(columns={h.columns[0]: 'Date_raw'}, inplace=True)
+                          df_new = h
+                          SRC = f'Yahoo {SYMBOL}'
+                      break
+                  except Exception as e:
+                      print(f'⚠️  Attempt {attempt+1}/3 failed: {e}')
+                      if attempt < 2:
+                          time.sleep(30 * (attempt + 1))
 
           if df_new.empty:
-              # ห้าม fallback ไป GC=F เงียบๆ — เขียนราคาผิดแย่กว่าไม่เขียน
-              print('❌ ' + SYMBOL + ' ไม่มีข้อมูล — ไม่เขียน gold_prices.csv รอบนี้')
+              # ห้าม fallback ไปฟิวเจอร์สเงียบๆ — เขียนราคาผิดแย่กว่าไม่เขียน
+              print('❌ ทุกแหล่ง spot ไม่มีข้อมูล — ไม่เขียน gold_prices.csv รอบนี้')
               with open('GOLD_INFO', 'w') as f:
-                  f.write(f'ERROR: {SYMBOL} ไม่มีข้อมูล — ไม่เขียนไฟล์')
+                  f.write('ERROR: spot XAU/USD ไม่มีข้อมูล — ไม่เขียนไฟล์')
           else:
-              df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
-              df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
+              print(f'📡 แหล่งข้อมูลที่ใช้รอบนี้: {SRC}')
               df_new['Date'] = to_trade_date(df_new['Date_raw'])
               df_new = df_new[['Date','Open','High','Low','Close','Volume']]
               before_cut = len(df_new)
@@ -292,7 +343,7 @@ jobs:
               print(f'✅ Gold: {len(df_all)} rows (+{new_count}) | ${latest_price:.1f} @ {latest_date}')
 
               with open('GOLD_INFO', 'w') as f:
-                  f.write(f'+{new_count} rows | ${latest_price:.1f} @ {latest_date}')
+                  f.write(f'+{new_count} rows | ${latest_price:.1f} @ {latest_date} | src={SRC}')
           EOF
 
       # ════════════════════════════════════════════════════════════
