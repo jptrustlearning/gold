@@ -100,6 +100,35 @@ jobs:
                   w()
                   time.sleep(8)
 
+          # ── 2.5) candidate spot quote APIs (สำหรับให้ Cloudflare Worker เรียก) ──
+          w('## 2.5) candidate spot quote APIs (ไม่ต้องใช้ key)')
+          CAND = [
+              'https://data-asg.goldprice.org/dbXRates/USD',
+              'https://forex-data-feed.swissquote.com/public-quotes/bboquotes/instrument/XAU/USD',
+              'https://api.gold-api.com/price/XAU',
+              'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?range=5d&interval=1d',
+          ]
+          for u in CAND:
+              w(f'### `{u}`')
+              try:
+                  req = urllib.request.Request(u, headers={
+                      'User-Agent': 'Mozilla/5.0 (compatible; jptrust-probe)',
+                      'Accept': 'application/json,text/plain,*/*'})
+                  with urllib.request.urlopen(req, timeout=45) as r:
+                      code = r.status
+                      body = r.read().decode('utf-8', 'replace')
+                      cors = r.headers.get('Access-Control-Allow-Origin')
+                  w(f'- HTTP `{code}` · {len(body)} bytes · CORS `{cors}`')
+                  w('```')
+                  w(body[:500].strip())
+                  w('```')
+              except urllib.error.HTTPError as e:
+                  w(f'- HTTPError `{e.code}` — {e.reason}')
+              except Exception as e:
+                  w(f'- ล้มเหลว: `{e!r}`')
+              w()
+              time.sleep(3)
+
           # ── 3) ไฟล์ปัจจุบัน ─────────────────────────────────────────
           w('## 3) gold_prices.csv ปัจจุบัน')
           cur = pd.read_csv('gold_prices.csv', encoding='utf-8-sig')
