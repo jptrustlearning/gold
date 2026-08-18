@@ -1,0 +1,120 @@
+name: "PROBE — เช็คแหล่งราคาทอง (read-only ไม่ commit อะไรทั้งนั้น)"
+
+# workflow_dispatch อย่างเดียว — ไม่มี schedule
+# จุดประสงค์: ดูว่า Yahoo ให้ XAUUSD=X (spot) ย้อนได้ถึงไหน / index timezone เป็นอะไร
+# แล้วเทียบส่วนต่างกับ GC=F (futures) ที่ pipeline ใช้อยู่ตอนนี้
+# ไม่แตะไฟล์ใน repo ไม่ push ไม่มี side effect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: "Probe: XAUUSD=X vs GC=F"
+        run: |
+          python3 << 'PYEOF'
+          import yfinance as yf
+          import pandas as pd
+          from datetime import datetime, timezone
+          import time
+
+          pd.set_option('display.width', 220)
+          pd.set_option('display.max_columns', 20)
+
+          print('yfinance version :', yf.__version__)
+          print('pandas version   :', pd.__version__)
+          print('runner UTC now   :', datetime.now(timezone.utc).isoformat())
+          print()
+
+          CANDIDATES = ['XAUUSD=X', 'GC=F', 'XAU=X', 'GLD']
+          store = {}
+
+          for sym in CANDIDATES:
+              print('=' * 70)
+              print('SYMBOL:', sym)
+              print('=' * 70)
+              try:
+                  h = yf.Ticker(sym).history(period='max', interval='1d')
+              except Exception as e:
+                  print('  ERROR:', repr(e))
+                  print()
+                  time.sleep(10)
+                  continue
+
+              if h is None or h.empty:
+                  print('  EMPTY — Yahoo ไม่มีข้อมูลรายวันให้สัญลักษณ์นี้')
+                  print()
+                  time.sleep(10)
+                  continue
+
+              idx = h.index
+              print('  rows          :', len(h))
+              print('  first bar     :', idx[0])
+              print('  last bar      :', idx[-1])
+              print('  index tz      :', idx.tz)
+              print('  index dtype   :', idx.dtype)
+              # ชั่วโมงของ timestamp บอกว่า Yahoo ติดป้ายที่ "เปิดเซสชัน" หรือ "เที่ยงคืนวันเทรด"
+              print('  hour histogram:', pd.Series(idx.hour).value_counts().to_dict())
+              print('  weekday counts:', pd.Series(idx.dayofweek).value_counts().sort_index().to_dict(),
+                    '  (0=Mon .. 6=Sun)')
+              print()
+              print('  --- 10 แท่งล่าสุด ---')
+              print(h.tail(10)[['Open', 'High', 'Low', 'Close', 'Volume']].to_string())
+              print()
+
+              store[sym] = h
+              time.sleep(10)
+
+          # ── เทียบ spot vs futures ในช่วงที่ทับกัน ──────────────────────
+          if 'XAUUSD=X' in store and 'GC=F' in store:
+              print('=' * 70)
+              print('SPREAD: GC=F (futures) − XAUUSD=X (spot)  · 20 วันล่าสุดที่ทับกัน')
+              print('=' * 70)
+              a = store['XAUUSD=X']['Close'].copy()
+              b = store['GC=F']['Close'].copy()
+              a.index = a.index.tz_localize(None).normalize() if a.index.tz is not None else a.index.normalize()
+              b.index = b.index.tz_localize(None).normalize() if b.index.tz is not None else b.index.normalize()
+              a = a[~a.index.duplicated(keep='last')]
+              b = b[~b.index.duplicated(keep='last')]
+              cmp = pd.DataFrame({'spot': a, 'fut': b}).dropna()
+              if cmp.empty:
+                  print('  ไม่มีวันที่ทับกันเลย (แปลว่าวันที่เหลื่อมกันจริง — ข้อมูลสำคัญ)')
+              else:
+                  cmp['diff'] = (cmp['fut'] - cmp['spot']).round(2)
+                  cmp['diff_pct'] = ((cmp['fut'] / cmp['spot'] - 1) * 100).round(3)
+                  print(cmp.tail(20).to_string())
+                  print()
+                  print('  ค่าเฉลี่ยส่วนต่าง 1 ปีล่าสุด:',
+                        round(cmp['diff'].tail(250).mean(), 2), 'USD /',
+                        round(cmp['diff_pct'].tail(250).mean(), 3), '%')
+
+          # ── เทียบกับไฟล์ที่ repo ใช้อยู่ ────────────────────────────────
+          print()
+          print('=' * 70)
+          print('ไฟล์ปัจจุบันใน repo: gold_prices.csv (10 แถวล่าสุด)')
+          print('=' * 70)
+          cur = pd.read_csv('gold_prices.csv', encoding='utf-8-sig')
+          cur.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
+          print('  rows:', len(cur), '| first:', cur['Date'].iloc[0], '| last:', cur['Date'].iloc[-1])
+          print(cur.tail(10).to_string(index=False))
+
+          print()
+          print('=' * 70)
+          print('PROBE จบ — ไม่มีไฟล์ไหนถูกแก้หรือ push')
+          print('=' * 70)
+          PYEOF
