@@ -43,6 +43,30 @@ jobs:
 
           FALLBACK_START = '2020-01-01'
 
+          # ══ ตัวช่วยเรื่องวันที่ — แก้บั๊ก "วันเลื่อน 1 วัน" + "แท่งค้างครึ่งเซสชัน" ══
+          # Yahoo ติดป้ายแท่งรายวันของฟิวเจอร์ส/spot ที่ "เวลาเปิดเซสชัน" (18:00 ET ของวันก่อนหน้า)
+          # โค้ดเดิมใช้ tz_localize(None) ซึ่งตัด timezone ทิ้งโดยไม่แปลงเวลา -> วันที่ถอยไป 1 วัน
+          from zoneinfo import ZoneInfo
+          ET = ZoneInfo('America/New_York')
+          OVERLAP_DAYS = 10   # ดึงทับย้อนหลัง เพื่อเขียนทับแท่งที่เคยเก็บไม่ครบ
+
+          def to_trade_date(raw):
+              idx = pd.DatetimeIndex(raw)
+              if idx.tz is not None:
+                  idx = idx.tz_convert(ET).tz_localize(None)
+              shift = pd.to_timedelta((idx.hour >= 17).astype(int), unit='D')
+              return (idx + shift).normalize()
+
+          def session_cutoff():
+              # เซสชันของวันเทรด D ปิด 17:00 ET ของวัน D — ก่อนหน้านั้นแท่งยังไม่จบ ห้ามเก็บ
+              now_et = datetime.now(ET)
+              d = now_et.date()
+              if now_et.hour < 17:
+                  d = d - timedelta(days=1)
+              return pd.Timestamp(d)
+
+          print(f'🕓 cutoff วันเทรดที่ปิดแล้ว: {session_cutoff().date()}  (ET now {datetime.now(ET):%Y-%m-%d %H:%M})')
+
           ASSETS = [
               {"symbol": "DX-Y.NYB", "csv": "dxy_prices.csv",   "name": "DXY",          "decimals": 2},
               {"symbol": "^TNX",     "csv": "us10y_prices.csv", "name": "US 10Y Yield", "decimals": 3},
@@ -68,14 +92,14 @@ jobs:
                   df_existing.columns = ['Date','Open','High','Low','Close','Volume']
                   df_existing['Date'] = pd.to_datetime(df_existing['Date'])
                   last_date = df_existing['Date'].max()
-                  start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
-                  print(f'📂 Existing: {len(df_existing)} rows, last: {last_date.date()}')
+                  start_date = (last_date - timedelta(days=OVERLAP_DAYS)).strftime('%Y-%m-%d')
+                  print(f'📂 Existing: {len(df_existing)} rows, last: {last_date.date()} (ดึงทับย้อน {OVERLAP_DAYS} วัน)')
               else:
                   df_existing = pd.DataFrame(columns=['Date','Open','High','Low','Close','Volume'])
                   start_date = FALLBACK_START
                   print(f'📂 No existing file — starting from {FALLBACK_START}')
 
-              end_date = datetime.now().strftime('%Y-%m-%d')
+              end_date = (datetime.now() + timedelta(days=2)).strftime('%Y-%m-%d')
               print(f'🔄 Fetching: {start_date} → {end_date}')
 
               df_new = pd.DataFrame()
@@ -105,10 +129,12 @@ jobs:
               try:
                   df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
                   df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
-                  if df_new['Date_raw'].dt.tz is not None:
-                      df_new['Date_raw'] = df_new['Date_raw'].dt.tz_localize(None)
-                  df_new['Date'] = df_new['Date_raw']
+                  df_new['Date'] = to_trade_date(df_new['Date_raw'])
                   df_new = df_new[['Date','Open','High','Low','Close','Volume']]
+                  before_cut = len(df_new)
+                  df_new = df_new[df_new['Date'] <= session_cutoff()]
+                  if before_cut != len(df_new):
+                      print(f'  ✂️  ตัดแท่งที่เซสชันยังไม่ปิด {before_cut - len(df_new)} แถว')
                   for col in ['Open','High','Low','Close']:
                       df_new[col] = df_new[col].round(decimals)
                   df_new['Volume'] = df_new['Volume'].fillna(0).astype(int)
@@ -164,22 +190,49 @@ jobs:
           from datetime import datetime, timedelta
           import os, time
 
-          SYMBOL = 'GC=F'
+          # ⚠️ เปลี่ยนจาก 'GC=F' (ฟิวเจอร์ส มี premium เหนือ spot ~1%) เป็น spot XAU/USD
+          SYMBOL = 'XAUUSD=X'
           CSV_FILE = 'gold_prices.csv'
           FALLBACK_START = '2020-01-01'
+
+          # ══ ตัวช่วยเรื่องวันที่ — แก้บั๊ก "วันเลื่อน 1 วัน" + "แท่งค้างครึ่งเซสชัน" ══
+          # Yahoo ติดป้ายแท่งรายวันของฟิวเจอร์ส/spot ที่ "เวลาเปิดเซสชัน" (18:00 ET ของวันก่อนหน้า)
+          # โค้ดเดิมใช้ tz_localize(None) ซึ่งตัด timezone ทิ้งโดยไม่แปลงเวลา -> วันที่ถอยไป 1 วัน
+          from zoneinfo import ZoneInfo
+          ET = ZoneInfo('America/New_York')
+          OVERLAP_DAYS = 10   # ดึงทับย้อนหลัง เพื่อเขียนทับแท่งที่เคยเก็บไม่ครบ
+
+          def to_trade_date(raw):
+              idx = pd.DatetimeIndex(raw)
+              if idx.tz is not None:
+                  idx = idx.tz_convert(ET).tz_localize(None)
+              shift = pd.to_timedelta((idx.hour >= 17).astype(int), unit='D')
+              return (idx + shift).normalize()
+
+          def session_cutoff():
+              # เซสชันของวันเทรด D ปิด 17:00 ET ของวัน D — ก่อนหน้านั้นแท่งยังไม่จบ ห้ามเก็บ
+              now_et = datetime.now(ET)
+              d = now_et.date()
+              if now_et.hour < 17:
+                  d = d - timedelta(days=1)
+              return pd.Timestamp(d)
+
+          print(f'🕓 cutoff วันเทรดที่ปิดแล้ว: {session_cutoff().date()}  (ET now {datetime.now(ET):%Y-%m-%d %H:%M})')
+
+
 
           if os.path.exists(CSV_FILE):
               df_existing = pd.read_csv(CSV_FILE, encoding='utf-8-sig')
               df_existing.columns = ['Date','Open','High','Low','Close','Volume']
               df_existing['Date'] = pd.to_datetime(df_existing['Date'])
               last_date = df_existing['Date'].max()
-              start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
-              print(f'📂 Existing gold: {len(df_existing)} rows, last: {last_date.date()}')
+              start_date = (last_date - timedelta(days=OVERLAP_DAYS)).strftime('%Y-%m-%d')
+              print(f'📂 Existing gold: {len(df_existing)} rows, last: {last_date.date()} (ดึงทับย้อน {OVERLAP_DAYS} วัน)')
           else:
               df_existing = pd.DataFrame(columns=['Date','Open','High','Low','Close','Volume'])
               start_date = FALLBACK_START
 
-          end_date = datetime.now().strftime('%Y-%m-%d')
+          end_date = (datetime.now() + timedelta(days=2)).strftime('%Y-%m-%d')
           print(f'🔄 Fetching {SYMBOL}: {start_date} → {end_date}')
 
           # Wait before fetching to avoid rate limit from Step 1
@@ -203,16 +256,21 @@ jobs:
                       raise
 
           if df_new.empty:
-              print('ℹ️  No new gold data')
+              # ห้าม fallback ไป GC=F เงียบๆ — เขียนราคาผิดแย่กว่าไม่เขียน
+              print('❌ ' + SYMBOL + ' ไม่มีข้อมูล — ไม่เขียน gold_prices.csv รอบนี้')
               with open('GOLD_INFO', 'w') as f:
-                  f.write('no new data')
+                  f.write(f'ERROR: {SYMBOL} ไม่มีข้อมูล — ไม่เขียนไฟล์')
           else:
               df_new = df_new[['Open','High','Low','Close','Volume']].reset_index()
               df_new.rename(columns={'Date': 'Date_raw'}, inplace=True)
-              if df_new['Date_raw'].dt.tz is not None:
-                  df_new['Date_raw'] = df_new['Date_raw'].dt.tz_localize(None)
-              df_new['Date'] = df_new['Date_raw']
+              df_new['Date'] = to_trade_date(df_new['Date_raw'])
               df_new = df_new[['Date','Open','High','Low','Close','Volume']]
+              before_cut = len(df_new)
+              df_new = df_new[df_new['Date'] <= session_cutoff()]
+              if before_cut != len(df_new):
+                  print(f'✂️  ตัดแท่งที่เซสชันยังไม่ปิด {before_cut - len(df_new)} แถว')
+              if df_new.empty:
+                  raise SystemExit('ไม่มีแท่งที่ปิดแล้วให้เขียน')
               for col in ['Open','High','Low','Close']:
                   df_new[col] = df_new[col].round(1)
               df_new['Volume'] = df_new['Volume'].astype(int)
@@ -220,6 +278,7 @@ jobs:
 
               df_all = pd.concat([df_existing, df_new], ignore_index=True)
               df_all['Date'] = pd.to_datetime(df_all['Date'])
+              df_all = df_all[df_all['Date'].dt.dayofweek < 5]   # spot เปิดคืนวันอาทิตย์ -> จัดเป็นวันจันทร์แล้ว
               df_all = df_all.drop_duplicates(subset='Date', keep='last')
               df_all = df_all.sort_values('Date').reset_index(drop=True)
 
