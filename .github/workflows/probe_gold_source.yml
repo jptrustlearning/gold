@@ -1,9 +1,7 @@
-name: "PROBE — เช็คแหล่งราคาทอง (read-only ไม่ commit อะไรทั้งนั้น)"
+name: "PROBE — เช็คแหล่งราคาทอง (เขียนผลลง PROBE_RESULT.md)"
 
-# workflow_dispatch อย่างเดียว — ไม่มี schedule
-# จุดประสงค์: ดูว่า Yahoo ให้ XAUUSD=X (spot) ย้อนได้ถึงไหน / index timezone เป็นอะไร
-# แล้วเทียบส่วนต่างกับ GC=F (futures) ที่ pipeline ใช้อยู่ตอนนี้
-# ไม่แตะไฟล์ใน repo ไม่ push ไม่มี side effect
+# workflow_dispatch อย่างเดียว — ไม่แตะ gold_prices.csv หรือไฟล์ข้อมูลใดๆ
+# commit เฉพาะ PROBE_RESULT.md เพื่อให้อ่านผลได้โดยไม่ต้องเปิด log ของ Actions
 
 on:
   workflow_dispatch:
@@ -16,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,96 +25,104 @@ jobs:
       - name: Install dependencies
         run: pip install yfinance pandas
 
-      - name: "Probe: XAUUSD=X vs GC=F"
+      - name: "Probe spot gold sources"
         run: |
           python3 << 'PYEOF'
-          import yfinance as yf
+          import urllib.request, urllib.error, io, time
           import pandas as pd
           from datetime import datetime, timezone
-          import time
 
-          pd.set_option('display.width', 220)
-          pd.set_option('display.max_columns', 20)
+          out = []
+          def w(line=''):
+              print(line)
+              out.append(str(line))
 
-          print('yfinance version :', yf.__version__)
-          print('pandas version   :', pd.__version__)
-          print('runner UTC now   :', datetime.now(timezone.utc).isoformat())
-          print()
+          w('# PROBE RESULT')
+          w()
+          w(f'- run UTC: `{datetime.now(timezone.utc).isoformat()}`')
+          try:
+              import yfinance as yf
+              w(f'- yfinance: `{yf.__version__}`  ·  pandas: `{pd.__version__}`')
+          except Exception as e:
+              yf = None
+              w(f'- yfinance import ล้มเหลว: `{e!r}`')
+          w()
 
-          CANDIDATES = ['XAUUSD=X', 'GC=F', 'XAU=X', 'GLD']
-          store = {}
-
-          for sym in CANDIDATES:
-              print('=' * 70)
-              print('SYMBOL:', sym)
-              print('=' * 70)
+          # ── 1) stooq ────────────────────────────────────────────────
+          w('## 1) stooq')
+          URLS = [
+              'https://stooq.com/q/d/l/?s=xauusd&i=d&d1=20260801&d2=20260819',
+              'https://stooq.com/q/d/l/?s=xauusd&i=d',
+              'https://stooq.pl/q/d/l/?s=xauusd&i=d',
+          ]
+          for u in URLS:
+              w(f'### `{u}`')
               try:
-                  h = yf.Ticker(sym).history(period='max', interval='1d')
+                  req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 jptrust-probe'})
+                  with urllib.request.urlopen(req, timeout=45) as r:
+                      code = r.status
+                      body = r.read().decode('utf-8', 'replace')
+                  w(f'- HTTP `{code}` · {len(body)} bytes')
+                  w('```')
+                  w(body[:400].strip())
+                  w('```')
+                  if body.lstrip().lower().startswith('date'):
+                      t = pd.read_csv(io.StringIO(body))
+                      w(f'- parsed OK: {len(t)} rows · cols `{list(t.columns)}`')
+                      w(f'- first `{t.iloc[0,0]}` · last `{t.iloc[-1,0]}`')
+                      w('```')
+                      w(t.tail(6).to_string(index=False))
+                      w('```')
+              except urllib.error.HTTPError as e:
+                  w(f'- HTTPError `{e.code}` — {e.reason}')
               except Exception as e:
-                  print('  ERROR:', repr(e))
-                  print()
-                  time.sleep(10)
-                  continue
+                  w(f'- ล้มเหลว: `{e!r}`')
+              w()
+              time.sleep(3)
 
-              if h is None or h.empty:
-                  print('  EMPTY — Yahoo ไม่มีข้อมูลรายวันให้สัญลักษณ์นี้')
-                  print()
-                  time.sleep(10)
-                  continue
+          # ── 2) yahoo symbols ────────────────────────────────────────
+          w('## 2) Yahoo (yfinance)')
+          if yf is not None:
+              for sym in ['XAUUSD=X', 'XAU=X', 'GC=F', 'GLD']:
+                  w(f'### `{sym}`')
+                  try:
+                      h = yf.Ticker(sym).history(period='1mo', interval='1d')
+                      if h is None or h.empty:
+                          w('- EMPTY (ไม่มีข้อมูลรายวัน)')
+                      else:
+                          w(f'- {len(h)} rows · index tz `{h.index.tz}`')
+                          w(f'- ชั่วโมงของ timestamp: `{pd.Series(h.index.hour).value_counts().to_dict()}`')
+                          w('```')
+                          w(h.tail(6)[['Open','High','Low','Close','Volume']].to_string())
+                          w('```')
+                  except Exception as e:
+                      w(f'- ล้มเหลว: `{e!r}`')
+                  w()
+                  time.sleep(8)
 
-              idx = h.index
-              print('  rows          :', len(h))
-              print('  first bar     :', idx[0])
-              print('  last bar      :', idx[-1])
-              print('  index tz      :', idx.tz)
-              print('  index dtype   :', idx.dtype)
-              # ชั่วโมงของ timestamp บอกว่า Yahoo ติดป้ายที่ "เปิดเซสชัน" หรือ "เที่ยงคืนวันเทรด"
-              print('  hour histogram:', pd.Series(idx.hour).value_counts().to_dict())
-              print('  weekday counts:', pd.Series(idx.dayofweek).value_counts().sort_index().to_dict(),
-                    '  (0=Mon .. 6=Sun)')
-              print()
-              print('  --- 10 แท่งล่าสุด ---')
-              print(h.tail(10)[['Open', 'High', 'Low', 'Close', 'Volume']].to_string())
-              print()
-
-              store[sym] = h
-              time.sleep(10)
-
-          # ── เทียบ spot vs futures ในช่วงที่ทับกัน ──────────────────────
-          if 'XAUUSD=X' in store and 'GC=F' in store:
-              print('=' * 70)
-              print('SPREAD: GC=F (futures) − XAUUSD=X (spot)  · 20 วันล่าสุดที่ทับกัน')
-              print('=' * 70)
-              a = store['XAUUSD=X']['Close'].copy()
-              b = store['GC=F']['Close'].copy()
-              a.index = a.index.tz_localize(None).normalize() if a.index.tz is not None else a.index.normalize()
-              b.index = b.index.tz_localize(None).normalize() if b.index.tz is not None else b.index.normalize()
-              a = a[~a.index.duplicated(keep='last')]
-              b = b[~b.index.duplicated(keep='last')]
-              cmp = pd.DataFrame({'spot': a, 'fut': b}).dropna()
-              if cmp.empty:
-                  print('  ไม่มีวันที่ทับกันเลย (แปลว่าวันที่เหลื่อมกันจริง — ข้อมูลสำคัญ)')
-              else:
-                  cmp['diff'] = (cmp['fut'] - cmp['spot']).round(2)
-                  cmp['diff_pct'] = ((cmp['fut'] / cmp['spot'] - 1) * 100).round(3)
-                  print(cmp.tail(20).to_string())
-                  print()
-                  print('  ค่าเฉลี่ยส่วนต่าง 1 ปีล่าสุด:',
-                        round(cmp['diff'].tail(250).mean(), 2), 'USD /',
-                        round(cmp['diff_pct'].tail(250).mean(), 3), '%')
-
-          # ── เทียบกับไฟล์ที่ repo ใช้อยู่ ────────────────────────────────
-          print()
-          print('=' * 70)
-          print('ไฟล์ปัจจุบันใน repo: gold_prices.csv (10 แถวล่าสุด)')
-          print('=' * 70)
+          # ── 3) ไฟล์ปัจจุบัน ─────────────────────────────────────────
+          w('## 3) gold_prices.csv ปัจจุบัน')
           cur = pd.read_csv('gold_prices.csv', encoding='utf-8-sig')
-          cur.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-          print('  rows:', len(cur), '| first:', cur['Date'].iloc[0], '| last:', cur['Date'].iloc[-1])
-          print(cur.tail(10).to_string(index=False))
+          cur.columns = ['Date','Open','High','Low','Close','Volume']
+          w(f'- {len(cur)} rows · first `{cur["Date"].iloc[0]}` · last `{cur["Date"].iloc[-1]}`')
+          w('```')
+          w(cur.tail(6).to_string(index=False))
+          w('```')
 
-          print()
-          print('=' * 70)
-          print('PROBE จบ — ไม่มีไฟล์ไหนถูกแก้หรือ push')
-          print('=' * 70)
+          with open('PROBE_RESULT.md', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(out) + '\n')
+          print('\n>>> เขียน PROBE_RESULT.md แล้ว')
           PYEOF
+
+      - name: "Commit PROBE_RESULT.md"
+        run: |
+          git config user.email "jptrustlearning@users.noreply.github.com"
+          git config user.name "JP Trust Learning"
+          git add PROBE_RESULT.md
+          if git diff --cached --quiet; then
+            echo "ไม่มีอะไรเปลี่ยน"
+          else
+            git commit -m "probe: ผลตรวจแหล่งราคาทอง spot ($(date -u +'%d/%m/%Y %H:%M UTC'))"
+            git pull --rebase --autostash || true
+            git push
+          fi
