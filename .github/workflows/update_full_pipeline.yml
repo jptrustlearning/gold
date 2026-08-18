@@ -289,7 +289,35 @@ jobs:
           else:
               print('ℹ️  ยังไม่มี secret OANDA_TOKEN — ใช้แหล่งสำรอง Yahoo')
 
-          # ══ แหล่งสำรอง: Yahoo XAUUSD=X (spot เหมือนกัน) ════════════════
+          # ══ แหล่งสำรอง 1: stooq (spot XAUUSD · ไม่ต้องใช้ API key) ══════
+          if df_new.empty:
+              import urllib.request, io as _io
+              d1 = start_date.replace('-', '')
+              d2 = (datetime.now() + timedelta(days=1)).strftime('%Y%m%d')
+              url = f'https://stooq.com/q/d/l/?s=xauusd&i=d&d1={d1}&d2={d2}'
+              try:
+                  req = urllib.request.Request(url, headers={'User-Agent': 'jptrust-pipeline/1.0'})
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      txt = r.read().decode('utf-8', 'replace')
+                  if txt.lstrip().lower().startswith('date'):
+                      t = pd.read_csv(_io.StringIO(txt))
+                      t.columns = [c.strip().title() for c in t.columns]
+                      if 'Volume' not in t.columns:
+                          t['Volume'] = 0
+                      t = t[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']].dropna(
+                          subset=['Open', 'High', 'Low', 'Close'])
+                      if not t.empty:
+                          t.rename(columns={'Date': 'Date_raw'}, inplace=True)
+                          t['Date_raw'] = pd.to_datetime(t['Date_raw'])
+                          df_new = t.reset_index(drop=True)
+                          SRC = 'stooq xauusd'
+                          print(f'✅ stooq: {len(df_new)} แถว')
+                  else:
+                      print(f'⚠️  stooq ตอบกลับไม่ใช่ CSV: {txt[:120]!r}')
+              except Exception as e:
+                  print(f'⚠️  stooq ล้มเหลว: {e!r}')
+
+          # ══ แหล่งสำรอง 2: Yahoo XAUUSD=X ═══════════════════════════════
           if df_new.empty:
               print('⏳ Waiting 30s to avoid Yahoo Finance rate limit...')
               time.sleep(30)
@@ -307,25 +335,26 @@ jobs:
                       if attempt < 2:
                           time.sleep(30 * (attempt + 1))
 
-              # spot ไม่มี volume รวมศูนย์ (Yahoo คืน 0) แต่ D2 ของ momentum score
-              # เป็น percentile ของ volume เทียบย้อน 252 วัน -> ถ้าใส่ 0 สกอร์จะพังทั้งแถบ
-              # จึงยืม volume ฝั่ง COMEX (GC=F) มาใช้ต่อ = คอลัมน์เดิมไม่มีรอยต่อ
-              if not df_new.empty:
-                  try:
-                      time.sleep(10)
-                      gv = yf.Ticker('GC=F').history(start=start_date, end=end_date)
-                      if not gv.empty:
-                          gv = gv[['Volume']].reset_index()
-                          gv.rename(columns={gv.columns[0]: 'Date_raw'}, inplace=True)
-                          gv['Date'] = to_trade_date(gv['Date_raw'])
-                          vmap = dict(zip(gv['Date'], gv['Volume']))
-                          spot_dates = to_trade_date(df_new['Date_raw'])
-                          df_new['Volume'] = [vmap.get(d, 0) for d in spot_dates]
-                          hit = int((df_new['Volume'] > 0).sum())
-                          print(f'🔗 ยืม volume จาก GC=F (COMEX) สำเร็จ {hit}/{len(df_new)} แถว')
-                          SRC = f'{SRC} + vol GC=F'
-                  except Exception as e:
-                      print(f'⚠️  ดึง volume GC=F ไม่ได้: {e!r} — volume จะเป็น 0')
+          # ══ volume: แหล่ง spot ไม่มี volume รวมศูนย์ แต่ D2 ของ momentum score
+          # เป็น percentile ของ volume เทียบย้อน 252 วัน -> ถ้าใส่ 0 สกอร์จะพังทั้งแถบ
+          # จึงยืม volume ฝั่ง COMEX (GC=F) มาใช้ต่อ = คอลัมน์เดิมไม่มีรอยต่อ
+          # (ข้ามถ้าเป็น OANDA เพราะมี tick volume ของตัวเองอยู่แล้ว)
+          if not df_new.empty and not str(SRC).startswith('OANDA'):
+              try:
+                  time.sleep(10)
+                  gv = yf.Ticker('GC=F').history(start=start_date, end=end_date)
+                  if not gv.empty:
+                      gv = gv[['Volume']].reset_index()
+                      gv.rename(columns={gv.columns[0]: 'Date_raw'}, inplace=True)
+                      gv['Date'] = to_trade_date(gv['Date_raw'])
+                      vmap = dict(zip(gv['Date'], gv['Volume']))
+                      spot_dates = to_trade_date(df_new['Date_raw'])
+                      df_new['Volume'] = [vmap.get(d, 0) for d in spot_dates]
+                      hit = int((df_new['Volume'] > 0).sum())
+                      print(f'🔗 ยืม volume จาก GC=F (COMEX) สำเร็จ {hit}/{len(df_new)} แถว')
+                      SRC = f'{SRC} + vol GC=F'
+              except Exception as e:
+                  print(f'⚠️  ดึง volume GC=F ไม่ได้: {e!r} — volume จะเป็น 0')
 
           if df_new.empty:
               # ห้าม fallback ไปฟิวเจอร์สเงียบๆ — เขียนราคาผิดแย่กว่าไม่เขียน
