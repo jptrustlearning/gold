@@ -307,6 +307,26 @@ jobs:
                       if attempt < 2:
                           time.sleep(30 * (attempt + 1))
 
+              # spot ไม่มี volume รวมศูนย์ (Yahoo คืน 0) แต่ D2 ของ momentum score
+              # เป็น percentile ของ volume เทียบย้อน 252 วัน -> ถ้าใส่ 0 สกอร์จะพังทั้งแถบ
+              # จึงยืม volume ฝั่ง COMEX (GC=F) มาใช้ต่อ = คอลัมน์เดิมไม่มีรอยต่อ
+              if not df_new.empty:
+                  try:
+                      time.sleep(10)
+                      gv = yf.Ticker('GC=F').history(start=start_date, end=end_date)
+                      if not gv.empty:
+                          gv = gv[['Volume']].reset_index()
+                          gv.rename(columns={gv.columns[0]: 'Date_raw'}, inplace=True)
+                          gv['Date'] = to_trade_date(gv['Date_raw'])
+                          vmap = dict(zip(gv['Date'], gv['Volume']))
+                          spot_dates = to_trade_date(df_new['Date_raw'])
+                          df_new['Volume'] = [vmap.get(d, 0) for d in spot_dates]
+                          hit = int((df_new['Volume'] > 0).sum())
+                          print(f'🔗 ยืม volume จาก GC=F (COMEX) สำเร็จ {hit}/{len(df_new)} แถว')
+                          SRC = f'{SRC} + vol GC=F'
+                  except Exception as e:
+                      print(f'⚠️  ดึง volume GC=F ไม่ได้: {e!r} — volume จะเป็น 0')
+
           if df_new.empty:
               # ห้าม fallback ไปฟิวเจอร์สเงียบๆ — เขียนราคาผิดแย่กว่าไม่เขียน
               print('❌ ทุกแหล่ง spot ไม่มีข้อมูล — ไม่เขียน gold_prices.csv รอบนี้')
