@@ -1,0 +1,58 @@
+name: Gold Spot Pipeline (XAU/USD)
+
+# ════════════════════════════════════════════════════════════════
+# ดึงราคา spot XAU/USD → gold_prices_spot.csv (แยกไฟล์จาก GC=F)
+# มติ Joon 18 ส.ค. 2026: gold_prices.csv คงเป็น GC=F เหมือนเดิม
+# ไฟล์นี้เป็น spot ล้วน สำหรับหน้า/ฟีเจอร์ที่ต้องตรงจอเทรดเดอร์ forex
+# ต้องมี secret OANDA_TOKEN (บัญชี practice ฟรีใช้ได้) — ไม่มี = ข้าม
+# ════════════════════════════════════════════════════════════════
+
+on:
+  schedule:
+    # หลังเซสชันปิด 17:00 ET (= 21:00/22:00 UTC ตาม DST) — 3 รอบกันข้อมูลยังไม่มา
+    # นาที :45 เลี่ยงชน Full Pipeline (นาที :30) และ H1 (นาที :05)
+    # 23:45 UTC จ-ศ + 00:45/01:45 UTC อ-ส = 06:45/07:45/08:45 ไทย
+    - cron: '45 23 * * 1-5'
+    - cron: '45 0,1 * * 2-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  spot-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GOLD_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Fetch spot XAU/USD
+        env:
+          OANDA_TOKEN: ${{ secrets.OANDA_TOKEN }}
+          OANDA_HOST: ${{ secrets.OANDA_HOST }}
+        run: python3 fetch_spot_gold.py
+
+      - name: Commit & push
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "JP Trust Learning"
+          git add gold_prices_spot.csv 2>/dev/null || true
+          git diff --cached --quiet || (
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            INFO=$(cat SPOT_INFO 2>/dev/null || echo "updated")
+            git commit -m "🥇 Gold Spot Pipeline — ${TIMESTAMP} (${INFO})"
+            git pull --rebase
+            git push
+          )
