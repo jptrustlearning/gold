@@ -2948,4 +2948,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-08-18,4407.3,36.0,40.55,68.82,29.46,50,65,20,10.0,0.753,79.83,21.17,-4.55,0.55,9.9,-2.15,False,2.043,Extended,-0.165,⚠️ Mild Bullish Reversal (bad for sell),Weak Sell,19/08/2026 23:46 UTC,Sell Recovery
 2026-08-19,4547.3,31.07,35.61,59.46,29.2,65,30,20,10.0,0.666,81.98,22.74,-4.55,3.14,11.7,1.0,False,2.887,Extreme Extended,0.607,⚠️ Mild Bullish Reversal (bad for sell),Weak Sell,20/08/2026 23:50 UTC,
 2026-08-20,4586.0,33.5,33.5,57.11,28.92,65,30,10,10.0,0.42,89.08,20.17,0.0,5.1,10.59,2.09,False,2.842,Extreme Extended,1.018,,Weak Sell,21/08/2026 23:49 UTC,
-2026-08-21,4661.6,32.46,32.46,53.47,26.27,65,30,10,10.0,0.428,92.02,20.47,0.0,6.42,15.2,4.03,False,2.964,Extreme Extended,1.033,None,Weak Sell,22/08/2026 03:12 UTC,None
+2026-08-21,4680.6,32.4,32.4,53.15,26.27,65,30,10,10.0,0.423,92.22,20.76,0.0,6.85,15.67,4.46,False,3.054,Extreme Extended,1.124,None,Weak Sell,22/08/2026 23:45 UTC,None
