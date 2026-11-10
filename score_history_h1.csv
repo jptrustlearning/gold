@@ -13952,3 +13952,4 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-11-09 10:00,4127.9,69.69,74.24,95.01,85.42,80,70,100,15.0,0.505,47.51,26.71,-4.55,5.63,-0.71,False,-0.663,Normal,1.35,💀 Death Cross,Moderate ↑,09/11/2026 15:45 UTC,Bear Exhaustion
 2026-11-09 18:00,4148.4,73.95,78.49,92.5,88.46,70,70,100,50.0,0.456,72.49,27.45,-4.55,4.66,-1.29,False,-0.537,Normal,1.161,💀 Death Cross,Moderate ↑,10/11/2026 04:44 UTC,Bear Exhaustion
 2026-11-10 01:00,4129.0,67.29,71.83,81.14,79.86,80,70,70,50.0,0.843,49.57,21.33,-4.55,4.25,-1.99,False,-0.642,Normal,1.051,💀 Death Cross,Moderate ↑,10/11/2026 10:06 UTC,Bear Exhaustion
+2026-11-10 10:00,4059.5,46.64,51.19,62.09,95.04,30,0,70,50.0,0.963,21.75,23.49,-4.55,3.68,-3.91,False,-1.045,Normal,0.834,💀💀 Death Cross + Below MAs,Moderate ↑,10/11/2026 15:30 UTC,Bear Exhaustion
