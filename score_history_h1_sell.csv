@@ -13959,4 +13959,5 @@ Date,Price,Net_Score,Gross_Score,D1_Return,D2_Volume,D3_RSI,D4_MA,D5_DirVol,D6_E
 2026-11-11 11:00,4006.5,77.11,81.66,59.79,90.15,100,70,85,85.0,1.577,21.96,15.91,-4.55,-1.17,-4.46,False,True,-1.363,Normal,-0.239,✨ Golden Cross (bad for sell),Strong Sell ↓,11/11/2026 17:01 UTC,Sell Exhaustion
 2026-11-11 18:00,3990.0,74.17,78.71,64.31,82.96,100,70,55,100.0,1.179,3.62,13.62,-4.55,-2.01,-5.09,False,True,-1.462,Normal,-0.434,✨ Golden Cross (bad for sell),Strong Sell ↓,12/11/2026 04:01 UTC,
 2026-11-12 01:00,3982.4,66.17,70.71,73.1,41.19,85,70,55,100.0,1.004,31.12,13.54,-4.55,-3.78,-5.42,False,True,-1.497,Normal,-0.814,✨ Golden Cross (bad for sell),Moderate Sell ↓,12/11/2026 09:59 UTC,
-2026-11-12 10:00,3870.8,98.5,98.5,94.14,96.85,100,100,100,100.0,2.096,17.43,26.94,0.0,-6.57,-7.54,True,False,-2.183,Extreme Depressed,-1.534,None,Very Strong Sell ↓↓,12/11/2026 15:52 UTC,Sell Recovery
+2026-11-12 10:00,3870.8,98.5,98.5,94.14,96.85,100,100,100,100.0,2.096,17.43,26.94,0.0,-6.57,-7.54,True,False,-2.183,Extreme Depressed,-1.534,,Very Strong Sell ↓↓,12/11/2026 15:52 UTC,Sell Recovery
+2026-11-12 16:00,3882.3,95.93,95.93,83.26,92.31,100,100,100,100.0,2.451,25.98,28.46,0.0,-5.64,-7.07,True,False,-2.083,Extreme Depressed,-1.293,None,Very Strong Sell ↓↓,12/11/2026 22:08 UTC,Sell Recovery
